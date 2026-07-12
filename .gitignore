@@ -30,3 +30,27 @@
 *.exe
 *.out
 *.app
+
+# --- CountdownSolver build & tooling artefacts ---
+# CMake build trees (CMakePresets writes to build/<preset>)
+/build/
+build*/
+cmake-build-*/
+
+# vcpkg manifest-mode install tree
+/vcpkg_installed/
+vcpkg_installed/
+
+# Generated / tooling
+compile_commands.json
+.cache/
+.ninja_deps
+.ninja_log
+CMakeUserPresets.json
+
+# IDE / editor
+.vs/
+.vscode/
+.idea/
+*.user
+
