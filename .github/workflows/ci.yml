@@ -21,26 +21,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # The C++23 features used here (deducing this, views::enumerate /
-          # stride / zip, ranges::to) need recent toolchains, so the runners'
-          # defaults (GCC 13, AppleClang, libstdc++ 13) are not sufficient.
-          - name: Linux (GCC 14)
+          # Toolchain baseline: GCC 15+, Clang 21+, MSVC 14.51+, AppleClang 17+.
+          # Anything older lacks the C++23 features used here (deducing this,
+          # views::enumerate / stride / zip, ranges::to, std::expected).
+          - name: Linux (GCC 15)
             os: ubuntu-24.04
             preset: linux-gcc
-            apt: g++-14
-            cxx: g++-14
-          - name: Linux (Clang 18)
+            cxx: g++-15
+          - name: Linux (Clang 21)
             os: ubuntu-24.04
             preset: linux-clang
-            # Point clang explicitly at the GCC 14 libstdc++ (its C++23 library).
-            apt: clang-18 g++-14 libstdc++-14-dev
-            cxx: clang++-18
-            cxxflags: "--gcc-install-dir=/usr/lib/gcc/x86_64-linux-gnu/14"
-          - name: macOS (LLVM Clang)
-            os: macos-14
+            cxx: clang++-21
+            # LLVM 21's libc++ implements the C++23 views + std::expected;
+            # pairing clang with libstdc++ was unreliable for <expected>.
+            cxxflags: "-stdlib=libc++"
+          - name: macOS (AppleClang)
+            os: macos-15
             preset: macos-clang
-            # libc++ only recently implemented these C++23 views; kept
-            # non-blocking until the toolchain is fully sorted.
+            # Needs AppleClang 17+ (Xcode 26); older images ship an older libc++
+            # that lacks these views, so keep non-blocking until then.
             experimental: true
           - name: Windows (MSVC)
             os: windows-2025
@@ -70,17 +69,22 @@ jobs:
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: "4.1.1"
+          cmakeVersion: "latest"
 
-      - name: Install compilers (Linux)
-        if: runner.os == 'Linux'
+      - name: Install GCC 15 (Linux GCC)
+        if: matrix.cxx == 'g++-15'
         run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
           sudo apt-get update
-          sudo apt-get install -y ${{ matrix.apt }}
+          sudo apt-get install -y g++-15
 
-      - name: Install LLVM Clang (macOS)
-        if: runner.os == 'macOS'
-        run: brew install llvm
+      - name: Install Clang 21 + libc++ (Linux Clang)
+        if: matrix.cxx == 'clang++-21'
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+          sudo apt-get install -y libc++-21-dev libc++abi-21-dev
 
       - name: Set up MSVC environment (Windows)
         if: runner.os == 'Windows'
@@ -89,23 +93,13 @@ jobs:
       # COUNTDOWN_BUILD_APP=OFF keeps Qt out of CI: with the app feature
       # disabled, vcpkg installs only Catch2, so the library and full test
       # suite build and run without a lengthy Qt-from-source build.
-      - name: Configure (Linux / Windows)
-        if: runner.os != 'macOS'
+      # COUNTDOWN_BUILD_APP=OFF keeps Qt out of CI: with the app feature
+      # disabled, vcpkg installs only Catch2.
+      - name: Configure
         run: >
           cmake --preset ${{ matrix.preset }} -DCOUNTDOWN_BUILD_APP=OFF
           ${{ matrix.cxx && format('-DCMAKE_CXX_COMPILER={0}', matrix.cxx) || '' }}
           ${{ matrix.cxxflags && format('-DCMAKE_CXX_FLAGS={0}', matrix.cxxflags) || '' }}
-
-      - name: Configure (macOS)
-        if: runner.os == 'macOS'
-        # Use Homebrew LLVM's own libc++ (newer than the macOS SDK's) so the
-        # C++23 views resolve; -Wno-c2y-extensions silences Catch2's __COUNTER__.
-        run: |
-          LLVM="$(brew --prefix llvm)"
-          cmake --preset ${{ matrix.preset }} -DCOUNTDOWN_BUILD_APP=OFF \
-            -DCMAKE_CXX_COMPILER="$LLVM/bin/clang++" \
-            -DCMAKE_CXX_FLAGS="-nostdinc++ -isystem $LLVM/include/c++/v1 -Wno-c2y-extensions" \
-            -DCMAKE_EXE_LINKER_FLAGS="-L$LLVM/lib/c++ -Wl,-rpath,$LLVM/lib/c++"
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
