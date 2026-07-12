@@ -19,13 +19,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Linux (GCC)
+          # The C++23 features used here (deducing this, views::enumerate /
+          # stride / zip, ranges::to) need recent toolchains, so the runners'
+          # defaults (GCC 13, AppleClang, libstdc++ 13) are not sufficient.
+          - name: Linux (GCC 14)
             os: ubuntu-24.04
             preset: linux-gcc
-          - name: Linux (Clang)
+            apt: g++-14
+            cxx: g++-14
+          - name: Linux (Clang 18)
             os: ubuntu-24.04
             preset: linux-clang
-          - name: macOS (AppleClang)
+            # clang uses the newest installed libstdc++, so g++-14 supplies the
+            # C++23 standard library.
+            apt: clang-18 g++-14
+            cxx: clang++-18
+          - name: macOS (LLVM Clang)
             os: macos-14
             preset: macos-clang
           - name: Windows (MSVC)
@@ -58,6 +67,16 @@ jobs:
         with:
           cmakeVersion: "4.1.1"
 
+      - name: Install compilers (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.apt }}
+
+      - name: Install LLVM Clang (macOS)
+        if: runner.os == 'macOS'
+        run: brew install llvm
+
       - name: Set up MSVC environment (Windows)
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
@@ -65,8 +84,21 @@ jobs:
       # COUNTDOWN_BUILD_APP=OFF keeps Qt out of CI: with the app feature
       # disabled, vcpkg installs only Catch2, so the library and full test
       # suite build and run without a lengthy Qt-from-source build.
-      - name: Configure
-        run: cmake --preset ${{ matrix.preset }} -DCOUNTDOWN_BUILD_APP=OFF
+      - name: Configure (Linux / Windows)
+        if: runner.os != 'macOS'
+        run: >
+          cmake --preset ${{ matrix.preset }} -DCOUNTDOWN_BUILD_APP=OFF
+          ${{ matrix.cxx && format('-DCMAKE_CXX_COMPILER={0}', matrix.cxx) || '' }}
+
+      - name: Configure (macOS)
+        if: runner.os == 'macOS'
+        # Use Homebrew LLVM (clang + libc++) instead of AppleClang, which lags on
+        # C++23; point the linker at that libc++ so the binary loads it.
+        run: |
+          LLVM="$(brew --prefix llvm)"
+          cmake --preset ${{ matrix.preset }} -DCOUNTDOWN_BUILD_APP=OFF \
+            -DCMAKE_CXX_COMPILER="$LLVM/bin/clang++" \
+            -DCMAKE_EXE_LINKER_FLAGS="-L$LLVM/lib/c++ -Wl,-rpath,$LLVM/lib/c++"
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
