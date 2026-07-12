@@ -32,14 +32,14 @@ jobs:
             os: ubuntu-24.04
             preset: linux-clang
             cxx: clang++-21
-            # LLVM 21's libc++ implements the C++23 views + std::expected;
-            # pairing clang with libstdc++ was unreliable for <expected>.
-            cxxflags: "-stdlib=libc++"
+            # Use libstdc++ (from GCC 15): libc++ does not yet implement
+            # views::enumerate / views::stride. clang 21 handles libstdc++'s
+            # <expected> fine (unlike the older clang 18).
           - name: macOS (AppleClang)
             os: macos-15
             preset: macos-clang
-            # Needs AppleClang 17+ (Xcode 26); older images ship an older libc++
-            # that lacks these views, so keep non-blocking until then.
+            # macOS has only libc++, which lacks views::enumerate / stride, so
+            # this cannot build until libc++ implements them. Non-blocking.
             experimental: true
           - name: Windows (MSVC)
             os: windows-2025
@@ -71,20 +71,21 @@ jobs:
         with:
           cmakeVersion: "latest"
 
-      - name: Install GCC 15 (Linux GCC)
-        if: matrix.cxx == 'g++-15'
+      # GCC 15 provides libstdc++ 15 for both the GCC job and (as the standard
+      # library) the Clang job.
+      - name: Install GCC 15 (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
           sudo apt-get update
           sudo apt-get install -y g++-15
 
-      - name: Install Clang 21 + libc++ (Linux Clang)
+      - name: Install Clang 21 (Linux Clang)
         if: matrix.cxx == 'clang++-21'
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 21
-          sudo apt-get install -y libc++-21-dev libc++abi-21-dev
 
       - name: Set up MSVC environment (Windows)
         if: runner.os == 'Windows'
