@@ -50,20 +50,21 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Install build tools (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ninja-build
-
-      - name: Install build tools (macOS)
-        if: runner.os == 'macOS'
-        run: brew install ninja
+      # The GitHub runners ship CMake 3.x; the project (and CMakePresets)
+      # require CMake 4. get-cmake installs a matching CMake 4 and Ninja on
+      # every OS.
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "4.1.1"
 
       - name: Set up MSVC environment (Windows)
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
+      # COUNTDOWN_BUILD_APP=OFF keeps Qt out of CI: with the app feature
+      # disabled, vcpkg installs only Catch2, so the library and full test
+      # suite build and run without a lengthy Qt-from-source build.
       - name: Configure
         run: cmake --preset ${{ matrix.preset }} -DCOUNTDOWN_BUILD_APP=OFF
 

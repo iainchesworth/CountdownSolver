@@ -33,6 +33,20 @@ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/deps/vcpkg/scripts/buildsystems/vcpkg
         "  git submodule update --init --depth 1 deps/vcpkg")
 endif()
 
+# ---------------------------------------------------------------------------
+# Select vcpkg manifest features BEFORE project() (the vcpkg toolchain reads
+# VCPKG_MANIFEST_FEATURES when it is loaded at project() time). This ensures a
+# lib/tests-only configuration does not drag in Qt: only the "app" feature pulls
+# qtbase, and only "tests" pulls Catch2. The switches mirror the
+# COUNTDOWN_BUILD_* options, read here from the cache/command line.
+# ---------------------------------------------------------------------------
+if(NOT DEFINED COUNTDOWN_BUILD_APP OR COUNTDOWN_BUILD_APP)
+    list(APPEND VCPKG_MANIFEST_FEATURES "app")
+endif()
+if(NOT DEFINED COUNTDOWN_BUILD_TESTS OR COUNTDOWN_BUILD_TESTS)
+    list(APPEND VCPKG_MANIFEST_FEATURES "tests")
+endif()
+
 project(CountdownSolver
     VERSION 0.1.0
     DESCRIPTION "A solver for the Countdown TV show numbers and letters games"

@@ -6,25 +6,27 @@
   "homepage": "https://github.com/iainchesworth/CountdownSolver",
   "license": "GPL-3.0-or-later",
   "builtin-baseline": "f87344cac03158cbf1467264565f1fd36b382a24",
-  "dependencies": [
-    {
-      "name": "qtbase",
-      "default-features": false,
-      "features": [
-        "widgets",
-        "gui"
-      ]
-    }
-  ],
+  "dependencies": [],
+  "default-features": [],
   "features": {
+    "app": {
+      "description": "Dependencies for the Qt6 GUI application",
+      "dependencies": [
+        {
+          "name": "qtbase",
+          "default-features": false,
+          "features": [
+            "widgets",
+            "gui"
+          ]
+        }
+      ]
+    },
     "tests": {
-      "description": "Build the unit and integration test suites",
+      "description": "Dependencies for the unit and integration test suites",
       "dependencies": [
         "catch2"
       ]
     }
-  },
-  "default-features": [
-    "tests"
-  ]
+  }
 }

@@ -29,6 +29,13 @@ if(COUNTDOWN_ENABLE_SANITIZERS)
         # MSVC ships AddressSanitizer; UBSan is not available.
         target_compile_options(countdown_sanitizers INTERFACE
             "$<$<CONFIG:Debug>:/fsanitize=address>")
+        # MSVC ASan turns on STL container-overflow annotations (string, vector,
+        # optional, ...), which require EVERY linked library (Qt, Catch2, ...) to
+        # also be ASan-instrumented, or the link fails with LNK2038 'annotate_*'
+        # mismatches. vcpkg builds its dependencies without ASan, so disable the
+        # STL annotations wholesale to match.
+        target_compile_definitions(countdown_sanitizers INTERFACE
+            "$<$<CONFIG:Debug>:_DISABLE_STL_ANNOTATION>")
         # /RTC (runtime checks) and incremental linking are incompatible with
         # ASan, so remove /RTC from the Debug flags and disable incremental link.
         string(REGEX REPLACE "/RTC[1csu]+" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
