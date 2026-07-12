@@ -9,8 +9,10 @@ A cross-platform solver for the two games from the TV show **Countdown**:
 - **Letters** — given a set of letters, find the longest dictionary word(s) that
   can be spelled from them.
 
-All game logic lives in a GUI-free library (`countdown::solver`); a thin **Qt 6**
-application provides the GUI.
+All game logic lives in a GUI-free library (`countdown::solver`); a thin **Qt 6
+Quick (QML)** application provides the GUI, wired to the library through a small
+`Solver` backend (`src/app/solver.hpp`). The QML/visual design lives in
+`src/app/qml/` (see `src/app/DESIGN_SPEC.md`).
 
 ## Design highlights
 
@@ -109,7 +111,7 @@ CountdownSolver 0.1.0
   branch: main
 ```
 
-and in the GUI under **Help → About**.
+and in the GUI under **Settings → About**.
 
 ## Testing (TDD)
 
@@ -130,7 +132,7 @@ to solve real rounds.
 
 ```
 src/lib/     countdown::solver — all game logic (no GUI, no platform code)
-src/app/     Qt 6 GUI application
+src/app/     Qt 6 Quick (QML) GUI: solver.* backend + qml/ design
 src/app/platform/{windows,macos,linux}/   one impl each, chosen by CMake
 tests/unit/          unit tests
 tests/integration/   integration tests

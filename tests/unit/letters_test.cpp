@@ -44,6 +44,28 @@ TEST_CASE("best_words returns the longest formable words", "[letters][solve]") {
     REQUIRE(*result == std::vector<std::string>{"creation", "reaction"});
 }
 
+TEST_CASE("find_matches returns words by descending length", "[letters][solve]") {
+    const auto dictionary = Dictionary::from_words(
+        {"cat", "react", "creation", "reaction", "cratering", "zebra"});
+
+    const auto all = dictionary.find_matches("rateciong", 1);
+    REQUIRE(all.has_value());
+    // creation/reaction (8), react (5), cat (3); longest first, alpha within.
+    REQUIRE(*all == std::vector<std::string>{"creation", "reaction", "react", "cat"});
+
+    const auto min5 = dictionary.find_matches("rateciong", 5);
+    REQUIRE(min5.has_value());
+    REQUIRE(*min5 == std::vector<std::string>{"creation", "reaction", "react"});
+}
+
+TEST_CASE("find_matches with min == rack size yields full anagrams", "[letters][solve]") {
+    const auto dictionary = Dictionary::from_words({"tracewiden", "wateredin", "notaword"});
+    // "wanderite" is 9 letters; only a true 9-letter anagram should match.
+    const auto anagrams = dictionary.find_matches("wanderite", 9);
+    REQUIRE(anagrams.has_value());
+    REQUIRE(*anagrams == std::vector<std::string>{"wateredin"});
+}
+
 TEST_CASE("best_words reports failures without throwing", "[letters][solve]") {
     const auto dictionary = Dictionary::from_words({"cat", "dog"});
 

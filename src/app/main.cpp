@@ -1,11 +1,14 @@
-#include "main_window.hpp"
+#include "solver.hpp"
 
 #include "platform/platform.hpp"
 
 #include <countdown/version.hpp>
 
-#include <QApplication>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QString>
+// #include <QFontDatabase>  // uncomment if bundling IBM Plex (see README)
 
 #include <cstdio>
 #include <string_view>
@@ -20,7 +23,7 @@ namespace {
 }  // namespace
 
 int main(int argc, char* argv[]) {
-    // Handle informational flags before starting Qt so they work headlessly.
+    // Informational flags are handled before Qt starts so they work headlessly.
     for (int i = 1; i < argc; ++i) {
         const std::string_view arg{argv[i]};
         if (arg == "--version" || arg == "-v") {
@@ -35,12 +38,25 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    QApplication application(argc, argv);
-    QApplication::setApplicationName(QStringLiteral("CountdownSolver"));
-    QApplication::setOrganizationName(QStringLiteral("CountdownSolver"));
-    QApplication::setApplicationVersion(version_qstring());
+    QGuiApplication app(argc, argv);
+    QGuiApplication::setApplicationName(QStringLiteral("Countdown Solver"));
+    QGuiApplication::setOrganizationName(QStringLiteral("CountdownSolver"));
+    QGuiApplication::setApplicationVersion(version_qstring());
 
-    countdown::app::MainWindow window;
-    window.show();
-    return QApplication::exec();
+    // --- optional: bundle the design's fonts for identical metrics everywhere ---
+    // QFontDatabase::addApplicationFont(":/fonts/IBMPlexSans-Regular.ttf");
+    // QFontDatabase::addApplicationFont(":/fonts/IBMPlexMono-Regular.ttf");
+
+    countdown::app::Solver solver;
+
+    QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty(QStringLiteral("solver"), &solver);
+
+    QObject::connect(
+        &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
+        []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
+
+    engine.loadFromModule("Countdown", "Main");
+
+    return QGuiApplication::exec();
 }

@@ -26,8 +26,17 @@ public:
     // (respecting letter multiplicities), sorted alphabetically.
     [[nodiscard]] Result<std::vector<std::string>> best_words(std::string_view letters) const;
 
+    // Returns every word of length >= min_length that can be spelled from
+    // `letters`, ordered by descending length then alphabetically. A word whose
+    // length equals letters.size() is a full anagram of the rack.
+    [[nodiscard]] Result<std::vector<std::string>> find_matches(std::string_view letters,
+                                                                std::size_t min_length = 1) const;
+
     [[nodiscard]] std::size_t size() const noexcept { return words_.size(); }
     [[nodiscard]] bool empty() const noexcept { return words_.empty(); }
+
+    // All dictionary words of exactly `length`, in alphabetical order.
+    [[nodiscard]] std::vector<std::string> words_of_length(std::size_t length) const;
 
     // Returns a sample of the word list: every `step`-th word, up to `count`
     // words. A lightweight demonstration/diagnostic helper built from

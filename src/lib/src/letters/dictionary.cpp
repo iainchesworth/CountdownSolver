@@ -121,6 +121,41 @@ Result<std::vector<std::string>> Dictionary::best_words(std::string_view letters
     return candidates;
 }
 
+Result<std::vector<std::string>> Dictionary::find_matches(std::string_view letters,
+                                                          std::size_t min_length) const {
+    if (letters.empty()) {
+        return std::unexpected(SolveError::empty_input);
+    }
+    if (words_.empty()) {
+        return std::unexpected(SolveError::dictionary_empty);
+    }
+
+    const Frequencies have = frequencies_of(letters);
+
+    std::vector<std::string> matches;
+    for (const auto [word, frequency] : std::views::zip(words_, frequencies_)) {
+        if (word.size() >= min_length && covers(have, frequency)) {
+            matches.push_back(word);
+        }
+    }
+
+    if (matches.empty()) {
+        return std::unexpected(SolveError::no_solution);
+    }
+
+    // Longest first; alphabetical within a length.
+    std::ranges::sort(matches, [](const std::string& lhs, const std::string& rhs) {
+        return lhs.size() != rhs.size() ? lhs.size() > rhs.size() : lhs < rhs;
+    });
+    return matches;
+}
+
+std::vector<std::string> Dictionary::words_of_length(std::size_t length) const {
+    auto view = words_
+        | std::views::filter([length](const std::string& word) { return word.size() == length; });
+    return std::ranges::to<std::vector<std::string>>(view);
+}
+
 std::vector<std::string> Dictionary::sample(std::size_t step, std::size_t count) const {
     if (step == 0) {
         step = 1;

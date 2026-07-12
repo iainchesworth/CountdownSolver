@@ -10,16 +10,16 @@
   "default-features": [],
   "features": {
     "app": {
-      "description": "Dependencies for the Qt6 GUI application",
+      "description": "Dependencies for the Qt6 Quick (QML) GUI application",
       "dependencies": [
         {
           "name": "qtbase",
           "default-features": false,
           "features": [
-            "widgets",
             "gui"
           ]
-        }
+        },
+        "qtdeclarative"
       ]
     },
     "tests": {
