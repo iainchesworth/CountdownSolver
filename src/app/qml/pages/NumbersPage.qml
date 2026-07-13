@@ -159,6 +159,7 @@ Item {
                         }
                     }
                     Rectangle {
+                        Layout.alignment: Qt.AlignRight | Qt.AlignBottom
                         radius: 20
                         implicitHeight: 30; implicitWidth: badge.implicitWidth + 28
                         color: (root.result && root.result.exact) ? Theme.accent

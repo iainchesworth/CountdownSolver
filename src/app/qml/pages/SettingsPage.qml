@@ -77,9 +77,25 @@ Item {
                             Text { text: "Highlight the closest result in the numbers game."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                         }
                         Switch {
+                            id: flagSwitch
                             Layout.fillWidth: false
                             checked: AppState.flagInexact
                             onToggled: AppState.flagInexact = checked
+                            background: Item {}
+                            indicator: Rectangle {
+                                implicitWidth: 40; implicitHeight: 22
+                                radius: 11
+                                color: flagSwitch.checked ? Theme.accent : Theme.bg
+                                border.width: flagSwitch.checked ? 0 : 1
+                                border.color: Theme.tileBorder
+                                Rectangle {
+                                    width: 16; height: 16; radius: 8
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    x: flagSwitch.checked ? parent.width - width - 3 : 3
+                                    color: flagSwitch.checked ? Theme.accentInk : Theme.faint
+                                    Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.InOutQuad } }
+                                }
+                            }
                         }
                     }
 
@@ -95,10 +111,28 @@ Item {
                             Text { text: AppState.maxResults; color: Theme.accent; font.family: Theme.mono; font.pixelSize: 16; font.weight: Font.DemiBold }
                         }
                         Slider {
+                            id: wordsSlider
                             Layout.fillWidth: true
                             from: 20; to: 150; stepSize: 10
                             value: AppState.maxResults
                             onMoved: AppState.maxResults = value
+                            background: Rectangle {
+                                x: wordsSlider.leftPadding
+                                y: wordsSlider.topPadding + wordsSlider.availableHeight / 2 - height / 2
+                                width: wordsSlider.availableWidth; height: 4; radius: 2
+                                color: Theme.border
+                                Rectangle {
+                                    width: wordsSlider.visualPosition * parent.width
+                                    height: parent.height; radius: 2
+                                    color: Theme.accent
+                                }
+                            }
+                            handle: Rectangle {
+                                x: wordsSlider.leftPadding + wordsSlider.visualPosition * (wordsSlider.availableWidth - width)
+                                y: wordsSlider.topPadding + wordsSlider.availableHeight / 2 - height / 2
+                                width: 14; height: 14; radius: 3
+                                color: Theme.accent
+                            }
                         }
                     }
                 }
@@ -156,13 +190,25 @@ Item {
                     anchors.fill: parent; anchors.margins: 20
                     spacing: 12
                     SectionLabel { text: "About" }
-                    Text {
+                    ColumnLayout {
+                        id: aboutText
                         Layout.fillWidth: true
-                        text: solver.versionDetails()
-                        color: Theme.muted
-                        font.family: Theme.mono
-                        font.pixelSize: 13
-                        wrapMode: Text.WordWrap
+                        spacing: 4
+                        readonly property var versionLines: solver.versionDetails().split("\n")
+                        Text {
+                            Layout.fillWidth: true
+                            text: aboutText.versionLines[0] || ""
+                            color: Theme.ink; font.family: Theme.sans
+                            font.pixelSize: 15; font.weight: Font.DemiBold
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            visible: text.length > 0
+                            text: aboutText.versionLines.slice(1).join("\n")
+                            color: Theme.muted; font.family: Theme.mono
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                        }
                     }
                 }
             }

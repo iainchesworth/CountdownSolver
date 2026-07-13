@@ -40,6 +40,8 @@ public:
 
     // Version + git provenance, for an About/Settings display.
     Q_INVOKABLE QString versionDetails() const;
+    // Bare semantic version ("0.1.0"), for compact display (e.g. the sidebar footer).
+    Q_INVOKABLE QString shortVersion() const;
 
     // True once a full word list has been found at <config-dir>/words.txt.
     Q_INVOKABLE bool fullDictionaryAvailable() const;

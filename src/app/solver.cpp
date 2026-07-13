@@ -204,6 +204,11 @@ QString Solver::versionDetails() const {
     return QString::fromStdString(countdown::version_details());
 }
 
+QString Solver::shortVersion() const {
+    return QString::fromUtf8(countdown::version_string.data(),
+                              static_cast<qsizetype>(countdown::version_string.size()));
+}
+
 bool Solver::fullDictionaryAvailable() const {
     return full_dictionary_.has_value();
 }

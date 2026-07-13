@@ -108,9 +108,9 @@ Item {
                 spacing: 16
                 visible: root.result && root.result.found
                 SectionLabel { Layout.alignment: Qt.AlignHCenter; text: "Solution" }
-                Grid {
+                Flow {
                     Layout.alignment: Qt.AlignHCenter
-                    columns: 3; spacing: 7
+                    width: 300; spacing: 7
                     Repeater {
                         model: (root.result && root.result.found) ? root.result.answers[0].toUpperCase().split("") : []
                         delegate: Rectangle {
