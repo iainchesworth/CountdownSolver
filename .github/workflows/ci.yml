@@ -26,23 +26,23 @@ jobs:
           # views::enumerate / stride / zip, ranges::to, std::expected).
           - name: Linux (GCC 15)
             os: ubuntu-24.04
-            preset: linux-gcc
+            preset: linux-gcc-debug
             cxx: g++-15
           - name: Linux (Clang 21)
             os: ubuntu-24.04
-            preset: linux-clang
+            preset: linux-clang-debug
             cxx: clang++-21
             # Use libstdc++ (from GCC 15): libc++ does not yet implement
             # views::enumerate / views::stride. clang 21 handles libstdc++'s
             # <expected> fine (unlike the older clang 18).
           - name: macOS (AppleClang)
             os: macos-15
-            preset: macos-clang
+            preset: macos-clang-debug
             # macOS uses libc++, which still lacks views::enumerate / stride;
             # countdown/detail/ranges_compat.hpp provides fallbacks so it builds.
           - name: Windows (MSVC)
             os: windows-2025
-            preset: windows-msvc
+            preset: windows-msvc-debug
 
     env:
       # Cache vcpkg build artefacts between runs. The vcpkg provider itself is

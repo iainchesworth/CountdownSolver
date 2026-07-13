@@ -32,9 +32,9 @@ pwsh ci/install-qt.ps1                 # installs to C:\Qt by default
 Then configure the app build against it, e.g. on Windows:
 
 ```powershell
-cmake --preset windows-msvc -DCOUNTDOWN_BUILD_APP=ON `
+cmake --preset windows-msvc-debug -DCOUNTDOWN_BUILD_APP=ON `
   -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64
-cmake --build --preset windows-msvc
+cmake --build --preset windows-msvc-debug
 ```
 
 `CMAKE_PREFIX_PATH` per platform:

@@ -46,12 +46,12 @@ jobs:
 
       - name: Configure (library + tests only, no Qt app)
         run: >
-          cmake --preset linux-gcc
+          cmake --preset linux-gcc-debug
           -DCMAKE_CXX_COMPILER=g++-15
           -DCOUNTDOWN_BUILD_APP=OFF
 
       - name: Build
-        run: cmake --build --preset linux-gcc
+        run: cmake --build --preset linux-gcc-debug
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

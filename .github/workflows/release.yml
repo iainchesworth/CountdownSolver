@@ -21,11 +21,11 @@ jobs:
         include:
           - name: Linux
             os: ubuntu-24.04
-            preset: linux-gcc
+            preset: linux-gcc-release
             cxx: g++-15
           - name: macOS
             os: macos-15
-            preset: macos-clang
+            preset: macos-clang-release
           - name: Windows
             os: windows-2025
             preset: windows-msvc-release
@@ -71,7 +71,6 @@ jobs:
         run: >
           cmake --preset ${{ matrix.preset }}
           -DCMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}
-          -DCMAKE_BUILD_TYPE=Release
           -DCOUNTDOWN_BUILD_TESTS=OFF
           ${{ matrix.cxx && format('-DCMAKE_CXX_COMPILER={0}', matrix.cxx) || '' }}
 
