@@ -148,9 +148,9 @@ Testing is mandatory and drives development:
 Both are Catch2 suites registered with CTest via `catch_discover_tests`, so each
 `TEST_CASE` is an individually runnable CTest.
 
-The **letters** game ships with a tiny word list. Drop a full newline-delimited
-word list at `<config-dir>/words.txt` (the app reports the location per platform)
-to solve real rounds.
+The **letters** game ships with a bundled default dictionary (~122k words). Drop
+a custom newline-delimited word list at `<config-dir>/words.txt` (the app
+reports the location per platform) to solve with your own list instead.
 
 ## Layout
 

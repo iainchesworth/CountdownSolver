@@ -6,7 +6,10 @@
 #include <countdown/version.hpp>
 
 #include <QChar>
+#include <QFile>
+#include <QIODevice>
 #include <QStringList>
+#include <QTextStream>
 
 #include <algorithm>
 #include <cstdlib>
@@ -16,14 +19,21 @@
 namespace countdown::app {
 namespace {
 
-// A minimal built-in word list so the games work before the user supplies a
-// full dictionary at <config-dir>/words.txt.
-const std::vector<std::string> kFallbackWords = {
-    "countdown", "conundrum", "arithmetic", "rectangle", "triangle",
-    "creation",  "reaction",  "cratering",  "teaching",  "cheating",
-    "consonant", "operation", "integer",    "letters",   "numbers",
-    "solver",    "orient",    "notice",     "vowel",     "react",
-};
+// Loads the word list bundled into the binary as a Qt resource (see
+// src/app/resources/dictionary/words.txt and the qt_add_resources call in
+// src/app/CMakeLists.txt), giving the app a complete dictionary with no user
+// setup required.
+[[nodiscard]] letters::Dictionary load_default_dictionary() {
+    QFile file(QStringLiteral(":/dictionary/words.txt"));
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+
+    std::vector<std::string> words;
+    QTextStream stream(&file);
+    while (!stream.atEnd()) {
+        words.push_back(stream.readLine().toStdString());
+    }
+    return letters::Dictionary::from_words(words);
+}
 
 [[nodiscard]] QString op_symbol(numbers::Op op) {
     switch (op) {
@@ -50,12 +60,12 @@ const std::vector<std::string> kFallbackWords = {
 
 Solver::Solver(QObject* parent)
     : QObject(parent),
-      sample_dictionary_(letters::Dictionary::from_words(kFallbackWords)),
+      default_dictionary_(load_default_dictionary()),
       full_dictionary_(load_full_dictionary()),
       rng_(std::random_device{}()) {}
 
 const letters::Dictionary& Solver::active_dictionary() const {
-    return (using_full_dictionary_ && full_dictionary_) ? *full_dictionary_ : sample_dictionary_;
+    return (using_full_dictionary_ && full_dictionary_) ? *full_dictionary_ : default_dictionary_;
 }
 
 QVariantMap Solver::solveNumbers(const QVariantList& numbers, int target) const {
@@ -223,6 +233,10 @@ bool Solver::setUseFullDictionary(bool full) {
     }
     using_full_dictionary_ = full;
     return true;
+}
+
+int Solver::dictionaryWordCount() const {
+    return static_cast<int>(active_dictionary().size());
 }
 
 }  // namespace countdown::app
