@@ -1,8 +1,10 @@
 #include "solver.hpp"
 
+#include "logging/logging.hpp"
 #include "platform/platform.hpp"
 
 #include <countdown/conundrum/conundrum_game.hpp>
+#include <countdown/error.hpp>
 #include <countdown/numbers/numbers_game.hpp>
 #include <countdown/version.hpp>
 
@@ -23,20 +25,34 @@
 namespace countdown::app {
 namespace {
 
+[[nodiscard]] QString to_qstring(SolveError error) {
+    const std::string_view text = to_string(error);
+    return QString::fromUtf8(text.data(), static_cast<qsizetype>(text.size()));
+}
+
 // Loads the word list bundled into the binary as a Qt resource (see
 // src/app/resources/dictionary/words.txt and the qt_add_resources call in
 // src/app/CMakeLists.txt), giving the app a complete dictionary with no user
 // setup required.
 [[nodiscard]] letters::Dictionary load_default_dictionary() {
     QFile file(QStringLiteral(":/dictionary/words.txt"));
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qCCritical(lcDictionary) << "failed to open bundled dictionary resource"
+                                  << file.fileName() << ":" << file.errorString();
+        return letters::Dictionary::from_words({});
+    }
 
     std::vector<std::string> words;
     QTextStream stream(&file);
     while (!stream.atEnd()) {
         words.push_back(stream.readLine().toStdString());
     }
-    return letters::Dictionary::from_words(words);
+    letters::Dictionary dictionary = letters::Dictionary::from_words(words);
+    if (dictionary.empty()) {
+        qCWarning(lcDictionary) << "bundled dictionary resource" << file.fileName()
+                                 << "opened but yielded no usable words";
+    }
+    return dictionary;
 }
 
 // Countdown draws its letter tiles from a Scrabble-weighted pool (the show
@@ -75,15 +91,17 @@ template <std::size_t N>
     return QStringLiteral("?");
 }
 
-[[nodiscard]] std::optional<letters::Dictionary> load_full_dictionary() {
+// Unlike load_default_dictionary() above, failure here is an expected,
+// common state (most users never place a custom words.txt), so the
+// distinguishing SolveError is preserved rather than collapsed to
+// std::nullopt: Solver::fullDictionaryStatus() surfaces it to the Settings UI,
+// and it's logged here for anyone diagnosing headlessly.
+[[nodiscard]] Result<letters::Dictionary> load_full_dictionary() {
     const platform::PlatformInfo info = platform::current();
     if (info.config_dir.empty()) {
-        return std::nullopt;
+        return std::unexpected(SolveError::dictionary_not_found);
     }
-    if (auto loaded = letters::Dictionary::load_from_file(info.config_dir / "words.txt")) {
-        return *std::move(loaded);
-    }
-    return std::nullopt;
+    return letters::Dictionary::load_from_file(info.config_dir / "words.txt");
 }
 
 }  // namespace
@@ -92,7 +110,11 @@ Solver::Solver(QObject* parent)
     : QObject(parent),
       default_dictionary_(load_default_dictionary()),
       full_dictionary_(load_full_dictionary()),
-      rng_(std::random_device{}()) {}
+      rng_(std::random_device{}()) {
+    if (!full_dictionary_) {
+        qCInfo(lcDictionary) << "full dictionary unavailable:" << to_qstring(full_dictionary_.error());
+    }
+}
 
 const letters::Dictionary& Solver::active_dictionary() const {
     return (using_full_dictionary_ && full_dictionary_) ? *full_dictionary_ : default_dictionary_;
@@ -108,6 +130,9 @@ QVariantMap Solver::solveNumbers(const QVariantList& numbers, int target) const 
     QVariantMap result;
     const auto outcome = numbers::NumbersGame{}.with_target(target).with_numbers(chosen).solve();
     if (!outcome) {
+        if (outcome.error() != SolveError::no_solution) {
+            qCWarning(lcSolver) << "solveNumbers rejected input:" << to_qstring(outcome.error());
+        }
         result["value"] = 0;
         result["diff"] = target;
         result["exact"] = false;
@@ -147,6 +172,9 @@ QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults
 
     const auto matches = active_dictionary().find_matches(letters, min_length);
     if (!matches) {
+        if (matches.error() == SolveError::dictionary_empty) {
+            qCWarning(lcSolver) << "solveLetters: active dictionary is empty";
+        }
         return result;
     }
     const std::vector<std::string>& all = *matches;  // longest first, alpha within
@@ -211,6 +239,9 @@ QVariantMap Solver::solveConundrum(const QString& letters) const {
     const std::string rack = letters.toLower().toStdString();
     const auto anagrams = conundrum::ConundrumGame{active_dictionary()}.with_letters(rack).solve();
     if (!anagrams) {
+        if (anagrams.error() == SolveError::dictionary_empty) {
+            qCWarning(lcSolver) << "solveConundrum: active dictionary is empty";
+        }
         return result;
     }
 
@@ -272,6 +303,17 @@ bool Solver::isDirty() const {
 
 bool Solver::fullDictionaryAvailable() const {
     return full_dictionary_.has_value();
+}
+
+QString Solver::fullDictionaryStatus() const {
+    if (full_dictionary_) {
+        return QStringLiteral("A custom dictionary is available.");
+    }
+    if (full_dictionary_.error() == SolveError::dictionary_empty) {
+        return QStringLiteral(
+            "A words.txt file was found in the config folder, but it contained no usable words.");
+    }
+    return QStringLiteral("Add a words.txt file to the config folder to enable a custom dictionary.");
 }
 
 bool Solver::usingFullDictionary() const {

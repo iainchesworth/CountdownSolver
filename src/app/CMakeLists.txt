@@ -33,6 +33,8 @@ qt_add_library(countdown_app_core STATIC
     solver.cpp
     solver.hpp
     platform/platform.hpp
+    logging/logging.hpp
+    logging/logging.cpp
     ${COUNTDOWN_PLATFORM_SOURCE})
 
 target_include_directories(countdown_app_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

@@ -177,7 +177,7 @@ Item {
                                 wrapMode: Text.WordWrap
                                 text: solver.fullDictionaryAvailable()
                                       ? "Swap the built-in dictionary for your custom words.txt list."
-                                      : "Add a words.txt file to the config folder to enable a custom dictionary."
+                                      : solver.fullDictionaryStatus()
                                 color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13
                             }
                         }

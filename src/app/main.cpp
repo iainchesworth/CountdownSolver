@@ -1,5 +1,6 @@
 #include "solver.hpp"
 
+#include "logging/logging.hpp"
 #include "platform/platform.hpp"
 
 #include <countdown/version.hpp>
@@ -7,6 +8,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQmlError>
 #include <QQuickStyle>
 #include <QString>
 // #include <QFontDatabase>  // uncomment if bundling IBM Plex (see README)
@@ -24,6 +26,11 @@ namespace {
 }  // namespace
 
 int main(int argc, char* argv[]) {
+    // Installed before anything else so every subsequent qCDebug/qCWarning/...
+    // call (including ones triggered by Qt/QML internals during startup) is
+    // captured, not just those after QGuiApplication is constructed.
+    countdown::app::logging::install();
+
     // Every custom control (FlatButton, PadButton, ...) customizes `background`/
     // `contentItem`; native styles (the default on Windows) silently ignore that
     // customization and fall back to OS-drawn chrome. "Basic" is the only style
@@ -59,9 +66,20 @@ int main(int argc, char* argv[]) {
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(QStringLiteral("solver"), &solver);
 
+    QObject::connect(&engine, &QQmlApplicationEngine::warnings, &app,
+                      [](const QList<QQmlError>& warnings) {
+                          for (const QQmlError& warning : warnings) {
+                              qCWarning(lcQml) << warning.toString();
+                          }
+                      });
+
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
-        []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
+        [](const QUrl& url) {
+            qCCritical(lcQml) << "failed to create QML root object from" << url;
+            QCoreApplication::exit(-1);
+        },
+        Qt::QueuedConnection);
 
     engine.loadFromModule("Countdown", "Main");
 
