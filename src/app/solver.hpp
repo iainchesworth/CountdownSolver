@@ -26,14 +26,18 @@ public:
     // { "value": int, "diff": int, "exact": bool, "steps": [QString] }
     Q_INVOKABLE QVariantMap solveNumbers(const QVariantList& numbers, int target) const;
 
-    // { "total": int, "shown": int, "maxLen": int,
-    //   "longest": [QString], "groups": [ { "len": int, "words": [QString] } ] }
+    // { "total": int, "shown": int, "maxLen": int, "longest": [QString],
+    //   "groups": [ { "len": int, "count": int, "words": [QString] } ] }
+    // "count" is the true number of words of that length across every match;
+    // "words" may hold fewer if maxResults truncated the rendered list.
     Q_INVOKABLE QVariantMap solveLetters(const QString& rack, int minLen, int maxResults) const;
 
     // { "found": bool, "answers": [QString] }
     Q_INVOKABLE QVariantMap solveConundrum(const QString& letters) const;
 
-    // Nine letters for the letters game; "" if unavailable.
+    // Nine letters for the letters game, drawn from a Scrabble-weighted tile
+    // pool respecting Countdown's 3v/6c, 4v/5c or 5v/4c vowel-consonant
+    // split - independent of the active dictionary, same as the real show.
     Q_INVOKABLE QString randomRack() const;
     // Nine scrambled letters of a real word; "" if unavailable.
     Q_INVOKABLE QString randomConundrum() const;
