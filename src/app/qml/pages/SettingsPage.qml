@@ -35,8 +35,8 @@ Item {
                             anchors.fill: parent
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Text { text: qsTr("Theme"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                Text { text: qsTr("Applies across the whole window."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                                Text { Layout.fillWidth: true; text: qsTr("Theme"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { Layout.fillWidth: true; text: qsTr("Applies across the whole window."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             SegControl {
                                 Layout.fillWidth: false
@@ -102,8 +102,8 @@ Item {
                             anchors.fill: parent
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Text { text: qsTr("Minimum word length"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                Text { text: qsTr("Shortest words shown in the letters game."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                                Text { Layout.fillWidth: true; text: qsTr("Minimum word length"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { Layout.fillWidth: true; text: qsTr("Shortest words shown in the letters game."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             SegControl {
                                 Layout.fillWidth: false
@@ -122,17 +122,28 @@ Item {
                             anchors.fill: parent
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Text { text: qsTr("Flag when no exact answer"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                Text { text: qsTr("Highlight the closest result in the numbers game."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                                Text { Layout.fillWidth: true; text: qsTr("Flag when no exact answer"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { Layout.fillWidth: true; text: qsTr("Highlight the closest result in the numbers game."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             Switch {
                                 id: flagSwitch
                                 Layout.fillWidth: false
+                                // Switch's built-in implicitWidth is computed from
+                                // background/content/padding and knows nothing about
+                                // a custom indicator, so it doesn't shrink to fit ours
+                                // (40x22) - it stays at its own padded default and
+                                // leaves the indicator pinned at x:0, short of the
+                                // control's true right edge. Pinning the control's own
+                                // box to the indicator size and zeroing padding makes
+                                // the two coincide, so it lines up flush with the
+                                // other controls above/below it.
+                                implicitWidth: 40; implicitHeight: 22
+                                padding: 0
                                 checked: AppState.flagInexact
                                 onToggled: AppState.flagInexact = checked
                                 background: Item {}
                                 indicator: Rectangle {
-                                    implicitWidth: 40; implicitHeight: 22
+                                    anchors.fill: parent
                                     radius: 11
                                     color: flagSwitch.checked ? Theme.accent : Theme.bg
                                     border.width: flagSwitch.checked ? 0 : 1
@@ -159,10 +170,22 @@ Item {
                                 anchors.fill: parent
                                 ColumnLayout {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { text: qsTr("Max words shown"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                    Text { text: qsTr("Cap the letters-game result list."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                                    Text { Layout.fillWidth: true; text: qsTr("Max words shown"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                    Text { Layout.fillWidth: true; text: qsTr("Cap the letters-game result list."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                                 }
-                                Text { text: AppState.maxResults; color: Theme.accent; font.family: Theme.mono; font.pixelSize: 16; font.weight: Font.DemiBold }
+                                Rectangle {
+                                    radius: Theme.radiusControl
+                                    color: Theme.accentSoft
+                                    implicitWidth: maxWordsValue.implicitWidth + 20
+                                    implicitHeight: 28
+                                    Text {
+                                        id: maxWordsValue
+                                        anchors.centerIn: parent
+                                        text: AppState.maxResults
+                                        color: Theme.accent; font.family: Theme.mono
+                                        font.pixelSize: 15; font.weight: Font.DemiBold
+                                    }
+                                }
                             }
                         }
                         Slider {
@@ -206,7 +229,7 @@ Item {
                         Layout.fillWidth: true
                         ColumnLayout {
                             Layout.fillWidth: true; spacing: 2
-                            Text { text: qsTr("Word list"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                            Text { Layout.fillWidth: true; text: qsTr("Word list"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
                             Text {
                                 Layout.fillWidth: true
                                 wrapMode: Text.WordWrap
