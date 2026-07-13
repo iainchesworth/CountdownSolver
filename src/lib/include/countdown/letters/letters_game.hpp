@@ -2,6 +2,7 @@
 
 #include <countdown/error.hpp>
 #include <countdown/letters/dictionary.hpp>
+#include <countdown/letters/frequencies.hpp>
 
 #include <string>
 #include <string_view>
@@ -15,6 +16,9 @@ namespace countdown::letters {
 // game APIs read consistently from the application layer.
 class LettersGame {
 public:
+    // Stores a pointer to `dictionary` rather than a copy, so the caller must
+    // ensure `dictionary` outlives this LettersGame; constructing from a
+    // temporary or shorter-lived Dictionary leaves a dangling reference.
     explicit LettersGame(const Dictionary& dictionary) noexcept
         : dictionary_(&dictionary) {}
 
@@ -30,8 +34,19 @@ public:
         return std::forward<Self>(self);
     }
 
+    // Rejects a rack containing any non-alphabetic character; an empty rack
+    // is left to Dictionary::best_words, which reports empty_input.
+    [[nodiscard]] Result<void> validate() const {
+        for (const char c : letters_) {
+            if (letter_index(c) < 0) {
+                return std::unexpected(SolveError::invalid_letter);
+            }
+        }
+        return {};
+    }
+
     [[nodiscard]] Result<std::vector<std::string>> solve() const {
-        return dictionary_->best_words(letters_);
+        return validate().and_then([this] { return dictionary_->best_words(letters_); });
     }
 
     [[nodiscard]] const std::string& letters() const noexcept { return letters_; }

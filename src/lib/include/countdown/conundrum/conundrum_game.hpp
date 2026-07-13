@@ -2,6 +2,7 @@
 
 #include <countdown/error.hpp>
 #include <countdown/letters/dictionary.hpp>
+#include <countdown/letters/frequencies.hpp>
 
 #include <string>
 #include <string_view>
@@ -16,6 +17,9 @@ namespace countdown::conundrum {
 // consistently from the application layer.
 class ConundrumGame {
 public:
+    // Stores a pointer to `dictionary` rather than a copy, so the caller must
+    // ensure `dictionary` outlives this ConundrumGame; constructing from a
+    // temporary or shorter-lived Dictionary leaves a dangling reference.
     explicit ConundrumGame(const letters::Dictionary& dictionary) noexcept
         : dictionary_(&dictionary) {}
 
@@ -25,10 +29,23 @@ public:
         return std::forward<Self>(self);
     }
 
+    // Rejects a rack containing any non-alphabetic character; an empty rack
+    // is left to Dictionary::find_matches, which reports empty_input.
+    [[nodiscard]] Result<void> validate() const {
+        for (const char c : letters_) {
+            if (letters::letter_index(c) < 0) {
+                return std::unexpected(SolveError::invalid_letter);
+            }
+        }
+        return {};
+    }
+
     // A full anagram is a match whose length equals the rack length, so
     // min_length == letters().size() restricts find_matches to exactly that.
     [[nodiscard]] Result<std::vector<std::string>> solve() const {
-        return dictionary_->find_matches(letters_, letters_.size());
+        return validate().and_then([this] {
+            return dictionary_->find_matches(letters_, letters_.size());
+        });
     }
 
     [[nodiscard]] const std::string& letters() const noexcept { return letters_; }
