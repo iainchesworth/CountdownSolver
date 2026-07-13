@@ -106,3 +106,26 @@ if(WIN32)
             "countdown_app.exe will not run standalone from the build tree.")
     endif()
 endif()
+
+# ---------------------------------------------------------------------------
+# Install + Qt runtime deployment for packaging. qt_generate_deploy_app_script()
+# is Qt's CMake-native replacement for windeployqt/macdeployqt at install
+# time: it inspects the built target and emits an install(SCRIPT) that copies
+# the Qt libraries/plugins the app actually uses next to it (or into the .app
+# bundle on macOS). This is separate from the POST_BUILD windeployqt step
+# above, which targets the build tree, not an install/package tree. Linux has
+# no supported deploy step here, so NO_UNSUPPORTED_PLATFORM_ERROR turns that
+# into a no-op instead of a configure error; Linux packages rely on a system
+# Qt6 install (see the DEB dependency in cmake/Packaging.cmake).
+# ---------------------------------------------------------------------------
+include(GNUInstallDirs)
+
+install(TARGETS countdown_app
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    BUNDLE DESTINATION ".")
+
+qt_generate_deploy_app_script(
+    TARGET countdown_app
+    OUTPUT_SCRIPT COUNTDOWN_APP_DEPLOY_SCRIPT
+    NO_UNSUPPORTED_PLATFORM_ERROR)
+install(SCRIPT "${COUNTDOWN_APP_DEPLOY_SCRIPT}")
