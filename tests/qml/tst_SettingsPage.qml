@@ -19,6 +19,10 @@ TestCase {
         verify(dictSeg !== null)
         compare(dictSeg.enabled, solver.fullDictionaryAvailable())
 
+        const themeSeg = findChild(page, "themeSeg")
+        verify(themeSeg !== null)
+        compare(themeSeg.options.length, 3)
+
         const about = findChild(page, "aboutText")
         verify(about !== null)
         verify(about.versionLines.length > 0)
