@@ -11,6 +11,7 @@ Button {
     implicitHeight: 42
     leftPadding: 16
     rightPadding: 16
+    opacity: control.enabled ? 1.0 : 0.45
 
     contentItem: Text {
         text: control.text

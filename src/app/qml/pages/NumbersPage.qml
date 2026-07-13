@@ -4,11 +4,19 @@ import QtQuick.Layouts
 
 // Numbers game. Local UI state (selection + target); solving is delegated to
 // the C++ `solver` context property. See Solver.h for the return contract.
+// Solving only happens when the user presses Solve (or Enter) - entering
+// numbers/target never solves implicitly.
 Item {
     id: root
-    property var    numbers: [75, 50, 2, 3, 8, 7]
-    property string target: "423"
+    focus: StackLayout.isCurrentItem
+    property var    numbers: []
+    property string target: ""
     property var    result: null   // { value, diff, exact, steps[] }
+    // Digits typed on the physical keyboard, buffered until Enter/Space
+    // commits them as one of the six numbers (values can be 1-3 digits, so a
+    // single keypress can't be committed unambiguously on its own).
+    property string numberBuffer: ""
+    readonly property var legalNumbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 25, 50, 75, 100]
 
     function recalc() {
         if (typeof solver === "undefined" || !solver) { result = null; return }
@@ -17,10 +25,34 @@ Item {
         else
             result = null
     }
-    function addNumber(v)   { if (numbers.length < 6) { numbers = numbers.concat([v]); recalc() } }
-    function backspace()    { numbers = numbers.slice(0, -1); recalc() }
-    function clearAll()     { numbers = []; result = null }
-    function targetDigit(d) { if (target.length < 3) { target = target + d; recalc() } }
+    function addNumber(v)   { if (numbers.length < 6) { numbers = numbers.concat([v]) } }
+    function targetDigit(d) { if (target.length < 3) { target = target + d } }
+    function commitBuffer() {
+        if (numberBuffer.length === 0 || numbers.length >= 6) return
+        const v = parseInt(numberBuffer)
+        if (legalNumbers.indexOf(v) !== -1) numbers = numbers.concat([v])
+        numberBuffer = ""
+    }
+    // Routes a typed digit to the number buffer while numbers are still being
+    // chosen, then to the target once all six are in.
+    function typeDigit(d) {
+        if (numbers.length < 6) { if (numberBuffer.length < 3) numberBuffer = numberBuffer + d }
+        else targetDigit(d)
+    }
+    // Context-aware backspace: clears a pending typed digit first, then the
+    // last committed number, then falls back to editing the target once all
+    // six numbers are set.
+    function backspaceKey() {
+        if (numbers.length < 6) {
+            if (numberBuffer.length > 0) numberBuffer = numberBuffer.slice(0, -1)
+            else numbers = numbers.slice(0, -1)
+        } else if (target.length > 0) {
+            target = target.slice(0, -1)
+        } else {
+            numbers = numbers.slice(0, -1)
+        }
+    }
+    function clearAll()     { numbers = []; target = ""; numberBuffer = ""; result = null }
     function randomGame() {
         var large = [25, 50, 75, 100]
         var big = Math.floor(Math.random() * 5)
@@ -32,9 +64,29 @@ Item {
         pool.sort(function () { return Math.random() - 0.5 })
         numbers = pool
         target = String(101 + Math.floor(Math.random() * 899))
+        numberBuffer = ""
         recalc()
     }
-    Component.onCompleted: recalc()
+
+    Keys.onPressed: function (event) {
+        if (event.key >= Qt.Key_0 && event.key <= Qt.Key_9) {
+            root.typeDigit(String.fromCharCode(event.key))
+            event.accepted = true
+        } else if (event.key === Qt.Key_Backspace) {
+            root.backspaceKey()
+            event.accepted = true
+        } else if (event.key === Qt.Key_Space && numbers.length < 6) {
+            root.commitBuffer()
+            event.accepted = true
+        } else if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
+            if (numbers.length < 6) root.commitBuffer()
+            else root.recalc()
+            event.accepted = true
+        } else if (event.key === Qt.Key_Escape) {
+            root.clearAll()
+            event.accepted = true
+        }
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -63,7 +115,9 @@ Item {
                             delegate: Tile {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 62
-                                label: index < root.numbers.length ? String(root.numbers[index]) : ""
+                                label: index < root.numbers.length ? String(root.numbers[index])
+                                       : (index === root.numbers.length ? root.numberBuffer : "")
+                                pending: index === root.numbers.length && root.numberBuffer.length > 0
                             }
                         }
                     }
@@ -130,9 +184,16 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true; spacing: 9
-                FlatButton { Layout.fillWidth: true; primary: true; text: "\u21bb Random game"; onClicked: root.randomGame() }
-                FlatButton { text: "\u232b"; onClicked: root.backspace() }
+                FlatButton { Layout.fillWidth: true; text: "\u21bb Random game"; onClicked: root.randomGame() }
+                FlatButton { text: "\u232b"; onClicked: root.backspaceKey() }
                 FlatButton { text: "Clear"; onClicked: root.clearAll() }
+            }
+            FlatButton {
+                Layout.fillWidth: true
+                primary: true
+                text: "Solve"
+                enabled: root.numbers.length === 6 && /^[0-9]{1,3}$/.test(root.target)
+                onClicked: root.recalc()
             }
             Item { Layout.fillHeight: true }
         }
@@ -219,7 +280,9 @@ Item {
                     wrapMode: Text.WordWrap
                     text: root.numbers.length < 6
                           ? "Choose " + (6 - root.numbers.length) + " more number" + (root.numbers.length === 5 ? "" : "s") + ", then set a target."
-                          : "Enter a target number to solve."
+                          : (!/^[0-9]{1,3}$/.test(root.target)
+                             ? "Enter a target number, then press Solve."
+                             : "Press Solve to see the best result.")
                     color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
                 }
             }
