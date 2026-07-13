@@ -115,13 +115,29 @@ Item {
                         ColumnLayout {
                             Layout.fillWidth: true; spacing: 2
                             Text { text: "Word list"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                            Text { text: "Swap the sample list for a full tournament list."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                            Text {
+                                Layout.fillWidth: true
+                                wrapMode: Text.WordWrap
+                                text: solver.fullDictionaryAvailable()
+                                      ? "Swap the sample list for the full SOWPODS list."
+                                      : "Add a words.txt file to the config folder to enable SOWPODS."
+                                color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13
+                            }
                         }
                         SegControl {
+                            id: dictSeg
                             options: ["Sample", "SOWPODS"]
-                            currentIndex: 0
-                            // TODO: wire to your dictionary loader; SOWPODS disabled until bundled.
-                            onActivated: currentIndex = 0
+                            enabled: solver.fullDictionaryAvailable()
+                            opacity: enabled ? 1 : 0.5
+                            currentIndex: AppState.useFullDictionary ? 1 : 0
+                            onActivated: {
+                                const wantFull = index === 1
+                                if (solver.setUseFullDictionary(wantFull)) {
+                                    AppState.useFullDictionary = wantFull
+                                } else {
+                                    dictSeg.currentIndex = AppState.useFullDictionary ? 1 : 0
+                                }
+                            }
                         }
                     }
                 }

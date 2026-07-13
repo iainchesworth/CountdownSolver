@@ -22,6 +22,10 @@ Item {
         recalc()
     }
     Component.onCompleted: recalc()
+    Connections {
+        target: AppState
+        function onUseFullDictionaryChanged() { root.recalc() }
+    }
 
     RowLayout {
         anchors.fill: parent
