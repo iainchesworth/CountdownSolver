@@ -1,0 +1,50 @@
+site_name: Countdown Solver
+site_description: A cross-platform solver for the Numbers, Letters, and Conundrum games from Countdown.
+site_url: https://iainchesworth.github.io/CountdownSolver/
+repo_url: https://github.com/iainchesworth/CountdownSolver
+repo_name: iainchesworth/CountdownSolver
+edit_uri: edit/develop/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - content.code.copy
+    - content.action.edit
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Building & packaging: building.md
+  - Testing & coverage: testing.md
+  - Architecture: architecture.md
+  - Contributing: CONTRIBUTING.md
+  - Code of conduct: CODE_OF_CONDUCT.md
+  - For maintainers:
+      - CI & dependencies: ci.md
+      - Branch protection: branch-protection.md

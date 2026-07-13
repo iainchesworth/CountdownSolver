@@ -15,6 +15,13 @@ jobs:
   package:
     name: Package (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
+    # Overrides the workflow-level 'contents: write' for this job specifically:
+    # it only needs read access to check out the repo, plus 'attestations' and
+    # 'id-token' so attest-build-provenance can mint a Sigstore attestation.
+    permissions:
+      contents: read
+      attestations: write
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -62,6 +69,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-15
 
+      # rpmbuild isn't preinstalled on the Ubuntu runner; without it CPack
+      # silently skips the RPM generator (see cmake/Packaging.cmake) and we'd
+      # only notice by the .rpm being missing from the release.
+      - name: Install rpmbuild (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y rpm
+
       - name: Set up MSVC environment (Windows)
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
@@ -86,6 +100,41 @@ jobs:
         working-directory: build/${{ matrix.preset }}
         run: cpack
 
+      # Only these six extensions are ever produced (see cmake/Packaging.cmake):
+      # ZIP always, plus DragNDrop/.dmg, NSIS/.exe, TGZ/.tar.gz, DEB/.deb,
+      # RPM/.rpm depending on platform and which packaging tool was found.
+      # DEB/RPM use their own lower-cased package-name convention rather than
+      # CPACK_PACKAGE_FILE_NAME, so a single name-prefix glob won't catch
+      # them — list extensions explicitly and resolve the real file list once,
+      # so the later attestation step gets exact, already-verified paths
+      # instead of a glob that might silently match nothing on some platform.
+      - name: Generate checksums
+        id: checksums
+        working-directory: build/${{ matrix.preset }}
+        shell: bash
+        run: |
+          shopt -s nullglob
+          files=(*.zip *.tar.gz *.deb *.rpm *.exe *.dmg)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::No package files found — did CPack run?" >&2
+            exit 1
+          fi
+          sha256sum "${files[@]}" > SHA256SUMS
+          sha512sum "${files[@]}" > SHA512SUMS
+          {
+            echo "files<<SUBJECT_PATH_EOF"
+            printf 'build/${{ matrix.preset }}/%s\n' "${files[@]}"
+            echo "SUBJECT_PATH_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # Keyless build provenance (Sigstore/SLSA) via GitHub's OIDC identity —
+      # no signing key to generate or store. Verify a downloaded package with:
+      #   gh attestation verify <file> -R iainchesworth/CountdownSolver
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-path: ${{ steps.checksums.outputs.files }}
+
       - name: Upload package artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -94,8 +143,11 @@ jobs:
             build/${{ matrix.preset }}/*.zip
             build/${{ matrix.preset }}/*.tar.gz
             build/${{ matrix.preset }}/*.deb
+            build/${{ matrix.preset }}/*.rpm
             build/${{ matrix.preset }}/*.exe
             build/${{ matrix.preset }}/*.dmg
+            build/${{ matrix.preset }}/SHA256SUMS
+            build/${{ matrix.preset }}/SHA512SUMS
           if-no-files-found: error
 
   publish:
