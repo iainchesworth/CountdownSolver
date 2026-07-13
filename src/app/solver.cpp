@@ -35,20 +35,28 @@ const std::vector<std::string> kFallbackWords = {
     return QStringLiteral("?");
 }
 
-[[nodiscard]] letters::Dictionary load_dictionary() {
+[[nodiscard]] std::optional<letters::Dictionary> load_full_dictionary() {
     const platform::PlatformInfo info = platform::current();
-    if (!info.config_dir.empty()) {
-        if (auto loaded = letters::Dictionary::load_from_file(info.config_dir / "words.txt")) {
-            return *std::move(loaded);
-        }
+    if (info.config_dir.empty()) {
+        return std::nullopt;
     }
-    return letters::Dictionary::from_words(kFallbackWords);
+    if (auto loaded = letters::Dictionary::load_from_file(info.config_dir / "words.txt")) {
+        return *std::move(loaded);
+    }
+    return std::nullopt;
 }
 
 }  // namespace
 
 Solver::Solver(QObject* parent)
-    : QObject(parent), dictionary_(load_dictionary()), rng_(std::random_device{}()) {}
+    : QObject(parent),
+      sample_dictionary_(letters::Dictionary::from_words(kFallbackWords)),
+      full_dictionary_(load_full_dictionary()),
+      rng_(std::random_device{}()) {}
+
+const letters::Dictionary& Solver::active_dictionary() const {
+    return (using_full_dictionary_ && full_dictionary_) ? *full_dictionary_ : sample_dictionary_;
+}
 
 QVariantMap Solver::solveNumbers(const QVariantList& numbers, int target) const {
     std::vector<int> chosen;
@@ -93,14 +101,11 @@ QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults
     result["maxLen"] = 0;
     result["longest"] = QStringList{};
     result["groups"] = QVariantList{};
-    if (!dictionary_) {
-        return result;
-    }
 
     const std::string letters = rack.toLower().toStdString();
     const std::size_t min_length = minLen > 0 ? static_cast<std::size_t>(minLen) : 1;
 
-    const auto matches = dictionary_->find_matches(letters, min_length);
+    const auto matches = active_dictionary().find_matches(letters, min_length);
     if (!matches) {
         return result;
     }
@@ -153,13 +158,10 @@ QVariantMap Solver::solveConundrum(const QString& letters) const {
     QVariantMap result;
     result["found"] = false;
     result["answers"] = QStringList{};
-    if (!dictionary_) {
-        return result;
-    }
 
     const std::string rack = letters.toLower().toStdString();
     // A full anagram is a match whose length equals the rack length.
-    const auto anagrams = dictionary_->find_matches(rack, rack.size());
+    const auto anagrams = active_dictionary().find_matches(rack, rack.size());
     if (!anagrams) {
         return result;
     }
@@ -174,10 +176,7 @@ QVariantMap Solver::solveConundrum(const QString& letters) const {
 }
 
 QString Solver::shuffledWord(std::size_t length) const {
-    if (!dictionary_) {
-        return {};
-    }
-    const std::vector<std::string> candidates = dictionary_->words_of_length(length);
+    const std::vector<std::string> candidates = active_dictionary().words_of_length(length);
     if (candidates.empty()) {
         return {};
     }
@@ -203,6 +202,22 @@ QString Solver::randomConundrum() const {
 
 QString Solver::versionDetails() const {
     return QString::fromStdString(countdown::version_details());
+}
+
+bool Solver::fullDictionaryAvailable() const {
+    return full_dictionary_.has_value();
+}
+
+bool Solver::usingFullDictionary() const {
+    return using_full_dictionary_;
+}
+
+bool Solver::setUseFullDictionary(bool full) {
+    if (full && !full_dictionary_) {
+        return false;
+    }
+    using_full_dictionary_ = full;
+    return true;
 }
 
 }  // namespace countdown::app
