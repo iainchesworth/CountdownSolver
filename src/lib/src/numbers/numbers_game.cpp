@@ -35,19 +35,29 @@ struct Term {
     return value > target ? value - target : target - value;
 }
 
+// Records `term` as the new best if it's closer to target than whatever's
+// there already. `term` is still needed afterwards (it's about to be pushed
+// into the working set for recursion), so an improvement copies its steps
+// rather than moving them.
+void update_best(const Term& term, Value target, std::optional<SolveOutcome>& best) {
+    const bool improves =
+        !best || distance(term.value, target) < distance(best->solution.value(), target);
+    if (improves) {
+        best = SolveOutcome{Solution{term.steps, term.value}, term.value == target};
+    }
+}
+
 // Depth-first search over every way of combining two terms into one. Because
 // each combination shrinks the working set by one, recursion terminates. The
 // closest-to-target term seen anywhere in the tree is kept in `best`.
+//
+// Every term already present in `terms` on entry was already checked against
+// `best` by its parent call (or, for the initial call, by the caller) - only
+// a newly-merged term is genuinely new information, so combine() below is the
+// sole place update_best() runs, rather than rescanning the whole working set
+// at every node.
 void search(std::vector<Term>& terms, Value target,
             std::optional<SolveOutcome>& best, bool exhaustive) {
-    for (const Term& term : terms) {
-        const bool improves =
-            !best || distance(term.value, target) < distance(best->solution.value(), target);
-        if (improves) {
-            best = SolveOutcome{Solution{term.steps, term.value}, term.value == target};
-        }
-    }
-
     if (best && best->exact && !exhaustive) {
         return;
     }
@@ -73,6 +83,8 @@ void search(std::vector<Term>& terms, Value target,
                     Term merged{*result, x.steps};
                     merged.steps.insert(merged.steps.end(), y.steps.begin(), y.steps.end());
                     merged.steps.push_back(Step{x.value, op, y.value, *result});
+
+                    update_best(merged, target, best);
                     rest.push_back(std::move(merged));
                     search(rest, target, best, exhaustive);
                     rest.pop_back();
@@ -123,8 +135,15 @@ Result<SolveOutcome> NumbersGame::solve(const SolveOptions& options) const {
             terms.push_back(Term{static_cast<Value>(number), {}});
         }
 
+        // search() only checks newly-merged terms against `best` (see its
+        // comment); the initial leaves haven't been merged from anything, so
+        // they're checked once here before recursing.
         std::optional<SolveOutcome> best;
-        search(terms, static_cast<Value>(target_), best, options.exhaustive);
+        const Value target = static_cast<Value>(target_);
+        for (const Term& term : terms) {
+            update_best(term, target, best);
+        }
+        search(terms, target, best, options.exhaustive);
 
         if (!best) {
             return std::unexpected(SolveError::no_solution);

@@ -19,12 +19,35 @@ namespace countdown::app {
 // Return shapes (consumed verbatim by the QML) are documented per method.
 class Solver : public QObject {
     Q_OBJECT
+    Q_PROPERTY(bool dictionariesReady READ dictionariesReady NOTIFY dictionariesReadyChanged)
 
 public:
-    explicit Solver(QObject* parent = nullptr);
+    // Controls when the constructor loads the word lists. kEager (the
+    // default, and what every existing call site gets) loads synchronously
+    // during construction, same as before this option existed. main.cpp
+    // uses kDeferred and calls loadDictionaries() itself once the QML engine
+    // has started, so the ~1.1MB bundled word list is parsed after the
+    // window is already on screen rather than before it can appear at all.
+    enum class DictionaryLoad { kEager, kDeferred };
+
+    explicit Solver(QObject* parent = nullptr, DictionaryLoad load = DictionaryLoad::kEager);
+
+    // Parses and indexes the default (and, if present, the user-supplied
+    // full) dictionary. Safe to call exactly once; kEager construction calls
+    // it immediately, kDeferred construction leaves it to the caller.
+    void loadDictionaries();
+
+    [[nodiscard]] bool dictionariesReady() const noexcept { return dictionaries_ready_; }
 
     // { "value": int, "diff": int, "exact": bool, "steps": [QString] }
     Q_INVOKABLE QVariantMap solveNumbers(const QVariantList& numbers, int target) const;
+
+    // Runs solveNumbers() on a worker thread and delivers the result via
+    // numbersSolved(), so the potentially-exhaustive search in
+    // NumbersGame::search() never blocks the UI thread. QML is expected to
+    // show a busy state between the call and the signal and avoid
+    // overlapping requests (see NumbersPage.qml).
+    Q_INVOKABLE void solveNumbersAsync(const QVariantList& numbers, int target);
 
     // { "total": int, "shown": int, "maxLen": int, "longest": [QString],
     //   "groups": [ { "len": int, "count": int, "words": [QString] } ] }
@@ -65,13 +88,27 @@ public:
     // (e.g. the sidebar footer).
     Q_INVOKABLE int dictionaryWordCount() const;
 
+signals:
+    // Emitted once, from the main thread, when solveNumbersAsync()'s
+    // background computation finishes.
+    void numbersSolved(const QVariantMap& result);
+
+    // Emitted once loadDictionaries() finishes populating the word lists.
+    void dictionariesReadyChanged();
+
 private:
     [[nodiscard]] QString shuffledWord(std::size_t length) const;
     [[nodiscard]] const letters::Dictionary& active_dictionary() const;
 
+    // Both are placeholder-initialized (an empty dictionary / "not found")
+    // at construction and overwritten by loadDictionaries() - see its
+    // comment on Solver(). Neither needs to be optional: the placeholder
+    // values already mean "no matches"/"not available" while a kDeferred
+    // construction is waiting for the real load.
     letters::Dictionary default_dictionary_;
     Result<letters::Dictionary> full_dictionary_;
     bool using_full_dictionary_ = false;
+    bool dictionaries_ready_ = false;
     mutable std::mt19937 rng_;
 };
 

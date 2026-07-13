@@ -11,6 +11,7 @@
 #include <QQmlError>
 #include <QQuickStyle>
 #include <QString>
+#include <QTimer>
 // #include <QFontDatabase>  // uncomment if bundling IBM Plex (see README)
 
 #include <cstdio>
@@ -61,7 +62,10 @@ int main(int argc, char* argv[]) {
     // QFontDatabase::addApplicationFont(":/fonts/IBMPlexSans-Regular.ttf");
     // QFontDatabase::addApplicationFont(":/fonts/IBMPlexMono-Regular.ttf");
 
-    countdown::app::Solver solver;
+    // Dictionary loading is deferred (see Solver::loadDictionaries below)
+    // rather than done here in the constructor, so parsing/indexing the
+    // ~1.1MB bundled word list doesn't block the window from appearing.
+    countdown::app::Solver solver(nullptr, countdown::app::Solver::DictionaryLoad::kDeferred);
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(QStringLiteral("solver"), &solver);
@@ -82,6 +86,11 @@ int main(int argc, char* argv[]) {
         Qt::QueuedConnection);
 
     engine.loadFromModule("Countdown", "Main");
+
+    // Runs as soon as the event loop starts processing, i.e. once the window
+    // has already been created and its first frame queued, rather than
+    // blocking every launch on dictionary I/O before anything is shown.
+    QTimer::singleShot(0, &solver, &countdown::app::Solver::loadDictionaries);
 
     return QGuiApplication::exec();
 }

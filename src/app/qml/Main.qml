@@ -75,7 +75,11 @@ ApplicationWindow {
                 Rectangle { Layout.fillWidth: true; height: 1; color: Theme.border }
                 Text {
                     Layout.topMargin: 8; Layout.leftMargin: 8
-                    text: Number(solver.dictionaryWordCount()).toLocaleString(Qt.locale(), "f", 0) + " words loaded"
+                    // Reading solver.dictionariesReady (a real NOTIFYing
+                    // property) in this binding is what makes it re-evaluate
+                    // once the deferred load finishes - dictionaryWordCount()
+                    // alone is a plain invokable call QML can't track.
+                    text: (solver.dictionariesReady ? Number(solver.dictionaryWordCount()).toLocaleString(Qt.locale(), "f", 0) : "...") + " words loaded"
                     color: Theme.faint; font.family: Theme.mono; font.pixelSize: 11
                 }
                 RowLayout {

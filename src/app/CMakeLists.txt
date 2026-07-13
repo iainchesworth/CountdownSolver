@@ -2,7 +2,7 @@
 # countdown_app - the Qt6 Quick (QML) GUI. All game logic lives in
 # countdown::solver; this target is presentation + platform glue only.
 # ---------------------------------------------------------------------------
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Quick Gui QuickControls2)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Concurrent Quick Gui QuickControls2)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
@@ -43,6 +43,7 @@ target_link_libraries(countdown_app_core
     PUBLIC
         countdown::solver
         Qt6::Core
+        Qt6::Concurrent
     PRIVATE
         countdown::warnings
         countdown::sanitizers
