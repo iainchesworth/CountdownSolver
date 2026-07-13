@@ -17,20 +17,32 @@ Item {
     // single keypress can't be committed unambiguously on its own).
     property string numberBuffer: ""
     readonly property var legalNumbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 25, 50, 75, 100]
+    // The real board: one tile each of 25/50/75/100, two tiles each of 1-10.
+    readonly property var poolSupply: ({
+        "25": 1, "50": 1, "75": 1, "100": 1,
+        "1": 2, "2": 2, "3": 2, "4": 2, "5": 2, "6": 2, "7": 2, "8": 2, "9": 2, "10": 2
+    })
+    function remainingOf(v) {
+        const used = numbers.filter(function (n) { return n === v }).length
+        return poolSupply[String(v)] - used
+    }
+    // The real target generator only ever produces a 3-digit number from 100-999.
+    readonly property var validTargetRegex: /^[1-9][0-9]{2}$/
+    function targetIsValid() { return validTargetRegex.test(target) }
 
     function recalc() {
         if (typeof solver === "undefined" || !solver) { result = null; return }
-        if (numbers.length === 6 && /^[0-9]{1,3}$/.test(target))
+        if (numbers.length === 6 && targetIsValid())
             result = solver.solveNumbers(numbers, parseInt(target))
         else
             result = null
     }
-    function addNumber(v)   { if (numbers.length < 6) { numbers = numbers.concat([v]) } }
+    function addNumber(v)   { if (numbers.length < 6 && remainingOf(v) > 0) { numbers = numbers.concat([v]) } }
     function targetDigit(d) { if (target.length < 3) { target = target + d } }
     function commitBuffer() {
         if (numberBuffer.length === 0 || numbers.length >= 6) return
         const v = parseInt(numberBuffer)
-        if (legalNumbers.indexOf(v) !== -1) numbers = numbers.concat([v])
+        if (legalNumbers.indexOf(v) !== -1 && remainingOf(v) > 0) numbers = numbers.concat([v])
         numberBuffer = ""
     }
     // Routes a typed digit to the number buffer while numbers are still being
@@ -128,6 +140,7 @@ Item {
                             delegate: PadButton {
                                 Layout.fillWidth: true; implicitHeight: 46; fontSize: 17
                                 accent: true; text: String(modelData)
+                                enabled: root.remainingOf(modelData) > 0 && root.numbers.length < 6
                                 onClicked: root.addNumber(modelData)
                             }
                         }
@@ -140,6 +153,7 @@ Item {
                             delegate: PadButton {
                                 Layout.fillWidth: true; implicitHeight: 42
                                 text: String(modelData)
+                                enabled: root.remainingOf(modelData) > 0 && root.numbers.length < 6
                                 onClicked: root.addNumber(modelData)
                             }
                         }
@@ -192,7 +206,7 @@ Item {
                 Layout.fillWidth: true
                 primary: true
                 text: "Solve"
-                enabled: root.numbers.length === 6 && /^[0-9]{1,3}$/.test(root.target)
+                enabled: root.numbers.length === 6 && root.targetIsValid()
                 onClicked: root.recalc()
             }
             Item { Layout.fillHeight: true }
@@ -280,9 +294,11 @@ Item {
                     wrapMode: Text.WordWrap
                     text: root.numbers.length < 6
                           ? "Choose " + (6 - root.numbers.length) + " more number" + (root.numbers.length === 5 ? "" : "s") + ", then set a target."
-                          : (!/^[0-9]{1,3}$/.test(root.target)
-                             ? "Enter a target number, then press Solve."
-                             : "Press Solve to see the best result.")
+                          : (root.target.length < 3
+                             ? "Enter a 3-digit target (100–999), then press Solve."
+                             : (!root.targetIsValid()
+                                ? "Target must be between 100 and 999."
+                                : "Press Solve to see the best result."))
                     color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
                 }
             }

@@ -114,6 +114,13 @@ qt_add_qml_module(countdown_app_qml
 
 qt_add_executable(countdown_app main.cpp)
 
+# Bundles the default word list into the binary as a Qt resource so the app
+# has a complete dictionary out of the box, with no user setup required.
+qt_add_resources(countdown_app "dictionary"
+    PREFIX "/dictionary"
+    BASE "resources/dictionary"
+    FILES resources/dictionary/words.txt)
+
 target_link_libraries(countdown_app
     PRIVATE
         countdown_app_core

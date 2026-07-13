@@ -183,7 +183,8 @@ Item {
                                 Layout.fillWidth: true; spacing: 8
                                 property var grp: modelData
                                 Text {
-                                    text: grp.len + " letters (" + grp.words.length + ")"
+                                    text: grp.len + " letters (" + grp.count + ")"
+                                          + (grp.count > grp.words.length ? " · showing " + grp.words.length : "")
                                     color: Theme.muted; font.family: Theme.mono; font.pixelSize: 12; font.weight: Font.DemiBold
                                 }
                                 Flow {

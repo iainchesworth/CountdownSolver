@@ -7,24 +7,63 @@
 #include <countdown/version.hpp>
 
 #include <QChar>
+#include <QFile>
+#include <QIODevice>
 #include <QStringList>
+#include <QTextStream>
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace countdown::app {
 namespace {
 
-// A minimal built-in word list so the games work before the user supplies a
-// full dictionary at <config-dir>/words.txt.
-const std::vector<std::string> kFallbackWords = {
-    "countdown", "conundrum", "arithmetic", "rectangle", "triangle",
-    "creation",  "reaction",  "cratering",  "teaching",  "cheating",
-    "consonant", "operation", "integer",    "letters",   "numbers",
-    "solver",    "orient",    "notice",     "vowel",     "react",
-};
+// Loads the word list bundled into the binary as a Qt resource (see
+// src/app/resources/dictionary/words.txt and the qt_add_resources call in
+// src/app/CMakeLists.txt), giving the app a complete dictionary with no user
+// setup required.
+[[nodiscard]] letters::Dictionary load_default_dictionary() {
+    QFile file(QStringLiteral(":/dictionary/words.txt"));
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+
+    std::vector<std::string> words;
+    QTextStream stream(&file);
+    while (!stream.atEnd()) {
+        words.push_back(stream.readLine().toStdString());
+    }
+    return letters::Dictionary::from_words(words);
+}
+
+// Countdown draws its letter tiles from a Scrabble-weighted pool (the show
+// doesn't publish its own exact counts, but describes the weighting as
+// following Scrabble's); Y is treated as a consonant, matching the show.
+constexpr std::array<std::pair<char, int>, 5> kVowelCounts{{
+    {'a', 9}, {'e', 12}, {'i', 9}, {'o', 8}, {'u', 4},
+}};
+constexpr std::array<std::pair<char, int>, 21> kConsonantCounts{{
+    {'b', 2}, {'c', 2}, {'d', 4}, {'f', 2}, {'g', 3}, {'h', 2}, {'j', 1},
+    {'k', 1}, {'l', 4}, {'m', 2}, {'n', 6}, {'p', 2}, {'q', 1}, {'r', 6},
+    {'s', 4}, {'t', 6}, {'v', 2}, {'w', 2}, {'x', 1}, {'y', 2}, {'z', 1},
+}};
+// The only three legal vowel/consonant splits: at least 3 vowels, at least 4
+// consonants, nine letters total.
+constexpr std::array<std::pair<int, int>, 3> kVowelConsonantSplits{{
+    {3, 6}, {4, 5}, {5, 4},
+}};
+
+template <std::size_t N>
+[[nodiscard]] std::vector<char> expand_tiles(const std::array<std::pair<char, int>, N>& counts) {
+    std::vector<char> tiles;
+    for (const auto& [letter, count] : counts) {
+        tiles.insert(tiles.end(), static_cast<std::size_t>(count), letter);
+    }
+    return tiles;
+}
 
 [[nodiscard]] QString op_symbol(numbers::Op op) {
     switch (op) {
@@ -51,12 +90,12 @@ const std::vector<std::string> kFallbackWords = {
 
 Solver::Solver(QObject* parent)
     : QObject(parent),
-      sample_dictionary_(letters::Dictionary::from_words(kFallbackWords)),
+      default_dictionary_(load_default_dictionary()),
       full_dictionary_(load_full_dictionary()),
       rng_(std::random_device{}()) {}
 
 const letters::Dictionary& Solver::active_dictionary() const {
-    return (using_full_dictionary_ && full_dictionary_) ? *full_dictionary_ : sample_dictionary_;
+    return (using_full_dictionary_ && full_dictionary_) ? *full_dictionary_ : default_dictionary_;
 }
 
 QVariantMap Solver::solveNumbers(const QVariantList& numbers, int target) const {
@@ -124,6 +163,14 @@ QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults
     const std::size_t cap = maxResults > 0 ? static_cast<std::size_t>(maxResults) : all.size();
     const std::size_t shown = std::min(cap, all.size());
 
+    // True per-length totals across every match, independent of the
+    // maxResults cap below - otherwise a group's word count would silently
+    // reflect only however many happened to fit before the cap ran out.
+    std::unordered_map<int, int> length_counts;
+    for (const std::string& word : all) {
+        ++length_counts[static_cast<int>(word.size())];
+    }
+
     // Group the shown words by length (descending, already sorted that way).
     QVariantList groups;
     QStringList group_words;
@@ -132,6 +179,7 @@ QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults
         if (group_len != -1) {
             QVariantMap group;
             group["len"] = group_len;
+            group["count"] = length_counts[group_len];
             group["words"] = group_words;
             groups.push_back(group);
         }
@@ -187,13 +235,22 @@ QString Solver::shuffledWord(std::size_t length) const {
 }
 
 QString Solver::randomRack() const {
-    // Prefer a shuffled real word so the rack yields rich results.
-    for (const std::size_t length : {std::size_t{9}, std::size_t{8}}) {
-        if (QString rack = shuffledWord(length); !rack.isEmpty()) {
-            return rack;
-        }
-    }
-    return {};
+    // Draws from the same weighted tile pools the real game uses, respecting
+    // one of the three legal vowel/consonant splits - not every rack will
+    // yield a rich set of words, same as the real show.
+    std::uniform_int_distribution<std::size_t> pick_split(0, kVowelConsonantSplits.size() - 1);
+    const auto [vowel_count, consonant_count] = kVowelConsonantSplits[pick_split(rng_)];
+
+    std::vector<char> vowels = expand_tiles(kVowelCounts);
+    std::vector<char> consonants = expand_tiles(kConsonantCounts);
+    std::ranges::shuffle(vowels, rng_);
+    std::ranges::shuffle(consonants, rng_);
+
+    std::string rack;
+    rack.append(vowels.begin(), vowels.begin() + vowel_count);
+    rack.append(consonants.begin(), consonants.begin() + consonant_count);
+    std::ranges::shuffle(rack, rng_);
+    return QString::fromStdString(rack).toUpper();
 }
 
 QString Solver::randomConundrum() const {
@@ -223,6 +280,10 @@ bool Solver::setUseFullDictionary(bool full) {
     }
     using_full_dictionary_ = full;
     return true;
+}
+
+int Solver::dictionaryWordCount() const {
+    return static_cast<int>(active_dictionary().size());
 }
 
 }  // namespace countdown::app

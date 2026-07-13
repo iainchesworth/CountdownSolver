@@ -75,7 +75,7 @@ ApplicationWindow {
                 Rectangle { Layout.fillWidth: true; height: 1; color: Theme.border }
                 Text {
                     Layout.topMargin: 8; Layout.leftMargin: 8
-                    text: "v" + solver.shortVersion() + " \u00b7 Qt 6"
+                    text: Number(solver.dictionaryWordCount()).toLocaleString(Qt.locale(), "f", 0) + " words loaded"
                     color: Theme.faint; font.family: Theme.mono; font.pixelSize: 11
                 }
             }

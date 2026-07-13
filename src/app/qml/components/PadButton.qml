@@ -13,6 +13,7 @@ Button {
     hoverEnabled: true
     implicitHeight: 44
     implicitWidth: 40
+    opacity: control.enabled ? 1.0 : 0.35
 
     contentItem: Text {
         text: control.text

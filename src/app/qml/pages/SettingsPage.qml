@@ -156,8 +156,8 @@ Item {
                                 Layout.fillWidth: true
                                 wrapMode: Text.WordWrap
                                 text: solver.fullDictionaryAvailable()
-                                      ? "Swap the sample list for the full SOWPODS list."
-                                      : "Add a words.txt file to the config folder to enable SOWPODS."
+                                      ? "Swap the built-in dictionary for your custom words.txt list."
+                                      : "Add a words.txt file to the config folder to enable a custom dictionary."
                                 color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13
                             }
                         }
@@ -165,7 +165,7 @@ Item {
                             id: dictSeg
                             objectName: "dictSeg"
                             Layout.fillWidth: false
-                            options: ["Sample", "SOWPODS"]
+                            options: ["Default", "Custom"]
                             enabled: solver.fullDictionaryAvailable()
                             opacity: enabled ? 1 : 0.5
                             currentIndex: AppState.useFullDictionary ? 1 : 0

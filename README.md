@@ -172,9 +172,9 @@ $ gcovr --root . --filter 'src/.*' --exclude 'src/app/main\.cpp' \
 CI runs this on every push/PR (`Coverage (Linux, GCC)` in `ci.yml`) and fails
 the job below 80% line or branch coverage.
 
-The **letters** game ships with a tiny word list. Drop a full newline-delimited
-word list at `<config-dir>/words.txt` (the app reports the location per platform)
-to solve real rounds.
+The **letters** game ships with a bundled default dictionary (~122k words). Drop
+a custom newline-delimited word list at `<config-dir>/words.txt` (the app
+reports the location per platform) to solve with your own list instead.
 
 ## Layout
 
