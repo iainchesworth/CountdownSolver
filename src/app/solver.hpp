@@ -1,5 +1,6 @@
 #pragma once
 
+#include <countdown/error.hpp>
 #include <countdown/letters/dictionary.hpp>
 
 #include <QObject>
@@ -7,7 +8,6 @@
 #include <QVariantList>
 #include <QVariantMap>
 
-#include <optional>
 #include <random>
 
 namespace countdown::app {
@@ -51,6 +51,10 @@ public:
 
     // True once a full word list has been found at <config-dir>/words.txt.
     Q_INVOKABLE bool fullDictionaryAvailable() const;
+    // Human-readable status of the full dictionary, distinguishing "no
+    // words.txt found" from "words.txt found but empty/unusable" - for
+    // display when fullDictionaryAvailable() is false.
+    Q_INVOKABLE QString fullDictionaryStatus() const;
     // True when solves are drawing from the full list rather than the default.
     Q_INVOKABLE bool usingFullDictionary() const;
     // Switches the active word list. Returns false (mode left unchanged) if
@@ -66,7 +70,7 @@ private:
     [[nodiscard]] const letters::Dictionary& active_dictionary() const;
 
     letters::Dictionary default_dictionary_;
-    std::optional<letters::Dictionary> full_dictionary_;
+    Result<letters::Dictionary> full_dictionary_;
     bool using_full_dictionary_ = false;
     mutable std::mt19937 rng_;
 };

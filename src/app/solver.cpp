@@ -1,12 +1,15 @@
 #include "solver.hpp"
 
+#include "logging/logging.hpp"
 #include "platform/platform.hpp"
 
 #include <countdown/conundrum/conundrum_game.hpp>
+#include <countdown/error.hpp>
 #include <countdown/numbers/numbers_game.hpp>
 #include <countdown/version.hpp>
 
 #include <QChar>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QIODevice>
 #include <QStringList>
@@ -23,20 +26,59 @@
 namespace countdown::app {
 namespace {
 
+[[nodiscard]] QString to_qstring(SolveError error) {
+    const std::string_view text = to_string(error);
+    return QString::fromUtf8(text.data(), static_cast<qsizetype>(text.size()));
+}
+
+[[nodiscard]] QStringList to_qstringlist(const std::vector<std::string>& words) {
+    QStringList list;
+    list.reserve(static_cast<qsizetype>(words.size()));
+    for (const std::string& word : words) {
+        list << QString::fromStdString(word);
+    }
+    return list;
+}
+
+// Logs the wall-clock duration of the enclosing function to lcSolver at
+// destruction, covering every return path uniformly - useful context if a
+// user reports the GUI "hanging" on a given rack/target.
+class ScopedSolveTimer {
+public:
+    explicit ScopedSolveTimer(const char* label) : label_(label) { timer_.start(); }
+    ~ScopedSolveTimer() { qCDebug(lcSolver) << label_ << "took" << timer_.elapsed() << "ms"; }
+
+    ScopedSolveTimer(const ScopedSolveTimer&) = delete;
+    ScopedSolveTimer& operator=(const ScopedSolveTimer&) = delete;
+
+private:
+    const char* label_;
+    QElapsedTimer timer_;
+};
+
 // Loads the word list bundled into the binary as a Qt resource (see
 // src/app/resources/dictionary/words.txt and the qt_add_resources call in
 // src/app/CMakeLists.txt), giving the app a complete dictionary with no user
 // setup required.
 [[nodiscard]] letters::Dictionary load_default_dictionary() {
     QFile file(QStringLiteral(":/dictionary/words.txt"));
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qCCritical(lcDictionary) << "failed to open bundled dictionary resource"
+                                  << file.fileName() << ":" << file.errorString();
+        return letters::Dictionary::from_words({});
+    }
 
     std::vector<std::string> words;
     QTextStream stream(&file);
     while (!stream.atEnd()) {
         words.push_back(stream.readLine().toStdString());
     }
-    return letters::Dictionary::from_words(words);
+    letters::Dictionary dictionary = letters::Dictionary::from_words(words);
+    if (dictionary.empty()) {
+        qCWarning(lcDictionary) << "bundled dictionary resource" << file.fileName()
+                                 << "opened but yielded no usable words";
+    }
+    return dictionary;
 }
 
 // Countdown draws its letter tiles from a Scrabble-weighted pool (the show
@@ -75,15 +117,17 @@ template <std::size_t N>
     return QStringLiteral("?");
 }
 
-[[nodiscard]] std::optional<letters::Dictionary> load_full_dictionary() {
+// Unlike load_default_dictionary() above, failure here is an expected,
+// common state (most users never place a custom words.txt), so the
+// distinguishing SolveError is preserved rather than collapsed to
+// std::nullopt: Solver::fullDictionaryStatus() surfaces it to the Settings UI,
+// and it's logged here for anyone diagnosing headlessly.
+[[nodiscard]] Result<letters::Dictionary> load_full_dictionary() {
     const platform::PlatformInfo info = platform::current();
     if (info.config_dir.empty()) {
-        return std::nullopt;
+        return std::unexpected(SolveError::dictionary_not_found);
     }
-    if (auto loaded = letters::Dictionary::load_from_file(info.config_dir / "words.txt")) {
-        return *std::move(loaded);
-    }
-    return std::nullopt;
+    return letters::Dictionary::load_from_file(info.config_dir / "words.txt");
 }
 
 }  // namespace
@@ -92,13 +136,27 @@ Solver::Solver(QObject* parent)
     : QObject(parent),
       default_dictionary_(load_default_dictionary()),
       full_dictionary_(load_full_dictionary()),
-      rng_(std::random_device{}()) {}
+      rng_(std::random_device{}()) {
+    // A handful of sampled words (not the full list - that would flood the
+    // log) confirms at a glance that the intended dictionary loaded and its
+    // contents look sane, without adding a dedicated word-dump API.
+    qCDebug(lcDictionary) << "default dictionary loaded:" << default_dictionary_.size()
+                           << "words; sample:" << to_qstringlist(default_dictionary_.sample(500, 5));
+    if (full_dictionary_) {
+        qCDebug(lcDictionary) << "full dictionary loaded:" << full_dictionary_->size()
+                               << "words; sample:" << to_qstringlist(full_dictionary_->sample(500, 5));
+    } else {
+        qCInfo(lcDictionary) << "full dictionary unavailable:" << to_qstring(full_dictionary_.error());
+    }
+}
 
 const letters::Dictionary& Solver::active_dictionary() const {
     return (using_full_dictionary_ && full_dictionary_) ? *full_dictionary_ : default_dictionary_;
 }
 
 QVariantMap Solver::solveNumbers(const QVariantList& numbers, int target) const {
+    const ScopedSolveTimer timer_guard("solveNumbers");
+
     std::vector<int> chosen;
     chosen.reserve(static_cast<std::size_t>(numbers.size()));
     for (const QVariant& value : numbers) {
@@ -108,6 +166,12 @@ QVariantMap Solver::solveNumbers(const QVariantList& numbers, int target) const 
     QVariantMap result;
     const auto outcome = numbers::NumbersGame{}.with_target(target).with_numbers(chosen).solve();
     if (!outcome) {
+        // NumbersGame::solve() always keeps a "closest so far" candidate once
+        // validate() passes (even a single valid term is one), so a failure
+        // here is always a validation problem (empty_input/target_out_of_range/
+        // number_out_of_range) - worth logging unconditionally rather than
+        // gating on which SolveError it is.
+        qCWarning(lcSolver) << "solveNumbers rejected input:" << to_qstring(outcome.error());
         result["value"] = 0;
         result["diff"] = target;
         result["exact"] = false;
@@ -135,6 +199,8 @@ QVariantMap Solver::solveNumbers(const QVariantList& numbers, int target) const 
 }
 
 QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults) const {
+    const ScopedSolveTimer timer_guard("solveLetters");
+
     QVariantMap result;
     result["total"] = 0;
     result["shown"] = 0;
@@ -147,6 +213,13 @@ QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults
 
     const auto matches = active_dictionary().find_matches(letters, min_length);
     if (!matches) {
+        // Anything other than the routine "no rack produces a match" is
+        // worth flagging - most notably dictionary_empty, an active
+        // dictionary that failed to load properly rather than a legitimate
+        // no-matches result.
+        if (matches.error() != SolveError::no_solution) {
+            qCWarning(lcSolver) << "solveLetters rejected input:" << to_qstring(matches.error());
+        }
         return result;
     }
     const std::vector<std::string>& all = *matches;  // longest first, alpha within
@@ -204,6 +277,8 @@ QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults
 }
 
 QVariantMap Solver::solveConundrum(const QString& letters) const {
+    const ScopedSolveTimer timer_guard("solveConundrum");
+
     QVariantMap result;
     result["found"] = false;
     result["answers"] = QStringList{};
@@ -211,6 +286,10 @@ QVariantMap Solver::solveConundrum(const QString& letters) const {
     const std::string rack = letters.toLower().toStdString();
     const auto anagrams = conundrum::ConundrumGame{active_dictionary()}.with_letters(rack).solve();
     if (!anagrams) {
+        // See the equivalent check in solveLetters() above.
+        if (anagrams.error() != SolveError::no_solution) {
+            qCWarning(lcSolver) << "solveConundrum rejected input:" << to_qstring(anagrams.error());
+        }
         return result;
     }
 
@@ -272,6 +351,17 @@ bool Solver::isDirty() const {
 
 bool Solver::fullDictionaryAvailable() const {
     return full_dictionary_.has_value();
+}
+
+QString Solver::fullDictionaryStatus() const {
+    if (full_dictionary_) {
+        return QStringLiteral("A custom dictionary is available.");
+    }
+    if (full_dictionary_.error() == SolveError::dictionary_empty) {
+        return QStringLiteral(
+            "A words.txt file was found in the config folder, but it contained no usable words.");
+    }
+    return QStringLiteral("Add a words.txt file to the config folder to enable a custom dictionary.");
 }
 
 bool Solver::usingFullDictionary() const {
