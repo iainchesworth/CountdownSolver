@@ -22,6 +22,10 @@ Item {
         recalc()
     }
     Component.onCompleted: recalc()
+    Connections {
+        target: AppState
+        function onUseFullDictionaryChanged() { root.recalc() }
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -31,6 +35,7 @@ Item {
         // ---- left: input ----
         ColumnLayout {
             Layout.preferredWidth: 456
+            Layout.fillWidth: false
             Layout.fillHeight: true
             spacing: 16
 

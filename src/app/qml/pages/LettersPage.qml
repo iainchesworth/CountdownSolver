@@ -24,8 +24,9 @@ Item {
     Component.onCompleted: recalc()
     Connections {
         target: AppState
-        function onMinLenChanged()     { root.recalc() }
-        function onMaxResultsChanged() { root.recalc() }
+        function onMinLenChanged()          { root.recalc() }
+        function onMaxResultsChanged()      { root.recalc() }
+        function onUseFullDictionaryChanged() { root.recalc() }
     }
 
     RowLayout {
@@ -36,6 +37,7 @@ Item {
         // ---- left: input ----
         ColumnLayout {
             Layout.preferredWidth: 456
+            Layout.fillWidth: false
             Layout.fillHeight: true
             spacing: 16
 

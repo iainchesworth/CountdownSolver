@@ -30,6 +30,15 @@ qt_add_executable(countdown_app
     platform/platform.hpp
     ${COUNTDOWN_PLATFORM_SOURCE})
 
+# Theme and AppState are QML singletons. This must run before
+# qt_add_qml_module below: that call reads QT_QML_SINGLETON_TYPE off each
+# QML_FILES entry to decide whether to emit a `singleton` qmldir line, so
+# setting it afterwards silently registers both as plain (non-singleton)
+# types and every Theme.*/AppState.* binding in the app resolves to
+# undefined at runtime.
+set_source_files_properties(qml/Theme.qml qml/AppState.qml
+    PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+
 qt_add_qml_module(countdown_app
     URI Countdown
     VERSION 1.0
@@ -48,10 +57,6 @@ qt_add_qml_module(countdown_app
         qml/pages/LettersPage.qml
         qml/pages/ConundrumPage.qml
         qml/pages/SettingsPage.qml)
-
-# Theme and AppState are QML singletons.
-set_source_files_properties(qml/Theme.qml qml/AppState.qml
-    PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 target_include_directories(countdown_app PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 

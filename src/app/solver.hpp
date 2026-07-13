@@ -41,10 +41,21 @@ public:
     // Version + git provenance, for an About/Settings display.
     Q_INVOKABLE QString versionDetails() const;
 
+    // True once a full word list has been found at <config-dir>/words.txt.
+    Q_INVOKABLE bool fullDictionaryAvailable() const;
+    // True when solves are drawing from the full list rather than the sample.
+    Q_INVOKABLE bool usingFullDictionary() const;
+    // Switches the active word list. Returns false (mode left unchanged) if
+    // `full` is requested but no full list was found.
+    Q_INVOKABLE bool setUseFullDictionary(bool full);
+
 private:
     [[nodiscard]] QString shuffledWord(std::size_t length) const;
+    [[nodiscard]] const letters::Dictionary& active_dictionary() const;
 
-    std::optional<letters::Dictionary> dictionary_;
+    letters::Dictionary sample_dictionary_;
+    std::optional<letters::Dictionary> full_dictionary_;
+    bool using_full_dictionary_ = false;
     mutable std::mt19937 rng_;
 };
 
