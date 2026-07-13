@@ -44,7 +44,11 @@ jobs:
             os: windows-2025
             preset: windows-msvc
 
-    env:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
       # Cache vcpkg build artefacts between runs via a local binary cache
       # directory (the 'files' provider), persisted across runs by
       # actions/cache below. The vcpkg provider itself is the vendored
@@ -53,12 +57,12 @@ jobs:
       #
       # x-gha was removed from vcpkg (https://learn.microsoft.com/vcpkg/users/binarycaching);
       # 'files' + actions/cache is the simplest supported replacement.
-      VCPKG_BINARY_SOURCES: "clear;files,${{ runner.temp }}/vcpkg-cache,readwrite"
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
+      #
+      # The 'runner' context isn't available in job-level env: blocks, so this
+      # is set via GITHUB_ENV in a step instead.
+      - name: Configure vcpkg binary cache
+        shell: bash
+        run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ runner.temp }}/vcpkg-cache,readwrite" >> "$GITHUB_ENV"
 
       - name: Cache vcpkg binaries
         uses: actions/cache@v4

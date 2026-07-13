@@ -30,15 +30,17 @@ jobs:
             os: windows-2025
             preset: windows-msvc-release
 
-    env:
-      # See ci.yml for why 'files' + actions/cache replaces the removed x-gha
-      # binary caching backend.
-      VCPKG_BINARY_SOURCES: "clear;files,${{ runner.temp }}/vcpkg-cache,readwrite"
-
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      # See ci.yml for why 'files' + actions/cache replaces the removed x-gha
+      # binary caching backend, and why this is set via GITHUB_ENV rather than
+      # a job-level env: (the 'runner' context isn't available there).
+      - name: Configure vcpkg binary cache
+        shell: bash
+        run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ runner.temp }}/vcpkg-cache,readwrite" >> "$GITHUB_ENV"
 
       - name: Cache vcpkg binaries
         uses: actions/cache@v4
