@@ -53,8 +53,7 @@ constexpr auto kSettingsKey = "language/code";
 
 }  // namespace
 
-LanguageManager::LanguageManager(QGuiApplication& app, QQmlApplicationEngine& engine,
-                                  QObject* parent)
+LanguageManager::LanguageManager(QGuiApplication& app, QQmlEngine& engine, QObject* parent)
     : QObject(parent), app_(app), engine_(engine) {}
 
 void LanguageManager::applyInitialLanguage() {
