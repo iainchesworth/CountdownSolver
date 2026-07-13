@@ -161,6 +161,7 @@ jobs:
         run: >
           cmake --preset linux-gcc-coverage
           -DCMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}
+          -DCMAKE_CXX_COMPILER=g++-15
 
       - name: Build
         run: cmake --build --preset linux-gcc-coverage
