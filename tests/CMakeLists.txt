@@ -85,6 +85,18 @@ if(COUNTDOWN_BUILD_APP)
     # never lands in the shared bin/ output directory otherwise: the test exe
     # fails to start (STATUS_DLL_NOT_FOUND) even though it links fine.
     if(WIN32 AND COUNTDOWN_WINDEPLOYQT_EXECUTABLE)
+        # countdown_app, countdown_app_tests and countdown_qml_tests each run a
+        # windeployqt POST_BUILD step that writes into the same shared
+        # CMAKE_RUNTIME_OUTPUT_DIRECTORY (bin/qml, bin/platforms, ...). Ninja
+        # otherwise links + deploys all three concurrently, and two windeployqt
+        # processes race to create the same destination file - observed in CI as
+        # "Cannot create ... QtQuick/Controls/Fusion/RadioButton.qml ... file
+        # already exists" (PR #12). add_dependencies() forces countdown_app to
+        # fully build (link *and* deploy) before countdown_app_tests starts;
+        # countdown_qml_tests below chains behind countdown_app_tests the same
+        # way, giving a total order across all three windeployqt invocations.
+        add_dependencies(countdown_app_tests countdown_app)
+
         add_custom_command(TARGET countdown_app_tests POST_BUILD
             COMMAND "${COUNTDOWN_WINDEPLOYQT_EXECUTABLE}"
                 --no-translations
@@ -132,6 +144,11 @@ if(COUNTDOWN_BUILD_APP)
     # windeployqt's static QML scan picks up "import QtTest" from the
     # tst_*.qml files themselves (not just the countdown_app_qml module).
     if(WIN32 AND COUNTDOWN_WINDEPLOYQT_EXECUTABLE)
+        # Chains behind countdown_app_tests's windeployqt step - see the
+        # add_dependencies() comment above countdown_app_tests's windeployqt
+        # block for why.
+        add_dependencies(countdown_qml_tests countdown_app_tests)
+
         add_custom_command(TARGET countdown_qml_tests POST_BUILD
             COMMAND "${COUNTDOWN_WINDEPLOYQT_EXECUTABLE}"
                 --qmldir "${CMAKE_CURRENT_SOURCE_DIR}/qml"
