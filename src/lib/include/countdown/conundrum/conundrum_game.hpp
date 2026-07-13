@@ -1,0 +1,41 @@
+#pragma once
+
+#include <countdown/error.hpp>
+#include <countdown/letters/dictionary.hpp>
+
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
+namespace countdown::conundrum {
+
+// Models the Countdown conundrum round: find the single word that is a full
+// anagram of a scrambled letter rack. Uses the same "deducing this"
+// fluent-builder style as NumbersGame/LettersGame so all three game APIs read
+// consistently from the application layer.
+class ConundrumGame {
+public:
+    explicit ConundrumGame(const letters::Dictionary& dictionary) noexcept
+        : dictionary_(&dictionary) {}
+
+    template <typename Self>
+    [[nodiscard]] auto&& with_letters(this Self&& self, std::string_view letters) {
+        self.letters_.assign(letters.begin(), letters.end());
+        return std::forward<Self>(self);
+    }
+
+    // A full anagram is a match whose length equals the rack length, so
+    // min_length == letters().size() restricts find_matches to exactly that.
+    [[nodiscard]] Result<std::vector<std::string>> solve() const {
+        return dictionary_->find_matches(letters_, letters_.size());
+    }
+
+    [[nodiscard]] const std::string& letters() const noexcept { return letters_; }
+
+private:
+    const letters::Dictionary* dictionary_;
+    std::string letters_;
+};
+
+}  // namespace countdown::conundrum

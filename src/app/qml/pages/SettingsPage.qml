@@ -163,6 +163,7 @@ Item {
                         }
                         SegControl {
                             id: dictSeg
+                            objectName: "dictSeg"
                             Layout.fillWidth: false
                             options: ["Sample", "SOWPODS"]
                             enabled: solver.fullDictionaryAvailable()
@@ -192,6 +193,7 @@ Item {
                     SectionLabel { text: "About" }
                     ColumnLayout {
                         id: aboutText
+                        objectName: "aboutText"
                         Layout.fillWidth: true
                         spacing: 4
                         readonly property var versionLines: solver.versionDetails().split("\n")

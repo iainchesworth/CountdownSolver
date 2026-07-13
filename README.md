@@ -141,12 +141,36 @@ and in the GUI under **Settings → About**.
 
 Testing is mandatory and drives development:
 
-- **Unit tests** ([`tests/unit`](tests/unit)) cover each behaviour in isolation.
+- **Unit tests** ([`tests/unit`](tests/unit)) cover each behaviour in isolation,
+  including the Numbers, Letters, and Conundrum game logic in `countdown::solver`.
 - **Integration tests** ([`tests/integration`](tests/integration)) exercise the
   file-backed dictionary and full solve pipelines together.
+- **App tests** ([`tests/app`](tests/app)) exercise the Qt-facing `Solver`
+  facade with Qt Test.
+- **QML tests** ([`tests/qml`](tests/qml)) drive the real `Countdown` QML
+  module (Numbers/Letters/Conundrum/Settings pages) headlessly with Qt Quick
+  Test, exercising the QML → `solver` → library round trip end to end.
 
-Both are Catch2 suites registered with CTest via `catch_discover_tests`, so each
-`TEST_CASE` is an individually runnable CTest.
+The Catch2 suites are registered with CTest via `catch_discover_tests`, so each
+`TEST_CASE` is an individually runnable CTest; the Qt Test/Quick Test suites
+each register as a single CTest entry covering every case in that binary.
+
+### Coverage
+
+A dedicated `linux-gcc-coverage` preset builds everything with `--coverage`
+(gcov) instrumentation:
+
+```console
+$ cmake --preset linux-gcc-coverage -DCMAKE_PREFIX_PATH=<qt>/6.8.3/gcc_64
+$ cmake --build --preset linux-gcc-coverage
+$ QT_QPA_PLATFORM=offscreen ctest --preset linux-gcc-coverage
+$ gcovr --root . --filter 'src/.*' --exclude 'src/app/main\.cpp' \
+    --exclude-throw-branches --exclude-unreachable-branches \
+    --object-directory build/linux-gcc-coverage --print-summary
+```
+
+CI runs this on every push/PR (`Coverage (Linux, GCC)` in `ci.yml`) and fails
+the job below 80% line or branch coverage.
 
 The **letters** game ships with a tiny word list. Drop a full newline-delimited
 word list at `<config-dir>/words.txt` (the app reports the location per platform)

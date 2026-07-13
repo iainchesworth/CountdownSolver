@@ -13,3 +13,5 @@
 #include <countdown/letters/dictionary.hpp>
 #include <countdown/letters/frequencies.hpp>
 #include <countdown/letters/letters_game.hpp>
+
+#include <countdown/conundrum/conundrum_game.hpp>

@@ -73,6 +73,16 @@ TEST_CASE("best_words reports failures without throwing", "[letters][solve]") {
     REQUIRE(dictionary.best_words("xyz").error() == SolveError::no_solution);
 }
 
+TEST_CASE("words_of_length filters to an exact length, alphabetically", "[letters][dictionary]") {
+    const auto dictionary = Dictionary::from_words({"cat", "dog", "bat", "creation", "ant"});
+
+    const auto three_letter = dictionary.words_of_length(3);
+    REQUIRE(three_letter == std::vector<std::string>{"ant", "bat", "cat", "dog"});
+
+    REQUIRE(dictionary.words_of_length(8) == std::vector<std::string>{"creation"});
+    REQUIRE(dictionary.words_of_length(20).empty());
+}
+
 TEST_CASE("sample strides through the word list", "[letters][dictionary]") {
     const auto dictionary = Dictionary::from_words(
         {"aa", "bb", "cc", "dd", "ee", "ff"});  // stored sorted

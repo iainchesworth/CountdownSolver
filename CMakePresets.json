@@ -124,6 +124,25 @@
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
       }
+    },
+    {
+      "name": "linux-gcc-coverage",
+      "displayName": "Linux (GCC, Coverage)",
+      "inherits": [
+        "base",
+        "debug"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+        "COUNTDOWN_ENABLE_COVERAGE": "ON",
+        "COUNTDOWN_ENABLE_SANITIZERS": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -146,6 +165,10 @@
     {
       "name": "macos-clang",
       "configurePreset": "macos-clang"
+    },
+    {
+      "name": "linux-gcc-coverage",
+      "configurePreset": "linux-gcc-coverage"
     }
   ],
   "testPresets": [
@@ -184,6 +207,11 @@
       "name": "macos-clang",
       "inherits": "base",
       "configurePreset": "macos-clang"
+    },
+    {
+      "name": "linux-gcc-coverage",
+      "inherits": "base",
+      "configurePreset": "linux-gcc-coverage"
     }
   ]
 }
