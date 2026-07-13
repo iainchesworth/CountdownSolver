@@ -266,6 +266,10 @@ QString Solver::shortVersion() const {
                               static_cast<qsizetype>(countdown::version_string.size()));
 }
 
+bool Solver::isDirty() const {
+    return countdown::git_dirty;
+}
+
 bool Solver::fullDictionaryAvailable() const {
     return full_dictionary_.has_value();
 }

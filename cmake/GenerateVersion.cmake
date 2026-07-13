@@ -48,8 +48,11 @@ if(DEFINED GIT_EXECUTABLE AND GIT_EXECUTABLE)
             OUTPUT_VARIABLE COUNTDOWN_GIT_COMMIT_FULL
             OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
 
+        # No --dirty suffix here: dirty state is tracked separately via
+        # COUNTDOWN_GIT_DIRTY so callers aren't stuck parsing it back out of a
+        # string when they want to render it as e.g. a standalone UI badge.
         execute_process(
-            COMMAND "${GIT_EXECUTABLE}" -C "${WORKDIR}" describe --tags --always --dirty=-dirty
+            COMMAND "${GIT_EXECUTABLE}" -C "${WORKDIR}" describe --tags --always
             OUTPUT_VARIABLE COUNTDOWN_GIT_DESCRIBE_RAW
             OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET
             RESULT_VARIABLE COUNTDOWN_DESCRIBE_RESULT)
