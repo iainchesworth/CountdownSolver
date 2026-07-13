@@ -55,8 +55,7 @@ constexpr std::array<std::pair<int, int>, 3> kLegalSplits{{{3, 6}, {4, 5}, {5, 4
 }  // namespace
 
 void SolverTest::solveNumbers_exact() {
-    const Solver solver;
-    const QVariantMap result = solver.solveNumbers(QVariantList{50, 50}, 100);
+    const QVariantMap result = solver_.solveNumbers(QVariantList{50, 50}, 100);
 
     QCOMPARE(result["exact"].toBool(), true);
     QCOMPARE(result["value"].toLongLong(), 100LL);
@@ -67,10 +66,9 @@ void SolverTest::solveNumbers_exact() {
 }
 
 void SolverTest::solveNumbers_closestFallback() {
-    const Solver solver;
     // {1, 2} can reach at most 3 (1+2); nowhere near target 999, so this
     // exercises the "not exact" branch deterministically.
-    const QVariantMap result = solver.solveNumbers(QVariantList{1, 2}, 999);
+    const QVariantMap result = solver_.solveNumbers(QVariantList{1, 2}, 999);
 
     QCOMPARE(result["exact"].toBool(), false);
     QCOMPARE(result["value"].toLongLong(), 3LL);
@@ -78,8 +76,7 @@ void SolverTest::solveNumbers_closestFallback() {
 }
 
 void SolverTest::solveNumbers_emptyInput() {
-    const Solver solver;
-    const QVariantMap result = solver.solveNumbers(QVariantList{}, 500);
+    const QVariantMap result = solver_.solveNumbers(QVariantList{}, 500);
 
     QCOMPARE(result["exact"].toBool(), false);
     QCOMPARE(result["value"].toLongLong(), 0LL);
@@ -88,12 +85,11 @@ void SolverTest::solveNumbers_emptyInput() {
 }
 
 void SolverTest::solveLetters_groupsByLength() {
-    const Solver solver;
     // A letter-rich rack against the real bundled dictionary - exact content
     // isn't asserted (the dictionary can change independently of this test);
     // instead every structural invariant of the response shape is checked.
     const QString rack = QStringLiteral("considerations");
-    const QVariantMap result = solver.solveLetters(rack, 1, 10000);
+    const QVariantMap result = solver_.solveLetters(rack, 1, 10000);
 
     const int total = result["total"].toInt();
     QVERIFY(total > 0);
@@ -129,12 +125,11 @@ void SolverTest::solveLetters_groupsByLength() {
 }
 
 void SolverTest::solveLetters_respectsMaxResults() {
-    const Solver solver;
     const QString rack = QStringLiteral("considerations");
-    const QVariantMap full = solver.solveLetters(rack, 1, 1000);
+    const QVariantMap full = solver_.solveLetters(rack, 1, 1000);
     QVERIFY(full["total"].toInt() > 1);
 
-    const QVariantMap capped = solver.solveLetters(rack, 1, 1);
+    const QVariantMap capped = solver_.solveLetters(rack, 1, 1);
     QCOMPARE(capped["total"].toInt(), full["total"].toInt());
     QCOMPARE(capped["shown"].toInt(), 1);
 
@@ -144,9 +139,8 @@ void SolverTest::solveLetters_respectsMaxResults() {
 }
 
 void SolverTest::solveLetters_noMatches() {
-    const Solver solver;
     // No dictionary word is spelled from only x/y/z.
-    const QVariantMap result = solver.solveLetters(QStringLiteral("xyzxyz"), 1, 10);
+    const QVariantMap result = solver_.solveLetters(QStringLiteral("xyzxyz"), 1, 10);
 
     QCOMPARE(result["total"].toInt(), 0);
     QCOMPARE(result["shown"].toInt(), 0);
@@ -154,16 +148,15 @@ void SolverTest::solveLetters_noMatches() {
     QVERIFY(result["groups"].toList().isEmpty());
 
     // Empty rack takes the same early-return path.
-    const QVariantMap empty = solver.solveLetters(QStringLiteral(""), 1, 10);
+    const QVariantMap empty = solver_.solveLetters(QStringLiteral(""), 1, 10);
     QCOMPARE(empty["total"].toInt(), 0);
 }
 
 void SolverTest::solveConundrum_found() {
-    const Solver solver;
     // A scrambled anagram of "countdown", the unique 9-letter anagram of
     // these letters in the bundled dictionary.
     const QString rack = QStringLiteral("wodnuocnt");
-    const QVariantMap result = solver.solveConundrum(rack);
+    const QVariantMap result = solver_.solveConundrum(rack);
 
     QCOMPARE(result["found"].toBool(), true);
     const QStringList answers = result["answers"].toStringList();
@@ -175,16 +168,14 @@ void SolverTest::solveConundrum_found() {
 }
 
 void SolverTest::solveConundrum_notFound() {
-    const Solver solver;
-    const QVariantMap result = solver.solveConundrum(QStringLiteral("zzzzzzzzz"));
+    const QVariantMap result = solver_.solveConundrum(QStringLiteral("zzzzzzzzz"));
 
     QCOMPARE(result["found"].toBool(), false);
     QVERIFY(result["answers"].toStringList().isEmpty());
 }
 
 void SolverTest::randomRack_respectsWeightedTilePool() {
-    const Solver solver;
-    const QString rack = solver.randomRack();
+    const QString rack = solver_.randomRack();
 
     QVERIFY(!rack.isEmpty());
     QCOMPARE(rack.size(), 9);
@@ -199,8 +190,7 @@ void SolverTest::randomRack_respectsWeightedTilePool() {
 }
 
 void SolverTest::randomConundrum_returnsNineLetters() {
-    const Solver solver;
-    const QString rack = solver.randomConundrum();
+    const QString rack = solver_.randomConundrum();
 
     QVERIFY(!rack.isEmpty());
     QCOMPARE(rack.size(), 9);
@@ -208,23 +198,21 @@ void SolverTest::randomConundrum_returnsNineLetters() {
 
     // randomConundrum shuffles a real dictionary word, so solving it back
     // must always find at least that word again.
-    const QVariantMap result = solver.solveConundrum(rack);
+    const QVariantMap result = solver_.solveConundrum(rack);
     QCOMPARE(result["found"].toBool(), true);
 }
 
 void SolverTest::versionDetails_nonEmpty() {
-    const Solver solver;
-    const QString details = solver.versionDetails();
+    const QString details = solver_.versionDetails();
 
     QVERIFY(!details.isEmpty());
     QVERIFY(details.contains(QStringLiteral("CountdownSolver")));
 }
 
 void SolverTest::shortVersion_matchesLibraryVersion() {
-    const Solver solver;
     const QString expected = QString::fromUtf8(countdown::version_string.data(),
                                                  static_cast<qsizetype>(countdown::version_string.size()));
-    QCOMPARE(solver.shortVersion(), expected);
+    QCOMPARE(solver_.shortVersion(), expected);
 }
 
 void SolverTest::dictionaryWordCount_matchesActiveDictionary() {

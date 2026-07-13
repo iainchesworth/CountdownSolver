@@ -1,5 +1,7 @@
 #pragma once
 
+#include "solver.hpp"
+
 #include <QObject>
 
 class SolverTest : public QObject {
@@ -29,4 +31,16 @@ private slots:
 #ifdef Q_OS_LINUX
     void fullDictionary_foundOnDisk();
 #endif
+
+private:
+    // Built once for the whole test binary and reused by every slot above
+    // that only needs a default-dictionary Solver (mirrors Setup::solver_ in
+    // tests/qml/tst_qml_setup.hpp) - constructing one re-parses, sorts and
+    // builds a frequency table for the full bundled dictionary, which is
+    // measurably expensive under Debug+ASan, so doing it once instead of
+    // once per slot cuts this binary's runtime dramatically. Slots that test
+    // construction-time behaviour itself (full-dictionary discovery/
+    // invariants) still build their own local Solver - see the slots' own
+    // definitions.
+    countdown::app::Solver solver_;
 };
