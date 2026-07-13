@@ -18,6 +18,8 @@ target_link_libraries(countdown_unit_tests
         countdown::sanitizers
         Catch2::Catch2WithMain)
 
+countdown_deploy_sanitizer_runtime(countdown_unit_tests)
+
 catch_discover_tests(countdown_unit_tests)
 
 # --- Integration tests: exercise several components together --------------
@@ -33,5 +35,7 @@ target_link_libraries(countdown_integration_tests
         countdown::warnings
         countdown::sanitizers
         Catch2::Catch2WithMain)
+
+countdown_deploy_sanitizer_runtime(countdown_integration_tests)
 
 catch_discover_tests(countdown_integration_tests)

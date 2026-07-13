@@ -50,3 +50,61 @@ endif()
 # where the standard library does not recognise the macro (e.g. MSVC STL).
 target_compile_definitions(countdown_sanitizers INTERFACE
     "$<$<AND:$<CONFIG:Debug>,$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>>:_GLIBCXX_ASSERTIONS>")
+
+# ---------------------------------------------------------------------------
+# The ASan runtime (clang_rt.asan_dynamic-*.dll) isn't in a system directory,
+# so executables linked against countdown::sanitizers fail to start with
+# STATUS_DLL_NOT_FOUND unless run from a Developer Command Prompt. Copy it
+# next to the target so it runs standalone, matching what windeployqt does
+# for Qt's own DLLs.
+#
+# Its location differs by toolchain:
+#   - real MSVC (cl.exe): next to the compiler, in the VC toolset's bin dir.
+#   - clang-cl: under Clang's resource dir (`clang-cl -print-resource-dir`),
+#     in lib/windows/ — NOT next to clang-cl.exe itself.
+# ---------------------------------------------------------------------------
+function(countdown_deploy_sanitizer_runtime target)
+    if(COUNTDOWN_ENABLE_SANITIZERS AND MSVC)
+        set(_countdown_asan_search_dirs "")
+
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            execute_process(
+                COMMAND "${CMAKE_CXX_COMPILER}" -print-resource-dir
+                OUTPUT_VARIABLE _countdown_clang_resource_dir
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+            if(_countdown_clang_resource_dir)
+                list(APPEND _countdown_asan_search_dirs "${_countdown_clang_resource_dir}/lib/windows")
+            endif()
+            unset(_countdown_clang_resource_dir)
+        else()
+            get_filename_component(_countdown_msvc_bin_dir "${CMAKE_CXX_COMPILER}" DIRECTORY)
+            list(APPEND _countdown_asan_search_dirs "${_countdown_msvc_bin_dir}")
+            unset(_countdown_msvc_bin_dir)
+        endif()
+
+        set(_countdown_asan_dll "")
+        foreach(_countdown_asan_dir IN LISTS _countdown_asan_search_dirs)
+            file(GLOB _countdown_asan_candidates "${_countdown_asan_dir}/clang_rt.asan_dynamic-*.dll")
+            if(_countdown_asan_candidates)
+                list(GET _countdown_asan_candidates 0 _countdown_asan_dll)
+                break()
+            endif()
+        endforeach()
+
+        if(_countdown_asan_dll)
+            add_custom_command(TARGET ${target} POST_BUILD
+                COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                    "${_countdown_asan_dll}" "$<TARGET_FILE_DIR:${target}>"
+                COMMENT "Copying ASan runtime next to ${target}")
+        else()
+            message(WARNING
+                "ASan is enabled but its runtime DLL was not found (searched: "
+                "${_countdown_asan_search_dirs}); ${target} may fail to start "
+                "with STATUS_DLL_NOT_FOUND outside a Developer Command Prompt.")
+        endif()
+
+        unset(_countdown_asan_search_dirs)
+        unset(_countdown_asan_dll)
+        unset(_countdown_asan_candidates)
+    endif()
+endfunction()
