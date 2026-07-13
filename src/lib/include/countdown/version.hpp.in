@@ -1,0 +1,28 @@
+#pragma once
+
+// NOTE: this header is generated from version.hpp.in by cmake/GenerateVersion.cmake.
+// Do not edit the generated copy; edit the template instead.
+
+#include <string>
+#include <string_view>
+
+namespace countdown {
+
+// Semantic version (https://semver.org).
+inline constexpr int version_major = @COUNTDOWN_VERSION_MAJOR@;
+inline constexpr int version_minor = @COUNTDOWN_VERSION_MINOR@;
+inline constexpr int version_patch = @COUNTDOWN_VERSION_PATCH@;
+inline constexpr std::string_view version_string = "@COUNTDOWN_VERSION@";
+
+// Git provenance, stamped at build time.
+inline constexpr std::string_view git_commit = "@COUNTDOWN_GIT_COMMIT@";
+inline constexpr std::string_view git_commit_full = "@COUNTDOWN_GIT_COMMIT_FULL@";
+inline constexpr std::string_view git_describe = "@COUNTDOWN_GIT_DESCRIBE@";
+inline constexpr std::string_view git_branch = "@COUNTDOWN_GIT_BRANCH@";
+inline constexpr bool git_dirty = @COUNTDOWN_GIT_DIRTY@;
+
+// A multi-line, human-readable version + build-provenance block, suitable for
+// `--version` output or an About dialog.
+[[nodiscard]] std::string version_details();
+
+}  // namespace countdown

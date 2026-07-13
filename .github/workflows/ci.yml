@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    # Jobs flagged experimental (macOS/libc++) may fail without failing the run.
+    continue-on-error: ${{ matrix.experimental || false }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Toolchain baseline: GCC 15+, Clang 21+, MSVC 14.51+, AppleClang 17+.
+          # Anything older lacks the C++23 features used here (deducing this,
+          # views::enumerate / stride / zip, ranges::to, std::expected).
+          - name: Linux (GCC 15)
+            os: ubuntu-24.04
+            preset: linux-gcc
+            cxx: g++-15
+          - name: Linux (Clang 21)
+            os: ubuntu-24.04
+            preset: linux-clang
+            cxx: clang++-21
+            # Use libstdc++ (from GCC 15): libc++ does not yet implement
+            # views::enumerate / views::stride. clang 21 handles libstdc++'s
+            # <expected> fine (unlike the older clang 18).
+          - name: macOS (AppleClang)
+            os: macos-15
+            preset: macos-clang
+            # macOS uses libc++, which still lacks views::enumerate / stride;
+            # countdown/detail/ranges_compat.hpp provides fallbacks so it builds.
+          - name: Windows (MSVC)
+            os: windows-2025
+            preset: windows-msvc
+
+    env:
+      # Cache vcpkg build artefacts between runs. The vcpkg provider itself is
+      # the vendored deps/vcpkg submodule and is bootstrapped automatically by
+      # its CMake toolchain on first configure.
+      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Enable vcpkg GitHub Actions cache
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      # The GitHub runners ship CMake 3.x; the project (and CMakePresets)
+      # require CMake 4. get-cmake installs a matching CMake 4 and Ninja on
+      # every OS.
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "latest"
+
+      # GCC 15 provides libstdc++ 15 for both the GCC job and (as the standard
+      # library) the Clang job.
+      - name: Install GCC 15 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-15
+
+      - name: Install Clang 21 (Linux Clang)
+        if: matrix.cxx == 'clang++-21'
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+
+      - name: Set up MSVC environment (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # Prebuilt Qt (official binaries) so the GUI app builds without compiling
+      # Qt from source. Sets QT_ROOT_DIR for find_package(Qt6). Keep the version
+      # in sync with ci/README.md and ci/install-qt.*.
+      - name: Install Qt (prebuilt)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.3"
+          cache: true
+
+      # Builds the library, tests AND the Qt app (COUNTDOWN_BUILD_APP defaults
+      # ON); vcpkg supplies only Catch2, Qt comes from the prebuilt install.
+      - name: Configure
+        run: >
+          cmake --preset ${{ matrix.preset }}
+          -DCMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}
+          ${{ matrix.cxx && format('-DCMAKE_CXX_COMPILER={0}', matrix.cxx) || '' }}
+          ${{ matrix.cxxflags && format('-DCMAKE_CXX_FLAGS={0}', matrix.cxxflags) || '' }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }}
