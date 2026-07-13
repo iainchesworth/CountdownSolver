@@ -8,8 +8,14 @@
 
 namespace countdown::letters {
 
-// A letter multiset for the 26 lowercase ASCII letters: index 0 == 'a'.
-using Frequencies = std::array<int, 26>;
+// The most letter slots any supported Alphabet (see alphabet.hpp) needs -
+// German's 29 (a-z plus distinct ä/ö/ü tiles) is the largest today, with a
+// little headroom. A letter multiset sized to this: index 0 == 'a' for
+// every alphabet; slots beyond a given alphabet's own size (its `size`
+// field) are simply always zero, so this single fixed width serves every
+// alphabet without per-language specialization of Frequencies itself.
+inline constexpr std::size_t kMaxAlphabetSize = 32;
+using Frequencies = std::array<int, kMaxAlphabetSize>;
 
 // Maps a character to 0..25, or -1 for anything that is not an ASCII letter.
 [[nodiscard]] constexpr int letter_index(char c) noexcept {
@@ -56,6 +62,20 @@ using Frequencies = std::array<int, 26>;
         }
     }
     return true;
+}
+
+// Total letters a Frequencies multiset represents - a word's "play length"
+// for matching/scoring, deliberately not the same thing as its stored
+// spelling's byte or codepoint count: once accents are folded (without
+// changing letter count) or a ligature like French oe/ae expands to two
+// letters, only this - the folded slot count - is the right length to
+// compare against a rack or another word.
+[[nodiscard]] constexpr int letter_count(const Frequencies& frequencies) noexcept {
+    int total = 0;
+    for (const int count : frequencies) {
+        total += count;
+    }
+    return total;
 }
 
 }  // namespace countdown::letters

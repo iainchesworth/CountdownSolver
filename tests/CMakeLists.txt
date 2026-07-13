@@ -10,7 +10,10 @@ add_executable(countdown_unit_tests
     unit/numbers_test.cpp
     unit/letters_test.cpp
     unit/conundrum_test.cpp
-    unit/version_test.cpp)
+    unit/version_test.cpp
+    unit/alphabet_test.cpp
+    unit/dictionary_i18n_test.cpp
+    unit/utf8_test_support.hpp)
 
 target_link_libraries(countdown_unit_tests
     PRIVATE
