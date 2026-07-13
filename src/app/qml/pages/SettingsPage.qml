@@ -6,6 +6,12 @@ import QtQuick.Layouts
 Item {
     id: root
 
+    // Popup/Dialog isn't a QQuickItem, so it never shows up in another
+    // Item's `children` list - TestCase.findChild (a `.children` walk) can't
+    // reach it. Expose it as a property alias instead, for
+    // tests/qml/tst_SettingsPage.qml.
+    property alias licensesDialog: licensesDialogInstance
+
     Flickable {
         anchors.fill: parent
         anchors.leftMargin: 24; anchors.rightMargin: 24; anchors.bottomMargin: 24
@@ -39,10 +45,12 @@ Item {
                                 Text { Layout.fillWidth: true; text: "Applies across the whole window."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             SegControl {
+                                id: themeSeg
+                                objectName: "themeSeg"
                                 Layout.fillWidth: false
-                                options: ["Light", "Dark"]
-                                currentIndex: Theme.dark ? 1 : 0
-                                onActivated: Theme.dark = (index === 1)
+                                options: ["Light", "Dark", "System"]
+                                currentIndex: Theme.mode === "dark" ? 1 : (Theme.mode === "system" ? 2 : 0)
+                                onActivated: Theme.mode = index === 0 ? "light" : (index === 1 ? "dark" : "system")
                             }
                         }
                     }
@@ -274,8 +282,24 @@ Item {
                             onClicked: Qt.openUrlExternally("https://github.com/iainchesworth/CountdownSolver")
                         }
                     }
+                    Text {
+                        id: licensesLink
+                        objectName: "licensesLink"
+                        text: "Third-Party Licenses"
+                        color: licensesLinkArea.containsMouse ? Theme.ink : Theme.accent
+                        font.family: Theme.sans; font.pixelSize: 13; font.weight: Font.DemiBold
+                        MouseArea {
+                            id: licensesLinkArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: licensesDialog.open()
+                        }
+                    }
                 }
             }
+
+            LicensesDialog { id: licensesDialogInstance }
 
             Item { Layout.preferredHeight: 4 }
         }

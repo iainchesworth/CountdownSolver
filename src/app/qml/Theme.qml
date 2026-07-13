@@ -4,7 +4,12 @@ import QtQuick
 // Design tokens for the Countdown Solver. Single source of truth for colour,
 // type and geometry. Flip `dark` to switch the whole app between themes.
 QtObject {
-    property bool dark: false
+    // "light" | "dark" | "system" - system (the default) follows the OS setting.
+    property string mode: "system"
+
+    readonly property bool dark: mode === "system"
+        ? (Qt.styleHints.colorScheme === Qt.ColorScheme.Dark)
+        : mode === "dark"
 
     // ---- palette (light / dark) ----
     readonly property color desk:       dark ? "#131211" : "#e7e6e1"   // window backdrop
