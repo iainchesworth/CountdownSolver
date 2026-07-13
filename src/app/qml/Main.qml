@@ -9,8 +9,10 @@ ApplicationWindow {
     visible: true
     width: 1140
     height: 740
-    minimumWidth: 900
-    minimumHeight: 620
+    minimumWidth: 1140
+    minimumHeight: 740
+    maximumWidth: 1140
+    maximumHeight: 740
     title: qsTr("Countdown Solver")
     color: Theme.bg
 
@@ -73,7 +75,7 @@ ApplicationWindow {
                 Rectangle { Layout.fillWidth: true; height: 1; color: Theme.border }
                 Text {
                     Layout.topMargin: 8; Layout.leftMargin: 8
-                    text: "v0.3.0 \u00b7 Qt 6"
+                    text: "v" + solver.shortVersion() + " \u00b7 Qt 6"
                     color: Theme.faint; font.family: Theme.mono; font.pixelSize: 11
                 }
             }

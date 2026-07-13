@@ -7,6 +7,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickStyle>
 #include <QString>
 // #include <QFontDatabase>  // uncomment if bundling IBM Plex (see README)
 
@@ -23,6 +24,12 @@ namespace {
 }  // namespace
 
 int main(int argc, char* argv[]) {
+    // Every custom control (FlatButton, PadButton, ...) customizes `background`/
+    // `contentItem`; native styles (the default on Windows) silently ignore that
+    // customization and fall back to OS-drawn chrome. "Basic" is the only style
+    // that honors it everywhere, so Switch/Slider/etc. render as designed too.
+    QQuickStyle::setStyle(QStringLiteral("Basic"));
+
     // Informational flags are handled before Qt starts so they work headlessly.
     for (int i = 1; i < argc; ++i) {
         const std::string_view arg{argv[i]};
