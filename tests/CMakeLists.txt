@@ -244,17 +244,32 @@ if(COUNTDOWN_BUILD_APP)
         endif()
     endif()
 
-    add_test(NAME countdown_qml_tests COMMAND countdown_qml_tests)
+    # One CTest entry per page rather than one countdown_qml_tests entry
+    # covering all four - a failing page names itself in CI instead of
+    # forcing a scroll through combined Quick Test output to find which
+    # TestCase broke. All four share the single countdown_qml_tests binary
+    # built above (so only one windeployqt/offscreen-plugin deployment is
+    # needed); Qt Quick Test's "-input dir/file" option accepts a single QML
+    # file as well as a directory, so each entry just restricts that shared
+    # binary to its own tst_*.qml file.
+    set(COUNTDOWN_QML_TEST_PAGES ConundrumPage LettersPage NumbersPage SettingsPage)
 
-    # QT_QPA_PLATFORM: no display in CI, so run against Qt's software-
-    # rendered offscreen platform plugin instead of a real windowing system.
-    #
-    # ASAN_OPTIONS=detect_leaks=0: LeakSanitizer flags QQmlData/QObject/
-    # notifier allocations that Qt's own QML engine and singleton/style
-    # caches intentionally keep alive until true process teardown - not our
-    # code, and every test function itself passes; this is a well-known
-    # false-positive pattern for Qt/QtQuick binaries under ASan. Real
-    # memory-safety checks (use-after-free, buffer overflows, ...) stay on.
-    set_tests_properties(countdown_qml_tests PROPERTIES
-        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;ASAN_OPTIONS=detect_leaks=0")
+    foreach(page IN LISTS COUNTDOWN_QML_TEST_PAGES)
+        add_test(NAME countdown_qml_tests_${page}
+            COMMAND countdown_qml_tests -input "${CMAKE_CURRENT_SOURCE_DIR}/qml/tst_${page}.qml")
+
+        # QT_QPA_PLATFORM: no display in CI, so run against Qt's software-
+        # rendered offscreen platform plugin instead of a real windowing
+        # system.
+        #
+        # ASAN_OPTIONS=detect_leaks=0: LeakSanitizer flags QQmlData/QObject/
+        # notifier allocations that Qt's own QML engine and singleton/style
+        # caches intentionally keep alive until true process teardown - not
+        # our code, and every test function itself passes; this is a
+        # well-known false-positive pattern for Qt/QtQuick binaries under
+        # ASan. Real memory-safety checks (use-after-free, buffer overflows,
+        # ...) stay on.
+        set_tests_properties(countdown_qml_tests_${page} PROPERTIES
+            ENVIRONMENT "QT_QPA_PLATFORM=offscreen;ASAN_OPTIONS=detect_leaks=0")
+    endforeach()
 endif()
