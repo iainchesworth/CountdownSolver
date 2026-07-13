@@ -71,6 +71,8 @@ public:
     Q_INVOKABLE QString shortVersion() const;
     // True when the working tree had uncommitted changes at build time.
     Q_INVOKABLE bool isDirty() const;
+    // Qt runtime version ("6.7.2"), for the third-party licenses display.
+    Q_INVOKABLE QString qtVersion() const;
 
     // True once a full word list has been found at <config-dir>/words.txt.
     Q_INVOKABLE bool fullDictionaryAvailable() const;

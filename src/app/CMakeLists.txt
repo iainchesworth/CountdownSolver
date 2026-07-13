@@ -126,6 +126,7 @@ qt_add_qml_module(countdown_app_qml
         qml/components/NavItem.qml
         qml/components/SegControl.qml
         qml/components/LetterRackInput.qml
+        qml/components/LicensesDialog.qml
         qml/pages/NumbersPage.qml
         qml/pages/LettersPage.qml
         qml/pages/ConundrumPage.qml

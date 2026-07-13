@@ -381,6 +381,10 @@ bool Solver::isDirty() const {
     return countdown::git_dirty;
 }
 
+QString Solver::qtVersion() const {
+    return QString::fromUtf8(qVersion());
+}
+
 bool Solver::fullDictionaryAvailable() const {
     return full_dictionary_.has_value();
 }
