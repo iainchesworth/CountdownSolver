@@ -9,6 +9,7 @@
 #include <countdown/version.hpp>
 
 #include <QChar>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QIODevice>
 #include <QStringList>
@@ -29,6 +30,31 @@ namespace {
     const std::string_view text = to_string(error);
     return QString::fromUtf8(text.data(), static_cast<qsizetype>(text.size()));
 }
+
+[[nodiscard]] QStringList to_qstringlist(const std::vector<std::string>& words) {
+    QStringList list;
+    list.reserve(static_cast<qsizetype>(words.size()));
+    for (const std::string& word : words) {
+        list << QString::fromStdString(word);
+    }
+    return list;
+}
+
+// Logs the wall-clock duration of the enclosing function to lcSolver at
+// destruction, covering every return path uniformly - useful context if a
+// user reports the GUI "hanging" on a given rack/target.
+class ScopedSolveTimer {
+public:
+    explicit ScopedSolveTimer(const char* label) : label_(label) { timer_.start(); }
+    ~ScopedSolveTimer() { qCDebug(lcSolver) << label_ << "took" << timer_.elapsed() << "ms"; }
+
+    ScopedSolveTimer(const ScopedSolveTimer&) = delete;
+    ScopedSolveTimer& operator=(const ScopedSolveTimer&) = delete;
+
+private:
+    const char* label_;
+    QElapsedTimer timer_;
+};
 
 // Loads the word list bundled into the binary as a Qt resource (see
 // src/app/resources/dictionary/words.txt and the qt_add_resources call in
@@ -111,7 +137,15 @@ Solver::Solver(QObject* parent)
       default_dictionary_(load_default_dictionary()),
       full_dictionary_(load_full_dictionary()),
       rng_(std::random_device{}()) {
-    if (!full_dictionary_) {
+    // A handful of sampled words (not the full list - that would flood the
+    // log) confirms at a glance that the intended dictionary loaded and its
+    // contents look sane, without adding a dedicated word-dump API.
+    qCDebug(lcDictionary) << "default dictionary loaded:" << default_dictionary_.size()
+                           << "words; sample:" << to_qstringlist(default_dictionary_.sample(500, 5));
+    if (full_dictionary_) {
+        qCDebug(lcDictionary) << "full dictionary loaded:" << full_dictionary_->size()
+                               << "words; sample:" << to_qstringlist(full_dictionary_->sample(500, 5));
+    } else {
         qCInfo(lcDictionary) << "full dictionary unavailable:" << to_qstring(full_dictionary_.error());
     }
 }
@@ -121,6 +155,8 @@ const letters::Dictionary& Solver::active_dictionary() const {
 }
 
 QVariantMap Solver::solveNumbers(const QVariantList& numbers, int target) const {
+    const ScopedSolveTimer timer_guard("solveNumbers");
+
     std::vector<int> chosen;
     chosen.reserve(static_cast<std::size_t>(numbers.size()));
     for (const QVariant& value : numbers) {
@@ -160,6 +196,8 @@ QVariantMap Solver::solveNumbers(const QVariantList& numbers, int target) const 
 }
 
 QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults) const {
+    const ScopedSolveTimer timer_guard("solveLetters");
+
     QVariantMap result;
     result["total"] = 0;
     result["shown"] = 0;
@@ -232,6 +270,8 @@ QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults
 }
 
 QVariantMap Solver::solveConundrum(const QString& letters) const {
+    const ScopedSolveTimer timer_guard("solveConundrum");
+
     QVariantMap result;
     result["found"] = false;
     result["answers"] = QStringList{};
