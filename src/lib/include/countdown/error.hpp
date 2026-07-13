@@ -13,8 +13,10 @@ enum class SolveError {
     empty_input,
     target_out_of_range,
     number_out_of_range,
+    count_out_of_range,
     division_not_exact,
     non_positive_result,
+    arithmetic_overflow,
     dictionary_not_found,
     dictionary_empty,
     invalid_letter,
@@ -26,8 +28,10 @@ enum class SolveError {
         case SolveError::empty_input:         return "no input was provided";
         case SolveError::target_out_of_range: return "target must be between 100 and 999";
         case SolveError::number_out_of_range: return "a supplied number is out of range";
+        case SolveError::count_out_of_range:  return "too many numbers were supplied";
         case SolveError::division_not_exact:  return "division did not produce a whole number";
         case SolveError::non_positive_result: return "operation produced a non-positive result";
+        case SolveError::arithmetic_overflow: return "operation would overflow the value type";
         case SolveError::dictionary_not_found:return "the dictionary file could not be opened";
         case SolveError::dictionary_empty:    return "the dictionary contained no usable words";
         case SolveError::invalid_letter:      return "an invalid (non-alphabetic) letter was supplied";
