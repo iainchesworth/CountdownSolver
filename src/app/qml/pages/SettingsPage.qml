@@ -39,10 +39,12 @@ Item {
                                 Text { Layout.fillWidth: true; text: "Applies across the whole window."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             SegControl {
+                                id: themeSeg
+                                objectName: "themeSeg"
                                 Layout.fillWidth: false
-                                options: ["Light", "Dark"]
-                                currentIndex: Theme.dark ? 1 : 0
-                                onActivated: Theme.dark = (index === 1)
+                                options: ["Light", "Dark", "System"]
+                                currentIndex: Theme.mode === "dark" ? 1 : (Theme.mode === "system" ? 2 : 0)
+                                onActivated: Theme.mode = index === 0 ? "light" : (index === 1 ? "dark" : "system")
                             }
                         }
                     }
