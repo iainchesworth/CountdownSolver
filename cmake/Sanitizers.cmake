@@ -16,7 +16,26 @@ add_library(countdown_sanitizers INTERFACE)
 add_library(countdown::sanitizers ALIAS countdown_sanitizers)
 
 if(COUNTDOWN_ENABLE_SANITIZERS)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    if(MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        # clang-cl: CMAKE_CXX_COMPILER_ID is "Clang" (so it would otherwise hit
+        # the GNU|Clang branch below), but LLVM's bundled ASan runtime on
+        # Windows - distinct from MSVC's own integrated ASan used in the
+        # elseif(MSVC) branch further down - cannot link against the debug
+        # CRT. Forcing the release CRT to work around that breaks every
+        # debug-CRT dependency this project's Debug config actually links:
+        # vcpkg's Catch2 (built debug, `/failifmismatch: _ITERATOR_DEBUG_LEVEL`)
+        # and Qt's official prebuilt Debug binaries (Qt6Cored.dll etc, which
+        # windeployqt then can't consistently match against a release-CRT
+        # exe). Fixing that properly would need a custom vcpkg triplet plus a
+        # non-standard Qt build; out of scope here. So: no ASan/UBSan under
+        # clang-cl. Real MSVC (the elseif(MSVC) branch) already supports ASan
+        # together with the debug CRT natively, with no such conflict.
+        message(STATUS
+            "ASan/UBSan disabled for clang-cl: LLVM's Windows ASan runtime "
+            "requires the release CRT, which is incompatible with this "
+            "project's debug-CRT vcpkg/Qt dependencies. Use windows-msvc for "
+            "sanitizer coverage.")
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         set(COUNTDOWN_SANITIZER_FLAGS
             -fsanitize=address,undefined
             -fno-omit-frame-pointer

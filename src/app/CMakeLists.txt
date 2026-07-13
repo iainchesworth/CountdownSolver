@@ -69,9 +69,11 @@ add_dependencies(countdown_app countdown_version)
 countdown_deploy_sanitizer_runtime(countdown_app)
 
 # std::getenv is flagged "unsafe" by the MSVC CRT; the usage is correct and
-# portable, so silence that specific deprecation for this target only.
+# portable, so silence that specific deprecation for this target only. This
+# also fires under clang-cl (CXX_COMPILER_ID "Clang"), which uses the same
+# MSVC CRT headers/annotations on Windows.
 target_compile_definitions(countdown_app PRIVATE
-    "$<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>")
+    "$<$<OR:$<CXX_COMPILER_ID:MSVC>,$<AND:$<PLATFORM_ID:Windows>,$<CXX_COMPILER_ID:Clang>>>:_CRT_SECURE_NO_WARNINGS>")
 
 set_target_properties(countdown_app PROPERTIES
     WIN32_EXECUTABLE ON

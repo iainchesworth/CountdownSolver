@@ -37,6 +37,35 @@ set(COUNTDOWN_MSVC_WARNINGS
     /WX
     /permissive-)
 
-target_compile_options(countdown_warnings INTERFACE
-    "$<$<CXX_COMPILER_ID:MSVC>:${COUNTDOWN_MSVC_WARNINGS}>"
-    "$<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${COUNTDOWN_GNU_CLANG_WARNINGS}>")
+# clang-cl reports CXX_COMPILER_ID "Clang" (it would otherwise get
+# COUNTDOWN_GNU_CLANG_WARNINGS below), but its -Wall/-Wall alias is bound to
+# MSVC's /Wall semantics - "warning level 4 and everything disabled by
+# default" - not plain clang's moderate -Wall. That silently turns on
+# off-by-default groups like -Wc++98-compat, which then fail the build on
+# ordinary C++23 code (scoped enums, [[nodiscard]], nested namespaces, ...).
+# /W4 is what clang-cl itself recommends in place of -Wall for this reason.
+set(COUNTDOWN_CLANG_CL_WARNINGS
+    /W4
+    -Wextra
+    -Wpedantic
+    -Werror
+    -Wshadow
+    -Wnon-virtual-dtor
+    -Woverloaded-virtual
+    -Wold-style-cast
+    -Wcast-align
+    -Wunused
+    -Wconversion
+    -Wsign-conversion
+    -Wnull-dereference
+    -Wdouble-promotion
+    -Wimplicit-fallthrough
+    -Wformat=2)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    target_compile_options(countdown_warnings INTERFACE ${COUNTDOWN_CLANG_CL_WARNINGS})
+else()
+    target_compile_options(countdown_warnings INTERFACE
+        "$<$<CXX_COMPILER_ID:MSVC>:${COUNTDOWN_MSVC_WARNINGS}>"
+        "$<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${COUNTDOWN_GNU_CLANG_WARNINGS}>")
+endif()
