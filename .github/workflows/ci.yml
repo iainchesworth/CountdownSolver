@@ -110,7 +110,7 @@ jobs:
 
       # Prebuilt Qt (official binaries) so the GUI app builds without compiling
       # Qt from source. Sets QT_ROOT_DIR for find_package(Qt6). Keep the version
-      # in sync with ci/README.md and ci/install-qt.*.
+      # in sync with docs/ci.md and ci/install-qt.*.
       - name: Install Qt (prebuilt)
         uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
         with:
