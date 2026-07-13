@@ -25,7 +25,17 @@ QtObject {
     readonly property color warnInk:    dark ? "#d8b06a" : "#9a6a2c"
 
     // ---- type ----
-    readonly property string sans: "IBM Plex Sans"
+    // Arabic/Hebrew/Yiddish need a script-appropriate typeface - IBM Plex
+    // Sans has no Arabic or Hebrew glyph coverage. Noto Sans Arabic/Hebrew
+    // are bundled as application fonts (see main.cpp) for exactly this.
+    // Bound to languageManager.currentLanguage (a NOTIFYing property) rather
+    // than Qt.locale(), so it re-evaluates on every language switch.
+    readonly property var rtlFonts: ({
+        "ar": "Noto Sans Arabic",
+        "he": "Noto Sans Hebrew",
+        "yi": "Noto Sans Hebrew",
+    })
+    readonly property string sans: rtlFonts[languageManager.currentLanguage] || "IBM Plex Sans"
     readonly property string mono: "IBM Plex Mono"
 
     // ---- geometry ----

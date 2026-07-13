@@ -133,7 +133,7 @@ Item {
                     id: selCol
                     anchors.fill: parent; anchors.margins: 18
                     spacing: 12
-                    SectionLabel { text: "Your six numbers" }
+                    SectionLabel { text: qsTr("Your six numbers") }
                     RowLayout {
                         Layout.fillWidth: true; spacing: 8
                         Repeater {
@@ -184,7 +184,7 @@ Item {
                     spacing: 14
                     RowLayout {
                         Layout.fillWidth: true; spacing: 16
-                        SectionLabel { text: "Target" }
+                        SectionLabel { text: qsTr("Target") }
                         Rectangle {
                             Layout.fillWidth: true; Layout.preferredHeight: 52
                             radius: 10; color: Theme.accent
@@ -212,14 +212,14 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true; spacing: 9
-                FlatButton { Layout.fillWidth: true; text: "\u21bb Random game"; onClicked: root.randomGame() }
+                FlatButton { Layout.fillWidth: true; text: "\u21bb " + qsTr("Random game"); onClicked: root.randomGame() }
                 FlatButton { text: "\u232b"; onClicked: root.backspaceKey() }
-                FlatButton { text: "Clear"; onClicked: root.clearAll() }
+                FlatButton { text: qsTr("Clear"); onClicked: root.clearAll() }
             }
             FlatButton {
                 Layout.fillWidth: true
                 primary: true
-                text: root.busy ? "Solving…" : "Solve"
+                text: root.busy ? qsTr("Solving…") : qsTr("Solve")
                 enabled: root.numbers.length === 6 && root.targetIsValid() && !root.busy
                 onClicked: root.recalc()
             }
@@ -240,7 +240,7 @@ Item {
                     Layout.fillWidth: true
                     ColumnLayout {
                         Layout.fillWidth: true; spacing: 8
-                        SectionLabel { text: "Best result" }
+                        SectionLabel { text: qsTr("Best result") }
                         Text {
                             text: root.result ? String(root.result.value) : ""
                             color: Theme.ink; font.family: Theme.mono
@@ -258,7 +258,9 @@ Item {
                         Text {
                             id: badge
                             anchors.centerIn: parent
-                            text: root.result ? (root.result.exact ? "Exact" : root.result.diff + " away") : ""
+                            text: root.result
+                                  ? (root.result.exact ? qsTr("Exact") : qsTr("%1 away").arg(root.result.diff))
+                                  : ""
                             font.family: Theme.sans; font.pixelSize: 13; font.weight: Font.DemiBold
                             color: (root.result && root.result.exact) ? Theme.accentInk
                                    : (AppState.flagInexact ? Theme.warnInk : Theme.muted)
@@ -267,7 +269,7 @@ Item {
                 }
 
                 Rectangle { Layout.fillWidth: true; Layout.topMargin: 16; Layout.bottomMargin: 16; height: 1; color: Theme.border }
-                SectionLabel { text: "Working" }
+                SectionLabel { text: qsTr("Working") }
                 ColumnLayout {
                     Layout.fillWidth: true; Layout.topMargin: 10; spacing: 7
                     Repeater {
@@ -298,7 +300,7 @@ Item {
                 BusyIndicator { Layout.alignment: Qt.AlignHCenter; running: root.busy }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "Solving…"
+                    text: qsTr("Solving…")
                     color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
                 }
             }
@@ -320,12 +322,12 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     text: root.numbers.length < 6
-                          ? "Choose " + (6 - root.numbers.length) + " more number" + (root.numbers.length === 5 ? "" : "s") + ", then set a target."
+                          ? qsTr("Choose %n more number(s), then set a target.", "", 6 - root.numbers.length)
                           : (root.target.length < 3
-                             ? "Enter a 3-digit target (100–999), then press Solve."
+                             ? qsTr("Enter a 3-digit target (100–999), then press Solve.")
                              : (!root.targetIsValid()
-                                ? "Target must be between 100 and 999."
-                                : "Press Solve to see the best result."))
+                                ? qsTr("Target must be between 100 and 999.")
+                                : qsTr("Press Solve to see the best result.")))
                     color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
                 }
             }

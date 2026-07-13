@@ -16,12 +16,20 @@ ApplicationWindow {
     title: qsTr("Countdown Solver")
     color: Theme.bg
 
+    // Mirrors every anchor/Row/ColumnLayout in the window (and, via
+    // childrenInherit, every descendant item) for right-to-left languages
+    // (Arabic, Hebrew, Yiddish). Qt.application.layoutDirection follows the
+    // application's layout direction, which LanguageManager sets from the
+    // active language on every switch (see language_manager.cpp).
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
+
     property int currentIndex: 0
     readonly property var pages: [
-        { title: "Numbers",   sub: "Reach the target using each number at most once." },
-        { title: "Letters",   sub: "Find every word hiding in your nine letters." },
-        { title: "Conundrum", sub: "Unscramble the nine letters into one word." },
-        { title: "Settings",  sub: "Tune the solver and how results are shown." }
+        { title: qsTr("Numbers"),   sub: qsTr("Reach the target using each number at most once.") },
+        { title: qsTr("Letters"),   sub: qsTr("Find every word hiding in your nine letters.") },
+        { title: qsTr("Conundrum"), sub: qsTr("Unscramble the nine letters into one word.") },
+        { title: qsTr("Settings"),  sub: qsTr("Tune the solver and how results are shown.") }
     ]
 
     RowLayout {
@@ -55,13 +63,13 @@ ApplicationWindow {
                     }
                     ColumnLayout {
                         spacing: 2
-                        Text { text: "Countdown"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.Bold }
-                        Text { text: "SOLVER"; color: Theme.faint; font.family: Theme.mono; font.pixelSize: 11; font.letterSpacing: 1 }
+                        Text { text: qsTr("Countdown"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.Bold }
+                        Text { text: qsTr("SOLVER"); color: Theme.faint; font.family: Theme.mono; font.pixelSize: 11; font.letterSpacing: 1 }
                     }
                 }
 
                 Repeater {
-                    model: [ ["Numbers","12"], ["Letters","Aa"], ["Conundrum","?"], ["Settings","\u2261"] ]
+                    model: [ [qsTr("Numbers"),"12"], [qsTr("Letters"),"Aa"], [qsTr("Conundrum"),"?"], [qsTr("Settings"),"\u2261"] ]
                     delegate: NavItem {
                         Layout.fillWidth: true
                         text: modelData[0]
@@ -79,7 +87,9 @@ ApplicationWindow {
                     // property) in this binding is what makes it re-evaluate
                     // once the deferred load finishes - dictionaryWordCount()
                     // alone is a plain invokable call QML can't track.
-                    text: (solver.dictionariesReady ? Number(solver.dictionaryWordCount()).toLocaleString(Qt.locale(), "f", 0) : "...") + " words loaded"
+                    text: solver.dictionariesReady
+                          ? qsTr("%1 words loaded").arg(Number(solver.dictionaryWordCount()).toLocaleString(Qt.locale(), "f", 0))
+                          : qsTr("Loading…")
                     color: Theme.faint; font.family: Theme.mono; font.pixelSize: 11
                 }
                 RowLayout {
@@ -98,7 +108,7 @@ ApplicationWindow {
                         Text {
                             id: dirtyLabel
                             anchors.centerIn: parent
-                            text: "dirty"
+                            text: qsTr("dirty")
                             color: Theme.warnInk; font.family: Theme.mono
                             font.pixelSize: 9; font.weight: Font.DemiBold
                         }

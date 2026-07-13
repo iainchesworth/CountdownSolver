@@ -387,13 +387,12 @@ bool Solver::fullDictionaryAvailable() const {
 
 QString Solver::fullDictionaryStatus() const {
     if (full_dictionary_) {
-        return QStringLiteral("A custom dictionary is available.");
+        return tr("A custom dictionary is available.");
     }
     if (full_dictionary_.error() == SolveError::dictionary_empty) {
-        return QStringLiteral(
-            "A words.txt file was found in the config folder, but it contained no usable words.");
+        return tr("A words.txt file was found in the config folder, but it contained no usable words.");
     }
-    return QStringLiteral("Add a words.txt file to the config folder to enable a custom dictionary.");
+    return tr("Add a words.txt file to the config folder to enable a custom dictionary.");
 }
 
 bool Solver::usingFullDictionary() const {

@@ -26,7 +26,7 @@ Item {
                     id: ap
                     anchors.fill: parent; anchors.margins: 20
                     spacing: 16
-                    SectionLabel { text: "Appearance" }
+                    SectionLabel { text: qsTr("Appearance") }
                     Item {
                         Layout.fillWidth: true
                         implicitHeight: themeRow.implicitHeight
@@ -35,14 +35,49 @@ Item {
                             anchors.fill: parent
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Text { text: "Theme"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                Text { text: "Applies across the whole window."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                                Text { text: qsTr("Theme"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { text: qsTr("Applies across the whole window."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             SegControl {
                                 Layout.fillWidth: false
-                                options: ["Light", "Dark"]
+                                options: [qsTr("Light"), qsTr("Dark")]
                                 currentIndex: Theme.dark ? 1 : 0
                                 onActivated: Theme.dark = (index === 1)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ---- Language ----
+            Card {
+                Layout.fillWidth: true
+                implicitHeight: lang.implicitHeight + 40
+                ColumnLayout {
+                    id: lang
+                    anchors.fill: parent; anchors.margins: 20
+                    spacing: 16
+                    SectionLabel { text: qsTr("Language") }
+                    Item {
+                        Layout.fillWidth: true
+                        implicitHeight: langRow.implicitHeight
+                        RowLayout {
+                            id: langRow
+                            anchors.fill: parent
+                            ColumnLayout {
+                                Layout.fillWidth: true; spacing: 2
+                                Text { text: qsTr("Display language"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { text: qsTr("Changes menus, labels and messages across the app."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                            }
+                            ComboBox {
+                                id: langCombo
+                                Layout.fillWidth: false
+                                Layout.preferredWidth: 160
+                                textRole: "name"
+                                valueRole: "code"
+                                model: languageManager.availableLanguages()
+                                currentIndex: indexOfValue(languageManager.currentLanguage)
+                                onActivated: languageManager.setLanguage(currentValue)
                             }
                         }
                     }
@@ -57,7 +92,7 @@ Item {
                     id: so
                     anchors.fill: parent; anchors.margins: 20
                     spacing: 20
-                    SectionLabel { text: "Solver" }
+                    SectionLabel { text: qsTr("Solver") }
 
                     Item {
                         Layout.fillWidth: true
@@ -67,12 +102,12 @@ Item {
                             anchors.fill: parent
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Text { text: "Minimum word length"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                Text { text: "Shortest words shown in the letters game."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                                Text { text: qsTr("Minimum word length"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { text: qsTr("Shortest words shown in the letters game."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             SegControl {
                                 Layout.fillWidth: false
-                                options: ["3+", "4+", "5+"]
+                                options: [qsTr("3+"), qsTr("4+"), qsTr("5+")]
                                 currentIndex: AppState.minLen - 3
                                 onActivated: AppState.minLen = index + 3
                             }
@@ -87,8 +122,8 @@ Item {
                             anchors.fill: parent
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Text { text: "Flag when no exact answer"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                Text { text: "Highlight the closest result in the numbers game."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                                Text { text: qsTr("Flag when no exact answer"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { text: qsTr("Highlight the closest result in the numbers game."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             Switch {
                                 id: flagSwitch
@@ -124,8 +159,8 @@ Item {
                                 anchors.fill: parent
                                 ColumnLayout {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { text: "Max words shown"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                    Text { text: "Cap the letters-game result list."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                                    Text { text: qsTr("Max words shown"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                    Text { text: qsTr("Cap the letters-game result list."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                                 }
                                 Text { text: AppState.maxResults; color: Theme.accent; font.family: Theme.mono; font.pixelSize: 16; font.weight: Font.DemiBold }
                             }
@@ -166,12 +201,12 @@ Item {
                     id: di
                     anchors.fill: parent; anchors.margins: 20
                     spacing: 16
-                    SectionLabel { text: "Dictionary" }
+                    SectionLabel { text: qsTr("Dictionary") }
                     RowLayout {
                         Layout.fillWidth: true
                         ColumnLayout {
                             Layout.fillWidth: true; spacing: 2
-                            Text { text: "Word list"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                            Text { text: qsTr("Word list"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
                             Text {
                                 Layout.fillWidth: true
                                 wrapMode: Text.WordWrap
@@ -181,7 +216,7 @@ Item {
                                 // completes - fullDictionaryAvailable() alone
                                 // is a plain invokable QML can't track.
                                 text: (solver.dictionariesReady && solver.fullDictionaryAvailable())
-                                      ? "Swap the built-in dictionary for your custom words.txt list."
+                                      ? qsTr("Swap the built-in dictionary for your custom words.txt list.")
                                       : solver.fullDictionaryStatus()
                                 color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13
                             }
@@ -190,7 +225,7 @@ Item {
                             id: dictSeg
                             objectName: "dictSeg"
                             Layout.fillWidth: false
-                            options: ["Default", "Custom"]
+                            options: [qsTr("Default"), qsTr("Custom")]
                             enabled: solver.dictionariesReady && solver.fullDictionaryAvailable()
                             opacity: enabled ? 1 : 0.5
                             currentIndex: AppState.useFullDictionary ? 1 : 0
@@ -215,7 +250,7 @@ Item {
                     id: ab
                     anchors.fill: parent; anchors.margins: 20
                     spacing: 12
-                    SectionLabel { text: "About" }
+                    SectionLabel { text: qsTr("About") }
                     ColumnLayout {
                         id: aboutText
                         objectName: "aboutText"
@@ -240,7 +275,7 @@ Item {
                     Text {
                         id: repoLink
                         Layout.topMargin: 4
-                        text: "View on GitHub ↗"
+                        text: qsTr("View on GitHub ↗")
                         color: repoLinkArea.containsMouse ? Theme.ink : Theme.accent
                         font.family: Theme.sans; font.pixelSize: 13; font.weight: Font.DemiBold
                         MouseArea {
