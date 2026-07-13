@@ -131,7 +131,27 @@ qt_add_qml_module(countdown_app_qml
         qml/pages/ConundrumPage.qml
         qml/pages/SettingsPage.qml)
 
-qt_add_executable(countdown_app main.cpp)
+# The window icon (taskbar/titlebar chrome at runtime, all platforms) is
+# bundled as a Qt resource so main.cpp can load it as ":/icon/app_256.png"
+# and hand it to QQuickWindow::setIcon() regardless of where the app is
+# installed (QQuickWindow has no QML-facing `icon` property - see the
+# comment in main.cpp). This resource is separate from the Windows .rc/.ico
+# below, which only covers the exe file's own icon (Explorer, Alt+Tab before
+# any window exists).
+qt_add_resources(countdown_app_qml "icon"
+    PREFIX "/icon"
+    BASE resources/icon
+    FILES resources/icon/app_256.png)
+
+# Windows exe icon (window/taskbar chrome + Explorer). qt_add_executable
+# happily compiles a .rc source alongside main.cpp; the .ico it references
+# is looked up relative to the .rc file's own directory by rc.exe, not the
+# build dir, so no extra copy step is needed.
+if(WIN32)
+    set(COUNTDOWN_APP_ICON_SOURCE resources/icon/app.rc)
+endif()
+
+qt_add_executable(countdown_app main.cpp ${COUNTDOWN_APP_ICON_SOURCE})
 
 target_link_libraries(countdown_app
     PRIVATE
