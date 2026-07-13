@@ -6,10 +6,12 @@
 #include <countdown/version.hpp>
 
 #include <QGuiApplication>
+#include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQmlError>
 #include <QQuickStyle>
+#include <QQuickWindow>
 #include <QString>
 #include <QTimer>
 // #include <QFontDatabase>  // uncomment if bundling IBM Plex (see README)
@@ -86,6 +88,19 @@ int main(int argc, char* argv[]) {
         Qt::QueuedConnection);
 
     engine.loadFromModule("Countdown", "Main");
+
+    // QQuickWindow::setIcon() has no QML-facing equivalent (unlike QWindow,
+    // QQuickWindow never grew an `icon` property - see QTBUG-31601), so the
+    // window/taskbar icon has to be set here in C++ rather than in Main.qml.
+    // This is separate from the Windows .rc/.ico (src/app/CMakeLists.txt),
+    // which only covers the exe file's own icon in Explorer/Alt-Tab before
+    // any window exists; this covers the actual running window on every
+    // platform, including the ones without an embeddable exe icon resource.
+    if (!engine.rootObjects().isEmpty()) {
+        if (auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst())) {
+            window->setIcon(QIcon(QStringLiteral(":/icon/app_256.png")));
+        }
+    }
 
     // Runs as soon as the event loop starts processing, i.e. once the window
     // has already been created and its first frame queued, rather than
