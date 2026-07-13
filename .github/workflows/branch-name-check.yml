@@ -1,0 +1,48 @@
+name: Branch Name Check
+
+# Enforces the project's gitflow branch naming convention (see
+# memory: branches must be feature/*, release/*, hotfix/*, bugfix/*, or
+# support/* — main and develop are the only long-lived branches).
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+    branches: [main, develop]
+
+jobs:
+  check-branch-name:
+    name: Validate gitflow branch name
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Validate source and target branch pairing
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          echo "Source branch: $HEAD_REF"
+          echo "Target branch: $BASE_REF"
+
+          gitflow_prefix_re='^(feature|bugfix|release|hotfix|support)/[A-Za-z0-9._-]+$'
+
+          if [[ "$BASE_REF" == "main" ]]; then
+            # Only release/hotfix/support branches (or develop, on a release
+            # finish) may land on main.
+            allowed_re='^(release|hotfix|support)/[A-Za-z0-9._-]+$'
+            if [[ "$HEAD_REF" == "develop" ]] || [[ "$HEAD_REF" =~ $allowed_re ]]; then
+              echo "OK: '$HEAD_REF' is a valid source for a PR into 'main'."
+            else
+              echo "::error::Branch '$HEAD_REF' is not allowed to target 'main'. Only 'release/*', 'hotfix/*', 'support/*', or 'develop' may open PRs against 'main'."
+              exit 1
+            fi
+          elif [[ "$BASE_REF" == "develop" ]]; then
+            # feature/bugfix land on develop; release/hotfix merge back too.
+            if [[ "$HEAD_REF" =~ $gitflow_prefix_re ]]; then
+              echo "OK: '$HEAD_REF' follows the gitflow naming convention."
+            else
+              echo "::error::Branch '$HEAD_REF' does not follow the gitflow naming convention. Expected one of: feature/*, bugfix/*, release/*, hotfix/*, support/*."
+              exit 1
+            fi
+          else
+            echo "::error::Unexpected target branch '$BASE_REF'."
+            exit 1
+          fi
