@@ -11,9 +11,11 @@
 #include <QChar>
 #include <QElapsedTimer>
 #include <QFile>
+#include <QFutureWatcher>
 #include <QIODevice>
 #include <QStringList>
 #include <QTextStream>
+#include <QtConcurrent/QtConcurrentRun>
 
 #include <algorithm>
 #include <array>
@@ -132,11 +134,26 @@ template <std::size_t N>
 
 }  // namespace
 
-Solver::Solver(QObject* parent)
+Solver::Solver(QObject* parent, DictionaryLoad load)
     : QObject(parent),
-      default_dictionary_(load_default_dictionary()),
-      full_dictionary_(load_full_dictionary()),
+      // Cheap placeholders, immediately valid ("no words" / "not found") so
+      // active_dictionary() never needs to special-case an unloaded state -
+      // loadDictionaries() below replaces both with the real data, either
+      // right away (kEager) or once main.cpp defers it past engine startup
+      // (kDeferred).
+      default_dictionary_(letters::Dictionary::from_words({})),
+      full_dictionary_(std::unexpected(SolveError::dictionary_not_found)),
       rng_(std::random_device{}()) {
+    if (load == DictionaryLoad::kEager) {
+        loadDictionaries();
+    }
+}
+
+void Solver::loadDictionaries() {
+    default_dictionary_ = load_default_dictionary();
+    full_dictionary_ = load_full_dictionary();
+    dictionaries_ready_ = true;
+
     // A handful of sampled words (not the full list - that would flood the
     // log) confirms at a glance that the intended dictionary loaded and its
     // contents look sane, without adding a dedicated word-dump API.
@@ -148,6 +165,8 @@ Solver::Solver(QObject* parent)
     } else {
         qCInfo(lcDictionary) << "full dictionary unavailable:" << to_qstring(full_dictionary_.error());
     }
+
+    emit dictionariesReadyChanged();
 }
 
 const letters::Dictionary& Solver::active_dictionary() const {
@@ -196,6 +215,19 @@ QVariantMap Solver::solveNumbers(const QVariantList& numbers, int target) const 
     result["exact"] = outcome->exact;
     result["steps"] = steps;
     return result;
+}
+
+void Solver::solveNumbersAsync(const QVariantList& numbers, int target) {
+    // solveNumbers() touches only its arguments and NumbersGame's local
+    // state - no dictionary access - so running it on QtConcurrent's thread
+    // pool needs no synchronization with the rest of Solver.
+    auto* watcher = new QFutureWatcher<QVariantMap>(this);
+    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
+        emit numbersSolved(watcher->result());
+        watcher->deleteLater();
+    });
+    watcher->setFuture(QtConcurrent::run(
+        [this, numbers, target]() { return solveNumbers(numbers, target); }));
 }
 
 QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults) const {

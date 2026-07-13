@@ -38,7 +38,9 @@ TestCase {
         compare(page.target, "100")
 
         page.recalc()
-        verify(page.result !== null)
+        // Solving now runs on a worker thread (Solver::solveNumbersAsync);
+        // the result arrives via a signal once the event loop processes it.
+        tryVerify(function () { return page.result !== null }, 5000)
         compare(page.result.exact, true)
         compare(page.result.value, 100)
         compare(page.result.diff, 0)
@@ -63,6 +65,6 @@ TestCase {
 
         compare(page.numbers.length, 6)
         verify(page.targetIsValid())
-        verify(page.result !== null)
+        tryVerify(function () { return page.result !== null }, 5000)
     }
 }

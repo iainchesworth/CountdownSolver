@@ -12,6 +12,10 @@ Item {
     property var    numbers: []
     property string target: ""
     property var    result: null   // { value, diff, exact, steps[] }
+    // True while a solveNumbersAsync() request is in flight - solving runs on
+    // a worker thread (see Solver::solveNumbersAsync), so this guards against
+    // starting a second overlapping request before the first one resolves.
+    property bool   busy: false
     // Digits typed on the physical keyboard, buffered until Enter/Space
     // commits them as one of the six numbers (values can be 1-3 digits, so a
     // single keypress can't be committed unambiguously on its own).
@@ -32,10 +36,20 @@ Item {
 
     function recalc() {
         if (typeof solver === "undefined" || !solver) { result = null; return }
-        if (numbers.length === 6 && targetIsValid())
-            result = solver.solveNumbers(numbers, parseInt(target))
-        else
+        if (root.busy) return
+        if (numbers.length === 6 && targetIsValid()) {
+            root.busy = true
+            solver.solveNumbersAsync(numbers, parseInt(target))
+        } else {
             result = null
+        }
+    }
+    Connections {
+        target: solver
+        function onNumbersSolved(res) {
+            root.result = res
+            root.busy = false
+        }
     }
     function addNumber(v)   { if (numbers.length < 6 && remainingOf(v) > 0) { numbers = numbers.concat([v]) } }
     function targetDigit(d) { if (target.length < 3) { target = target + d } }
@@ -205,8 +219,8 @@ Item {
             FlatButton {
                 Layout.fillWidth: true
                 primary: true
-                text: "Solve"
-                enabled: root.numbers.length === 6 && root.targetIsValid()
+                text: root.busy ? "Solving…" : "Solve"
+                enabled: root.numbers.length === 6 && root.targetIsValid() && !root.busy
                 onClicked: root.recalc()
             }
             Item { Layout.fillHeight: true }
@@ -220,7 +234,7 @@ Item {
             ColumnLayout {
                 anchors.fill: parent; anchors.margins: 22
                 spacing: 0
-                visible: root.result !== null
+                visible: root.result !== null && !root.busy
 
                 RowLayout {
                     Layout.fillWidth: true
@@ -276,10 +290,23 @@ Item {
                 Item { Layout.fillHeight: true }
             }
 
+            // busy state - shown while solveNumbersAsync() is running
+            ColumnLayout {
+                anchors.centerIn: parent
+                visible: root.busy
+                spacing: 10
+                BusyIndicator { Layout.alignment: Qt.AlignHCenter; running: root.busy }
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "Solving…"
+                    color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
+                }
+            }
+
             // empty state
             ColumnLayout {
                 anchors.centerIn: parent
-                visible: root.result === null
+                visible: root.result === null && !root.busy
                 spacing: 10
                 Rectangle {
                     Layout.alignment: Qt.AlignHCenter

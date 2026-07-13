@@ -175,7 +175,12 @@ Item {
                             Text {
                                 Layout.fillWidth: true
                                 wrapMode: Text.WordWrap
-                                text: solver.fullDictionaryAvailable()
+                                // solver.dictionariesReady is read here (and
+                                // below) purely so this binding re-evaluates
+                                // once the deferred dictionary load
+                                // completes - fullDictionaryAvailable() alone
+                                // is a plain invokable QML can't track.
+                                text: (solver.dictionariesReady && solver.fullDictionaryAvailable())
                                       ? "Swap the built-in dictionary for your custom words.txt list."
                                       : solver.fullDictionaryStatus()
                                 color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13
@@ -186,7 +191,7 @@ Item {
                             objectName: "dictSeg"
                             Layout.fillWidth: false
                             options: ["Default", "Custom"]
-                            enabled: solver.fullDictionaryAvailable()
+                            enabled: solver.dictionariesReady && solver.fullDictionaryAvailable()
                             opacity: enabled ? 1 : 0.5
                             currentIndex: AppState.useFullDictionary ? 1 : 0
                             onActivated: {
