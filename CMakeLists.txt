@@ -88,6 +88,8 @@ if(COUNTDOWN_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
+include(Packaging)
+
 message(STATUS "CountdownSolver ${PROJECT_VERSION}")
 message(STATUS "  Build Qt app : ${COUNTDOWN_BUILD_APP}")
 message(STATUS "  Build tests  : ${COUNTDOWN_BUILD_TESTS}")

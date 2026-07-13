@@ -69,3 +69,24 @@ target_compile_definitions(countdown_app PRIVATE
 set_target_properties(countdown_app PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON)
+
+# ---------------------------------------------------------------------------
+# Install + Qt runtime deployment. qt_generate_deploy_app_script() is Qt's
+# CMake-native replacement for windeployqt/macdeployqt: it inspects the built
+# target and emits an install(SCRIPT) that copies the Qt libraries/plugins the
+# app actually uses next to it (or into the .app bundle on macOS). Linux has
+# no supported deploy step here, so NO_UNSUPPORTED_PLATFORM_ERROR turns that
+# into a no-op instead of a configure error; Linux packages rely on a system
+# Qt6 install (see the DEB dependency in cmake/Packaging.cmake).
+# ---------------------------------------------------------------------------
+include(GNUInstallDirs)
+
+install(TARGETS countdown_app
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    BUNDLE DESTINATION ".")
+
+qt_generate_deploy_app_script(
+    TARGET countdown_app
+    OUTPUT_SCRIPT COUNTDOWN_APP_DEPLOY_SCRIPT
+    NO_UNSUPPORTED_PLATFORM_ERROR)
+install(SCRIPT "${COUNTDOWN_APP_DEPLOY_SCRIPT}")
