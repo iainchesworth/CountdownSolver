@@ -38,9 +38,8 @@ jobs:
           - name: macOS (AppleClang)
             os: macos-15
             preset: macos-clang
-            # macOS has only libc++, which lacks views::enumerate / stride, so
-            # this cannot build until libc++ implements them. Non-blocking.
-            experimental: true
+            # macOS uses libc++, which still lacks views::enumerate / stride;
+            # countdown/detail/ranges_compat.hpp provides fallbacks so it builds.
           - name: Windows (MSVC)
             os: windows-2025
             preset: windows-msvc

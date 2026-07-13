@@ -1,6 +1,9 @@
 #include <countdown/letters/dictionary.hpp>
 
+#include <countdown/detail/ranges_compat.hpp>
+
 #include <algorithm>
+#include <cstddef>
 #include <cstddef>
 #include <fstream>
 #include <optional>
@@ -161,7 +164,8 @@ std::vector<std::string> Dictionary::sample(std::size_t step, std::size_t count)
         step = 1;
     }
     // stride selects every step-th word; take caps the result.
-    auto view = words_ | std::views::stride(step) | std::views::take(count);
+    auto view = countdown::detail::stride(words_, static_cast<std::ptrdiff_t>(step))
+              | std::views::take(count);
     return std::ranges::to<std::vector<std::string>>(view);
 }
 

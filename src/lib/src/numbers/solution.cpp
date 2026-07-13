@@ -1,15 +1,16 @@
 #include <countdown/numbers/solution.hpp>
 
+#include <countdown/detail/ranges_compat.hpp>
+
 #include <format>
-#include <ranges>
 
 namespace countdown::numbers {
 
 std::string Solution::describe() const {
     std::string out;
-    // std::views::enumerate pairs each step with its 0-based position, so the
-    // step number can be printed without a manual counter.
-    for (const auto [index, step] : std::views::enumerate(steps_)) {
+    // enumerate pairs each step with its 0-based position, so the step number
+    // can be printed without a manual counter.
+    for (const auto [index, step] : countdown::detail::enumerate(steps_)) {
         out += std::format("{}. {} {} {} = {}\n",
                            index + 1,
                            step.lhs,

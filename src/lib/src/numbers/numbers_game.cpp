@@ -1,5 +1,6 @@
 #include <countdown/numbers/numbers_game.hpp>
 
+#include <countdown/detail/ranges_compat.hpp>
 #include <countdown/numbers/operation.hpp>
 
 #include <algorithm>
@@ -49,7 +50,7 @@ void search(std::vector<Term>& terms, Value target,
             // Everything except the two terms being combined carries forward.
             std::vector<Term> rest;
             rest.reserve(count - 1);
-            for (const auto [index, term] : std::views::enumerate(terms)) {
+            for (const auto [index, term] : countdown::detail::enumerate(terms)) {
                 const auto k = static_cast<std::size_t>(index);
                 if (k != i && k != j) {
                     rest.push_back(term);
