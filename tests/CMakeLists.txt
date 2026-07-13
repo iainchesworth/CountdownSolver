@@ -91,6 +91,19 @@ if(COUNTDOWN_BUILD_APP)
                 --compiler-runtime
                 "$<TARGET_FILE:countdown_app_tests>"
             COMMENT "Deploying Qt runtime dependencies for countdown_app_tests")
+
+        # Every windeployqt invocation writes into the same shared
+        # CMAKE_RUNTIME_OUTPUT_DIRECTORY (bin/), but each is a separate
+        # POST_BUILD command tied to its own target, so ninja has no
+        # visibility into that shared file-level side effect and may run two
+        # invocations concurrently - one then fails with "Cannot create a
+        # file when that file already exists" (same class of race already
+        # hit once for the ASan runtime DLL copy; see
+        # countdown_deploy_sanitizer_runtime in Sanitizers.cmake). Forcing an
+        # explicit target dependency on the previous windeployqt-using
+        # target in the chain (countdown_app here) makes ninja serialize
+        # them instead.
+        add_dependencies(countdown_app_tests countdown_app)
     endif()
 
     add_test(NAME countdown_app_tests COMMAND countdown_app_tests)
@@ -140,6 +153,11 @@ if(COUNTDOWN_BUILD_APP)
                 --compiler-runtime
                 "$<TARGET_FILE:countdown_qml_tests>"
             COMMENT "Deploying Qt runtime dependencies for countdown_qml_tests")
+
+        # See the countdown_app_tests windeployqt comment above: chain this
+        # invocation after the previous one so ninja never runs two
+        # windeployqt copies into bin/ concurrently.
+        add_dependencies(countdown_qml_tests countdown_app_tests)
 
         # windeployqt only deploys the platform plugin the real windowed app
         # needs (qwindows.dll); this test runs headless in CI via
