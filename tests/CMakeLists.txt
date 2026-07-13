@@ -53,7 +53,7 @@ catch_discover_tests(countdown_integration_tests)
 # run `countdown_benchmark_tests` directly, ideally from a Release configure,
 # when checking for a regression like the one that made a single
 # countdown_app_tests slot rebuild this same dictionary 15 times over (see
-# tests/app/solver_test.cpp).
+# app_tests_main.cpp's shared Solver instance, in tests/app/).
 # ---------------------------------------------------------------------------
 add_executable(countdown_benchmark_tests
     benchmark/dictionary_benchmark.cpp)
@@ -86,9 +86,32 @@ if(COUNTDOWN_BUILD_APP)
     # a descendant, so it must enable AUTOMOC for its own Qt Test targets.
     set(CMAKE_AUTOMOC ON)
 
-    # solver_test.hpp is listed explicitly (not just #included) so AUTOMOC
-    # reliably scans it for Q_OBJECT regardless of basename-matching quirks.
-    qt_add_executable(countdown_app_tests app/solver_test.cpp app/solver_test.hpp)
+    # One QtTest class per Solver concern (numbers/letters/conundrum/rack/
+    # version/dictionary/logging) rather than one lumped class with every
+    # slot in it, so a failure narrows straight to the concern that broke
+    # instead of forcing a scroll through one large Qt Test report. All
+    # still link into a single countdown_app_tests binary/CTest entry -
+    # app_tests_main.cpp's hand-written main() runs each class in turn (see
+    # its own comment for why that replaces QTEST_APPLESS_MAIN). Every *.hpp
+    # is listed explicitly (not just #included) so AUTOMOC reliably scans it
+    # for Q_OBJECT regardless of basename-matching quirks.
+    qt_add_executable(countdown_app_tests
+        app/app_tests_main.cpp
+        app/solver_numbers_test.cpp
+        app/solver_numbers_test.hpp
+        app/solver_letters_test.cpp
+        app/solver_letters_test.hpp
+        app/solver_conundrum_test.cpp
+        app/solver_conundrum_test.hpp
+        app/solver_rack_test.cpp
+        app/solver_rack_test.hpp
+        app/solver_version_test.cpp
+        app/solver_version_test.hpp
+        app/solver_dictionary_test.cpp
+        app/solver_dictionary_test.hpp
+        app/solver_logging_test.cpp
+        app/solver_logging_test.hpp
+        app/solver_test_utils.hpp)
 
     target_link_libraries(countdown_app_tests
         PRIVATE
