@@ -166,6 +166,7 @@ $ cmake --build --preset linux-gcc-coverage
 $ QT_QPA_PLATFORM=offscreen ctest --preset linux-gcc-coverage
 $ gcovr --root . --filter 'src/.*' --exclude 'src/app/main\.cpp' \
     --exclude-throw-branches --exclude-unreachable-branches \
+    --gcov-ignore-errors=no_working_dir_found \
     --object-directory build/linux-gcc-coverage --print-summary
 ```
 

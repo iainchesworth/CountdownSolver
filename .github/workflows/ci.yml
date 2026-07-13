@@ -179,6 +179,7 @@ jobs:
         run: >
           gcovr --root . --filter 'src/.*' --exclude 'src/app/main\.cpp'
           --exclude-throw-branches --exclude-unreachable-branches
+          --gcov-ignore-errors=no_working_dir_found
           --object-directory build/linux-gcc-coverage
           --print-summary --html-details build/coverage.html
           --fail-under-line 80 --fail-under-branch 80
