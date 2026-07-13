@@ -44,6 +44,30 @@ countdown_deploy_sanitizer_runtime(countdown_integration_tests)
 catch_discover_tests(countdown_integration_tests)
 
 # ---------------------------------------------------------------------------
+# Benchmarks: Catch2's own BENCHMARK() macros, timing the library's hot
+# paths against the real bundled dictionary (122k+ words) - the same data
+# every Solver loads, not the small tests/data/ fixture. Deliberately NOT
+# registered with catch_discover_tests/add_test: statistical timing isn't a
+# pass/fail CTest gate, and running it under Debug+ASan (as every CI preset
+# does for the suites above) would make its numbers meaningless - build and
+# run `countdown_benchmark_tests` directly, ideally from a Release configure,
+# when checking for a regression like the one that made a single
+# countdown_app_tests slot rebuild this same dictionary 15 times over (see
+# tests/app/solver_test.cpp).
+# ---------------------------------------------------------------------------
+add_executable(countdown_benchmark_tests
+    benchmark/dictionary_benchmark.cpp)
+
+target_compile_definitions(countdown_benchmark_tests PRIVATE
+    "COUNTDOWN_DICTIONARY_PATH=\"${CMAKE_SOURCE_DIR}/src/app/resources/dictionary/words.txt\"")
+
+target_link_libraries(countdown_benchmark_tests
+    PRIVATE
+        countdown::solver
+        countdown::warnings
+        Catch2::Catch2WithMain)
+
+# ---------------------------------------------------------------------------
 # App tests: exercise the Qt-facing Solver facade (countdown_app_core) with
 # Qt Test, without linking Quick/Gui/QuickControls2. Only built alongside the
 # app itself, since countdown_app_core only exists when COUNTDOWN_BUILD_APP
