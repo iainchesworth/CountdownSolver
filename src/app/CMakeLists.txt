@@ -163,6 +163,11 @@ if(WIN32)
         HINTS "${COUNTDOWN_QT_BIN_DIR}")
 
     if(COUNTDOWN_WINDEPLOYQT_EXECUTABLE)
+        # countdown_app_tests and countdown_qml_tests (tests/CMakeLists.txt) run
+        # their own windeployqt POST_BUILD step against this same
+        # CMAKE_RUNTIME_OUTPUT_DIRECTORY and add_dependencies() on this target to
+        # serialize behind it - see the comment there for why (concurrent
+        # windeployqt processes race on shared destination files).
         add_custom_command(TARGET countdown_app POST_BUILD
             COMMAND "${COUNTDOWN_WINDEPLOYQT_EXECUTABLE}"
                 --qmldir "${CMAKE_CURRENT_SOURCE_DIR}/qml"
