@@ -111,10 +111,29 @@ function(countdown_deploy_sanitizer_runtime target)
         endforeach()
 
         if(_countdown_asan_dll)
-            add_custom_command(TARGET ${target} POST_BUILD
-                COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-                    "${_countdown_asan_dll}" "$<TARGET_FILE_DIR:${target}>"
-                COMMENT "Copying ASan runtime next to ${target}")
+            # All targets (app, unit tests, integration tests) share the same
+            # CMAKE_RUNTIME_OUTPUT_DIRECTORY. A separate POST_BUILD copy per
+            # target raced on CI, where independent targets link in parallel:
+            # two copy commands writing the same destination DLL at once hit
+            # "permission denied" on Windows. Make the copy a single shared
+            # build edge instead, so ninja only ever runs it once.
+            if(NOT TARGET countdown_asan_runtime_deploy)
+                get_filename_component(_countdown_asan_dll_name "${_countdown_asan_dll}" NAME)
+                set(_countdown_asan_dll_dest
+                    "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_countdown_asan_dll_name}")
+                add_custom_command(
+                    OUTPUT "${_countdown_asan_dll_dest}"
+                    COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+                    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                        "${_countdown_asan_dll}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+                    DEPENDS "${_countdown_asan_dll}"
+                    COMMENT "Copying ASan runtime into ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+                add_custom_target(countdown_asan_runtime_deploy
+                    DEPENDS "${_countdown_asan_dll_dest}")
+                unset(_countdown_asan_dll_name)
+                unset(_countdown_asan_dll_dest)
+            endif()
+            add_dependencies(${target} countdown_asan_runtime_deploy)
         else()
             message(WARNING
                 "ASan is enabled but its runtime DLL was not found (searched: "
