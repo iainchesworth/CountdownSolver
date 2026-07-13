@@ -26,8 +26,10 @@ public:
     // { "value": int, "diff": int, "exact": bool, "steps": [QString] }
     Q_INVOKABLE QVariantMap solveNumbers(const QVariantList& numbers, int target) const;
 
-    // { "total": int, "shown": int, "maxLen": int,
-    //   "longest": [QString], "groups": [ { "len": int, "words": [QString] } ] }
+    // { "total": int, "shown": int, "maxLen": int, "longest": [QString],
+    //   "groups": [ { "len": int, "count": int, "words": [QString] } ] }
+    // "count" is the true number of words of that length across every match;
+    // "words" may hold fewer if maxResults truncated the rendered list.
     Q_INVOKABLE QVariantMap solveLetters(const QString& rack, int minLen, int maxResults) const;
 
     // { "found": bool, "answers": [QString] }

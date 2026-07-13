@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace countdown::app {
@@ -123,6 +124,14 @@ QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults
     const std::size_t cap = maxResults > 0 ? static_cast<std::size_t>(maxResults) : all.size();
     const std::size_t shown = std::min(cap, all.size());
 
+    // True per-length totals across every match, independent of the
+    // maxResults cap below - otherwise a group's word count would silently
+    // reflect only however many happened to fit before the cap ran out.
+    std::unordered_map<int, int> length_counts;
+    for (const std::string& word : all) {
+        ++length_counts[static_cast<int>(word.size())];
+    }
+
     // Group the shown words by length (descending, already sorted that way).
     QVariantList groups;
     QStringList group_words;
@@ -131,6 +140,7 @@ QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults
         if (group_len != -1) {
             QVariantMap group;
             group["len"] = group_len;
+            group["count"] = length_counts[group_len];
             group["words"] = group_words;
             groups.push_back(group);
         }
