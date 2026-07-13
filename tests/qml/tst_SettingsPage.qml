@@ -24,4 +24,27 @@ TestCase {
         verify(about.versionLines.length > 0)
         verify(about.versionLines[0].length > 0)
     }
+
+    function test_licensesLinkOpensDialog() {
+        const page = createTemporaryObject(pageComponent, testCase)
+        verify(page !== null)
+
+        const link = findChild(page, "licensesLink")
+        verify(link !== null)
+
+        const dialog = page.licensesDialog
+        verify(dialog !== null)
+        compare(dialog.visible, false)
+
+        // Entries pull solver.qtVersion() live, so a populated version string
+        // confirms the QML<->Solver wiring works, not just that the array
+        // literal itself is non-empty.
+        verify(dialog.entries.length > 0)
+        compare(dialog.entries[0].name, "Qt 6")
+        verify(dialog.entries[0].version.length > 0)
+
+        dialog.open()
+        compare(dialog.visible, true)
+        dialog.close()
+    }
 }
