@@ -4,6 +4,8 @@
 #include <countdown/letters/frequencies.hpp>
 #include <countdown/letters/letters_game.hpp>
 
+#include <filesystem>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -73,6 +75,33 @@ TEST_CASE("best_words reports failures without throwing", "[letters][solve]") {
     REQUIRE(dictionary.best_words("xyz").error() == SolveError::no_solution);
 }
 
+TEST_CASE("best_words and find_matches report dictionary_empty for an empty dictionary",
+          "[letters][dictionary]") {
+    // Every entry is discarded by normalise() (digits, punctuation, a blank
+    // line), so the dictionary ends up with zero usable words.
+    const auto dictionary = Dictionary::from_words({"123", "!!!", ""});
+    REQUIRE(dictionary.empty());
+
+    REQUIRE(dictionary.best_words("cat").error() == SolveError::dictionary_empty);
+    REQUIRE(dictionary.find_matches("cat").error() == SolveError::dictionary_empty);
+}
+
+TEST_CASE("load_from_file reports dictionary_empty when the file yields no usable words",
+          "[letters][dictionary]") {
+    const auto path =
+        std::filesystem::temp_directory_path() / "countdown_empty_dictionary_test.txt";
+    {
+        std::ofstream out(path);
+        out << "123\n!!!\n\n";
+    }
+
+    const auto dictionary = Dictionary::load_from_file(path);
+    std::filesystem::remove(path);
+
+    REQUIRE_FALSE(dictionary.has_value());
+    REQUIRE(dictionary.error() == SolveError::dictionary_empty);
+}
+
 TEST_CASE("words_of_length filters to an exact length, alphabetically", "[letters][dictionary]") {
     const auto dictionary = Dictionary::from_words({"cat", "dog", "bat", "creation", "ant"});
 
@@ -97,4 +126,21 @@ TEST_CASE("LettersGame offers a fluent API over a dictionary", "[letters][game]"
     const auto result = LettersGame{dictionary}.with_letters("rateciong").solve();
     REQUIRE(result.has_value());
     REQUIRE(result->size() == 2);
+}
+
+TEST_CASE("LettersGame reports invalid_letter for a non-alphabetic rack", "[letters][game]") {
+    const auto dictionary = Dictionary::from_words({"cat", "dog"});
+
+    const auto digit = LettersGame{dictionary}.with_letters("ca7").solve();
+    REQUIRE_FALSE(digit.has_value());
+    REQUIRE(digit.error() == SolveError::invalid_letter);
+
+    const auto punctuation = LettersGame{dictionary}.add_letter('c').add_letter('\'').solve();
+    REQUIRE_FALSE(punctuation.has_value());
+    REQUIRE(punctuation.error() == SolveError::invalid_letter);
+
+    // An empty rack is still reported as empty_input, not invalid_letter.
+    const auto empty = LettersGame{dictionary}.with_letters("").solve();
+    REQUIRE_FALSE(empty.has_value());
+    REQUIRE(empty.error() == SolveError::empty_input);
 }

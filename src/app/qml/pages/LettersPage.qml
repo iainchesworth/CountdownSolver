@@ -7,21 +7,20 @@ import QtQuick.Layouts
 // letters never solves implicitly.
 Item {
     id: root
-    focus: StackLayout.isCurrentItem
-    property var letters: []
+    readonly property bool isCurrentPage: StackLayout.isCurrentItem
+    property alias letters: rackInput.letters
     property var result: null   // { total, shown, maxLen, longest[], groups[{len,words[]}] }
-    readonly property var keyRows: ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"]
 
     function recalc() {
         if (typeof solver === "undefined" || !solver) { result = null; return }
-        result = solver.solveLetters(root.letters.join(""), AppState.minLen, AppState.maxResults)
+        result = solver.solveLetters(rackInput.letters.join(""), AppState.minLen, AppState.maxResults)
     }
-    function addLetter(ch) { if (letters.length < 9) { letters = letters.concat([ch]) } }
-    function backspace()   { letters = letters.slice(0, -1) }
-    function clearAll()    { letters = []; result = null }
+    function addLetter(ch) { rackInput.addLetter(ch) }
+    function backspace()   { rackInput.backspace() }
+    function clearAll()    { rackInput.clearAll() }
     function randomRack() {
         if (typeof solver !== "undefined" && solver && solver.randomRack)
-            letters = solver.randomRack().split("")
+            rackInput.letters = solver.randomRack().split("")
         recalc()
     }
     Connections {
@@ -29,21 +28,6 @@ Item {
         function onMinLenChanged()          { if (root.result !== null) root.recalc() }
         function onMaxResultsChanged()      { if (root.result !== null) root.recalc() }
         function onUseFullDictionaryChanged() { if (root.result !== null) root.recalc() }
-    }
-    Keys.onPressed: function (event) {
-        if (event.key >= Qt.Key_A && event.key <= Qt.Key_Z) {
-            root.addLetter(String.fromCharCode(event.key))
-            event.accepted = true
-        } else if (event.key === Qt.Key_Backspace) {
-            root.backspace()
-            event.accepted = true
-        } else if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
-            root.recalc()
-            event.accepted = true
-        } else if (event.key === Qt.Key_Escape) {
-            root.clearAll()
-            event.accepted = true
-        }
     }
 
     RowLayout {
@@ -74,51 +58,32 @@ Item {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 58
                                 mono: false
-                                label: index < root.letters.length ? root.letters[index] : ""
+                                label: index < rackInput.letters.length ? rackInput.letters[index] : ""
                             }
                         }
                     }
                 }
             }
 
-            Card {
+            LetterRackInput {
+                id: rackInput
                 Layout.fillWidth: true
-                implicitHeight: kb.implicitHeight + 36
-                ColumnLayout {
-                    id: kb
-                    anchors.fill: parent; anchors.margins: 18
-                    spacing: 6
-                    Repeater {
-                        model: root.keyRows
-                        delegate: RowLayout {
-                            Layout.alignment: Qt.AlignHCenter
-                            spacing: 5
-                            property string rowStr: modelData
-                            Repeater {
-                                model: rowStr.length
-                                delegate: PadButton {
-                                    implicitWidth: 36; implicitHeight: 44
-                                    mono: false; fontSize: 15
-                                    text: rowStr.charAt(index)
-                                    onClicked: root.addLetter(rowStr.charAt(index))
-                                }
-                            }
-                        }
-                    }
-                }
+                active: root.isCurrentPage
+                onSolveRequested: root.recalc()
+                onCleared: root.result = null
             }
 
             RowLayout {
                 Layout.fillWidth: true; spacing: 9
                 FlatButton { Layout.fillWidth: true; text: "\u21bb Random rack"; onClicked: root.randomRack() }
-                FlatButton { text: "\u232b"; onClicked: root.backspace() }
-                FlatButton { text: "Clear"; onClicked: root.clearAll() }
+                FlatButton { text: "\u232b"; onClicked: rackInput.backspace() }
+                FlatButton { text: "Clear"; onClicked: rackInput.clearAll() }
             }
             FlatButton {
                 Layout.fillWidth: true
                 primary: true
                 text: "Solve"
-                enabled: root.letters.length > 0
+                enabled: rackInput.letters.length > 0
                 onClicked: root.recalc()
             }
             Item { Layout.fillHeight: true }

@@ -55,3 +55,16 @@ TEST_CASE("ConundrumGame exposes the letters it was given", "[conundrum]") {
     const ConundrumGame game = ConundrumGame{dictionary}.with_letters("tac");
     REQUIRE(game.letters() == "tac");
 }
+
+TEST_CASE("ConundrumGame reports invalid_letter for a non-alphabetic rack", "[conundrum]") {
+    const auto dictionary = Dictionary::from_words({"cat", "dog"});
+
+    const auto digit = ConundrumGame{dictionary}.with_letters("ta7").solve();
+    REQUIRE_FALSE(digit.has_value());
+    REQUIRE(digit.error() == SolveError::invalid_letter);
+
+    // An empty rack is still reported as empty_input, not invalid_letter.
+    const auto empty = ConundrumGame{dictionary}.with_letters("").solve();
+    REQUIRE_FALSE(empty.has_value());
+    REQUIRE(empty.error() == SolveError::empty_input);
+}
