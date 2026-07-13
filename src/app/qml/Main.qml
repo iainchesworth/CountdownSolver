@@ -78,6 +78,28 @@ ApplicationWindow {
                     text: Number(solver.dictionaryWordCount()).toLocaleString(Qt.locale(), "f", 0) + " words loaded"
                     color: Theme.faint; font.family: Theme.mono; font.pixelSize: 11
                 }
+                RowLayout {
+                    Layout.leftMargin: 8
+                    Layout.topMargin: 2
+                    spacing: 6
+                    Text {
+                        text: "v" + solver.shortVersion()
+                        color: Theme.faint; font.family: Theme.mono; font.pixelSize: 11
+                    }
+                    Rectangle {
+                        visible: solver.isDirty()
+                        radius: 7
+                        implicitHeight: 15; implicitWidth: dirtyLabel.implicitWidth + 12
+                        color: Theme.warnBg
+                        Text {
+                            id: dirtyLabel
+                            anchors.centerIn: parent
+                            text: "dirty"
+                            color: Theme.warnInk; font.family: Theme.mono
+                            font.pixelSize: 9; font.weight: Font.DemiBold
+                        }
+                    }
+                }
             }
         }
 

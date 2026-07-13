@@ -15,7 +15,7 @@ Item {
 
         ColumnLayout {
             id: col
-            width: Math.min(parent.width, 620)
+            width: parent.width
             spacing: 16
 
             // ---- Appearance ----
@@ -27,18 +27,23 @@ Item {
                     anchors.fill: parent; anchors.margins: 20
                     spacing: 16
                     SectionLabel { text: "Appearance" }
-                    RowLayout {
+                    Item {
                         Layout.fillWidth: true
-                        ColumnLayout {
-                            Layout.fillWidth: true; spacing: 2
-                            Text { text: "Theme"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                            Text { text: "Applies across the whole window."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
-                        }
-                        SegControl {
-                            Layout.fillWidth: false
-                            options: ["Light", "Dark"]
-                            currentIndex: Theme.dark ? 1 : 0
-                            onActivated: Theme.dark = (index === 1)
+                        implicitHeight: themeRow.implicitHeight
+                        RowLayout {
+                            id: themeRow
+                            anchors.fill: parent
+                            ColumnLayout {
+                                Layout.fillWidth: true; spacing: 2
+                                Text { text: "Theme"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { text: "Applies across the whole window."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                            }
+                            SegControl {
+                                Layout.fillWidth: false
+                                options: ["Light", "Dark"]
+                                currentIndex: Theme.dark ? 1 : 0
+                                onActivated: Theme.dark = (index === 1)
+                            }
                         }
                     }
                 }
@@ -54,46 +59,56 @@ Item {
                     spacing: 20
                     SectionLabel { text: "Solver" }
 
-                    RowLayout {
+                    Item {
                         Layout.fillWidth: true
-                        ColumnLayout {
-                            Layout.fillWidth: true; spacing: 2
-                            Text { text: "Minimum word length"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                            Text { text: "Shortest words shown in the letters game."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
-                        }
-                        SegControl {
-                            Layout.fillWidth: false
-                            options: ["3+", "4+", "5+"]
-                            currentIndex: AppState.minLen - 3
-                            onActivated: AppState.minLen = index + 3
+                        implicitHeight: minLenRow.implicitHeight
+                        RowLayout {
+                            id: minLenRow
+                            anchors.fill: parent
+                            ColumnLayout {
+                                Layout.fillWidth: true; spacing: 2
+                                Text { text: "Minimum word length"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { text: "Shortest words shown in the letters game."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                            }
+                            SegControl {
+                                Layout.fillWidth: false
+                                options: ["3+", "4+", "5+"]
+                                currentIndex: AppState.minLen - 3
+                                onActivated: AppState.minLen = index + 3
+                            }
                         }
                     }
 
-                    RowLayout {
+                    Item {
                         Layout.fillWidth: true
-                        ColumnLayout {
-                            Layout.fillWidth: true; spacing: 2
-                            Text { text: "Flag when no exact answer"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                            Text { text: "Highlight the closest result in the numbers game."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
-                        }
-                        Switch {
-                            id: flagSwitch
-                            Layout.fillWidth: false
-                            checked: AppState.flagInexact
-                            onToggled: AppState.flagInexact = checked
-                            background: Item {}
-                            indicator: Rectangle {
-                                implicitWidth: 40; implicitHeight: 22
-                                radius: 11
-                                color: flagSwitch.checked ? Theme.accent : Theme.bg
-                                border.width: flagSwitch.checked ? 0 : 1
-                                border.color: Theme.tileBorder
-                                Rectangle {
-                                    width: 16; height: 16; radius: 8
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: flagSwitch.checked ? parent.width - width - 3 : 3
-                                    color: flagSwitch.checked ? Theme.accentInk : Theme.faint
-                                    Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.InOutQuad } }
+                        implicitHeight: flagRow.implicitHeight
+                        RowLayout {
+                            id: flagRow
+                            anchors.fill: parent
+                            ColumnLayout {
+                                Layout.fillWidth: true; spacing: 2
+                                Text { text: "Flag when no exact answer"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { text: "Highlight the closest result in the numbers game."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                            }
+                            Switch {
+                                id: flagSwitch
+                                Layout.fillWidth: false
+                                checked: AppState.flagInexact
+                                onToggled: AppState.flagInexact = checked
+                                background: Item {}
+                                indicator: Rectangle {
+                                    implicitWidth: 40; implicitHeight: 22
+                                    radius: 11
+                                    color: flagSwitch.checked ? Theme.accent : Theme.bg
+                                    border.width: flagSwitch.checked ? 0 : 1
+                                    border.color: Theme.tileBorder
+                                    Rectangle {
+                                        width: 16; height: 16; radius: 8
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        x: flagSwitch.checked ? parent.width - width - 3 : 3
+                                        color: flagSwitch.checked ? Theme.accentInk : Theme.faint
+                                        Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.InOutQuad } }
+                                    }
                                 }
                             }
                         }
@@ -101,14 +116,19 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true; spacing: 12
-                        RowLayout {
+                        Item {
                             Layout.fillWidth: true
-                            ColumnLayout {
-                                Layout.fillWidth: true; spacing: 2
-                                Text { text: "Max words shown"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                Text { text: "Cap the letters-game result list."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                            implicitHeight: maxWordsRow.implicitHeight
+                            RowLayout {
+                                id: maxWordsRow
+                                anchors.fill: parent
+                                ColumnLayout {
+                                    Layout.fillWidth: true; spacing: 2
+                                    Text { text: "Max words shown"; color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                    Text { text: "Cap the letters-game result list."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                                }
+                                Text { text: AppState.maxResults; color: Theme.accent; font.family: Theme.mono; font.pixelSize: 16; font.weight: Font.DemiBold }
                             }
-                            Text { text: AppState.maxResults; color: Theme.accent; font.family: Theme.mono; font.pixelSize: 16; font.weight: Font.DemiBold }
                         }
                         Slider {
                             id: wordsSlider
@@ -163,6 +183,7 @@ Item {
                         }
                         SegControl {
                             id: dictSeg
+                            objectName: "dictSeg"
                             Layout.fillWidth: false
                             options: ["Default", "Custom"]
                             enabled: solver.fullDictionaryAvailable()
@@ -192,6 +213,7 @@ Item {
                     SectionLabel { text: "About" }
                     ColumnLayout {
                         id: aboutText
+                        objectName: "aboutText"
                         Layout.fillWidth: true
                         spacing: 4
                         readonly property var versionLines: solver.versionDetails().split("\n")
@@ -208,6 +230,20 @@ Item {
                             color: Theme.muted; font.family: Theme.mono
                             font.pixelSize: 12
                             wrapMode: Text.WordWrap
+                        }
+                    }
+                    Text {
+                        id: repoLink
+                        Layout.topMargin: 4
+                        text: "View on GitHub ↗"
+                        color: repoLinkArea.containsMouse ? Theme.ink : Theme.accent
+                        font.family: Theme.sans; font.pixelSize: 13; font.weight: Font.DemiBold
+                        MouseArea {
+                            id: repoLinkArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: Qt.openUrlExternally("https://github.com/iainchesworth/CountdownSolver")
                         }
                     }
                 }

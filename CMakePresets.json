@@ -126,6 +126,18 @@
       ]
     },
     {
+      "name": "linux-gcc-coverage",
+      "displayName": "Linux (GCC, Coverage)",
+      "inherits": [
+        "linux-gcc-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "COUNTDOWN_ENABLE_COVERAGE": "ON",
+        "COUNTDOWN_ENABLE_SANITIZERS": "OFF"
+      }
+    },
+    {
       "name": "linux-clang-base",
       "hidden": true,
       "inherits": [
@@ -212,6 +224,10 @@
       "configurePreset": "linux-gcc-release"
     },
     {
+      "name": "linux-gcc-coverage",
+      "configurePreset": "linux-gcc-coverage"
+    },
+    {
       "name": "linux-clang-debug",
       "configurePreset": "linux-clang-debug"
     },
@@ -269,6 +285,11 @@
       "name": "linux-gcc-release",
       "inherits": "base",
       "configurePreset": "linux-gcc-release"
+    },
+    {
+      "name": "linux-gcc-coverage",
+      "inherits": "base",
+      "configurePreset": "linux-gcc-coverage"
     },
     {
       "name": "linux-clang-debug",

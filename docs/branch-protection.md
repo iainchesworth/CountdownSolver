@@ -13,6 +13,8 @@ ruleset) for `main` with:
   - `Validate gitflow branch name` (from `branch-name-check.yml`)
   - `Analyze (C++)` (from `codeql.yml`)
   - the `build-and-test` matrix jobs (from `ci.yml`)
+  - `Coverage (Linux, GCC)` (from `ci.yml`) — fails below 80% line/branch
+    coverage (`gcovr --fail-under-line 80 --fail-under-branch 80`)
 - **Require conversation resolution before merging**
 - **Do not allow bypassing the above settings** (applies rules to admins too)
 - **Restrict who can push to matching branches** — only allow merges via PR;
