@@ -35,6 +35,7 @@ Item {
                             Text { text: "Applies across the whole window."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                         }
                         SegControl {
+                            Layout.fillWidth: false
                             options: ["Light", "Dark"]
                             currentIndex: Theme.dark ? 1 : 0
                             onActivated: Theme.dark = (index === 1)
@@ -61,6 +62,7 @@ Item {
                             Text { text: "Shortest words shown in the letters game."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                         }
                         SegControl {
+                            Layout.fillWidth: false
                             options: ["3+", "4+", "5+"]
                             currentIndex: AppState.minLen - 3
                             onActivated: AppState.minLen = index + 3
@@ -75,6 +77,7 @@ Item {
                             Text { text: "Highlight the closest result in the numbers game."; color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                         }
                         Switch {
+                            Layout.fillWidth: false
                             checked: AppState.flagInexact
                             onToggled: AppState.flagInexact = checked
                         }
@@ -126,6 +129,7 @@ Item {
                         }
                         SegControl {
                             id: dictSeg
+                            Layout.fillWidth: false
                             options: ["Sample", "SOWPODS"]
                             enabled: solver.fullDictionaryAvailable()
                             opacity: enabled ? 1 : 0.5

@@ -37,6 +37,7 @@ Item {
         // ---- left: input ----
         ColumnLayout {
             Layout.preferredWidth: 456
+            Layout.fillWidth: false
             Layout.fillHeight: true
             spacing: 16
 
