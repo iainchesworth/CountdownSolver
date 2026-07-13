@@ -35,7 +35,9 @@ public:
     // { "found": bool, "answers": [QString] }
     Q_INVOKABLE QVariantMap solveConundrum(const QString& letters) const;
 
-    // Nine letters for the letters game; "" if unavailable.
+    // Nine letters for the letters game, drawn from a Scrabble-weighted tile
+    // pool respecting Countdown's 3v/6c, 4v/5c or 5v/4c vowel-consonant
+    // split - independent of the active dictionary, same as the real show.
     Q_INVOKABLE QString randomRack() const;
     // Nine scrambled letters of a real word; "" if unavailable.
     Q_INVOKABLE QString randomConundrum() const;
