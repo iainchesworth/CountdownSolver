@@ -26,10 +26,13 @@ Item {
         const used = numbers.filter(function (n) { return n === v }).length
         return poolSupply[String(v)] - used
     }
+    // The real target generator only ever produces a 3-digit number from 100-999.
+    readonly property var validTargetRegex: /^[1-9][0-9]{2}$/
+    function targetIsValid() { return validTargetRegex.test(target) }
 
     function recalc() {
         if (typeof solver === "undefined" || !solver) { result = null; return }
-        if (numbers.length === 6 && /^[0-9]{1,3}$/.test(target))
+        if (numbers.length === 6 && targetIsValid())
             result = solver.solveNumbers(numbers, parseInt(target))
         else
             result = null
@@ -203,7 +206,7 @@ Item {
                 Layout.fillWidth: true
                 primary: true
                 text: "Solve"
-                enabled: root.numbers.length === 6 && /^[0-9]{1,3}$/.test(root.target)
+                enabled: root.numbers.length === 6 && root.targetIsValid()
                 onClicked: root.recalc()
             }
             Item { Layout.fillHeight: true }
@@ -290,9 +293,11 @@ Item {
                     wrapMode: Text.WordWrap
                     text: root.numbers.length < 6
                           ? "Choose " + (6 - root.numbers.length) + " more number" + (root.numbers.length === 5 ? "" : "s") + ", then set a target."
-                          : (!/^[0-9]{1,3}$/.test(root.target)
-                             ? "Enter a target number, then press Solve."
-                             : "Press Solve to see the best result.")
+                          : (root.target.length < 3
+                             ? "Enter a 3-digit target (100–999), then press Solve."
+                             : (!root.targetIsValid()
+                                ? "Target must be between 100 and 999."
+                                : "Press Solve to see the best result."))
                     color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
                 }
             }
