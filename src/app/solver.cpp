@@ -2,6 +2,7 @@
 
 #include "platform/platform.hpp"
 
+#include <countdown/conundrum/conundrum_game.hpp>
 #include <countdown/numbers/numbers_game.hpp>
 #include <countdown/version.hpp>
 
@@ -208,8 +209,7 @@ QVariantMap Solver::solveConundrum(const QString& letters) const {
     result["answers"] = QStringList{};
 
     const std::string rack = letters.toLower().toStdString();
-    // A full anagram is a match whose length equals the rack length.
-    const auto anagrams = active_dictionary().find_matches(rack, rack.size());
+    const auto anagrams = conundrum::ConundrumGame{active_dictionary()}.with_letters(rack).solve();
     if (!anagrams) {
         return result;
     }

@@ -48,4 +48,4 @@ target_include_directories(countdown_solver
 
 target_compile_features(countdown_solver PUBLIC cxx_std_23)
 
-target_link_libraries(countdown_solver PRIVATE countdown::warnings countdown::sanitizers)
+target_link_libraries(countdown_solver PRIVATE countdown::warnings countdown::sanitizers countdown::coverage)
