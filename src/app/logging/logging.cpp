@@ -97,6 +97,10 @@ void install() {
 
             auto file = std::make_unique<QFile>(log_path);
             if (file->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+                // install() is normally called once, but must stay safe to
+                // call again (e.g. from a test that re-installs to exercise
+                // rotation): drop the previous sink instead of leaking it.
+                delete g_log_file;
                 g_log_file = file.release();
             }
         }
