@@ -156,71 +156,71 @@
         <translation type="unfinished">حلّال Countdown</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="21"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="29"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Numbers</source>
         <translation type="unfinished">الأرقام</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="21"/>
+        <location filename="../qml/Main.qml" line="29"/>
         <source>Reach the target using each number at most once.</source>
         <translation type="unfinished">حقّق الهدف باستخدام كل رقم مرة واحدة على الأكثر.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="22"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="30"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Letters</source>
         <translation type="unfinished">الأحرف</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="22"/>
+        <location filename="../qml/Main.qml" line="30"/>
         <source>Find every word hiding in your nine letters.</source>
         <translation type="unfinished">ابحث عن كل كلمة مختبئة في أحرفك التسعة.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="23"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="31"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Conundrum</source>
         <translation type="unfinished">اللغز</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="23"/>
+        <location filename="../qml/Main.qml" line="31"/>
         <source>Unscramble the nine letters into one word.</source>
         <translation type="unfinished">أعد ترتيب الأحرف التسعة لتكوين كلمة واحدة.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="24"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="32"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Settings</source>
         <translation type="unfinished">الإعدادات</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="24"/>
+        <location filename="../qml/Main.qml" line="32"/>
         <source>Tune the solver and how results are shown.</source>
         <translation type="unfinished">اضبط الحلّال وطريقة عرض النتائج.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="58"/>
+        <location filename="../qml/Main.qml" line="66"/>
         <source>Countdown</source>
         <translation type="unfinished">Countdown</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="59"/>
+        <location filename="../qml/Main.qml" line="67"/>
         <source>SOLVER</source>
         <translation type="unfinished">الحلّال</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="83"/>
+        <location filename="../qml/Main.qml" line="91"/>
         <source>%1 words loaded</source>
         <translation type="unfinished">تم تحميل %1 كلمة</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="84"/>
+        <location filename="../qml/Main.qml" line="92"/>
         <source>Loading…</source>
         <translation type="unfinished">جارٍ التحميل…</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="103"/>
+        <location filename="../qml/Main.qml" line="111"/>
         <source>dirty</source>
         <translation type="unfinished">غير مثبت</translation>
     </message>
@@ -309,112 +309,132 @@
 <context>
     <name>SettingsPage</name>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="29"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="35"/>
         <source>Appearance</source>
         <translation type="unfinished">المظهر</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="38"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="44"/>
         <source>Theme</source>
         <translation type="unfinished">السمة</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="39"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="45"/>
         <source>Applies across the whole window.</source>
         <translation type="unfinished">يُطبَّق على النافذة بأكملها.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="43"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="51"/>
         <source>Light</source>
         <translation type="unfinished">فاتح</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="43"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="51"/>
         <source>Dark</source>
         <translation type="unfinished">داكن</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="60"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="51"/>
+        <source>System</source>
+        <translation type="unfinished">النظام</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="68"/>
+        <source>Language</source>
+        <translation type="unfinished">اللغة</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="77"/>
+        <source>Display language</source>
+        <translation type="unfinished">لغة العرض</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="78"/>
+        <source>Changes menus, labels and messages across the app.</source>
+        <translation type="unfinished">يغيّر القوائم والتسميات والرسائل في جميع أنحاء التطبيق.</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="103"/>
         <source>Solver</source>
         <translation type="unfinished">الحلّال</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="70"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="113"/>
         <source>Minimum word length</source>
         <translation type="unfinished">الحد الأدنى لطول الكلمة</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="71"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="114"/>
         <source>Shortest words shown in the letters game.</source>
         <translation type="unfinished">أقصر الكلمات المعروضة في لعبة الأحرف.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="75"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="118"/>
         <source>3+</source>
         <translation type="unfinished">3+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="75"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="118"/>
         <source>4+</source>
         <translation type="unfinished">4+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="75"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="118"/>
         <source>5+</source>
         <translation type="unfinished">5+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="90"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="133"/>
         <source>Flag when no exact answer</source>
         <translation type="unfinished">تنبيه عند عدم وجود حل دقيق</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="91"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="134"/>
         <source>Highlight the closest result in the numbers game.</source>
         <translation type="unfinished">إبراز أقرب نتيجة في لعبة الأرقام.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="127"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="181"/>
         <source>Max words shown</source>
         <translation type="unfinished">الحد الأقصى للكلمات المعروضة</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="128"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="182"/>
         <source>Cap the letters-game result list.</source>
         <translation type="unfinished">تحديد سقف قائمة نتائج لعبة الأحرف.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="169"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="235"/>
         <source>Dictionary</source>
         <translation type="unfinished">القاموس</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="174"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="240"/>
         <source>Word list</source>
         <translation type="unfinished">قائمة الكلمات</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="184"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="250"/>
         <source>Swap the built-in dictionary for your custom words.txt list.</source>
         <translation type="unfinished">استبدل القاموس المدمج بقائمة words.txt الخاصة بك.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="193"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="259"/>
         <source>Default</source>
         <translation type="unfinished">الافتراضي</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="193"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="259"/>
         <source>Custom</source>
         <translation type="unfinished">مخصص</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="218"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="284"/>
         <source>About</source>
         <translation type="unfinished">حول</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="243"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="309"/>
         <source>View on GitHub ↗</source>
         <translation type="unfinished">عرض على GitHub ↗</translation>
     </message>
@@ -422,17 +442,17 @@
 <context>
     <name>countdown::app::Solver</name>
     <message>
-        <location filename="../solver.cpp" line="390"/>
+        <location filename="../solver.cpp" line="394"/>
         <source>A custom dictionary is available.</source>
         <translation type="unfinished">يتوفر قاموس مخصص.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="393"/>
+        <location filename="../solver.cpp" line="397"/>
         <source>A words.txt file was found in the config folder, but it contained no usable words.</source>
         <translation type="unfinished">تم العثور على ملف words.txt في مجلد الإعدادات، لكنه لم يحتوِ على كلمات قابلة للاستخدام.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="395"/>
+        <location filename="../solver.cpp" line="399"/>
         <source>Add a words.txt file to the config folder to enable a custom dictionary.</source>
         <translation type="unfinished">أضف ملف words.txt إلى مجلد الإعدادات لتفعيل قاموس مخصص.</translation>
     </message>

@@ -84,8 +84,96 @@ Item {
                                 textRole: "name"
                                 valueRole: "code"
                                 model: languageManager.availableLanguages()
-                                currentIndex: indexOfValue(languageManager.currentLanguage)
                                 onActivated: languageManager.setLanguage(currentValue)
+
+                                // Set once the model above is guaranteed to be
+                                // populated, rather than as a property binding:
+                                // indexOfValue() depends on the model but isn't
+                                // itself tracked as a binding dependency, so a
+                                // `currentIndex: indexOfValue(...)` binding can
+                                // evaluate to -1 if it runs before `model` is
+                                // applied, leaving the box permanently blank.
+                                Component.onCompleted: currentIndex = indexOfValue(languageManager.currentLanguage)
+                                Connections {
+                                    target: languageManager
+                                    function onCurrentLanguageChanged() {
+                                        langCombo.currentIndex = langCombo.indexOfValue(languageManager.currentLanguage)
+                                    }
+                                }
+
+                                font.family: Theme.sans
+                                font.pixelSize: 14
+
+                                background: Rectangle {
+                                    implicitHeight: 40
+                                    radius: Theme.radiusControl
+                                    color: Theme.bg
+                                    border.width: 1
+                                    border.color: langCombo.activeFocus || langCombo.popup.visible ? Theme.accent : Theme.border
+                                }
+                                contentItem: Text {
+                                    // Anchors (not manual x/padding) so this
+                                    // flips correctly under LayoutMirroring
+                                    // for RTL languages - the indicator ends
+                                    // up on the visual left, text anchored
+                                    // from the right, matching every other
+                                    // mirrored control in the app.
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: 12
+                                    anchors.right: langCombo.indicator.left
+                                    anchors.rightMargin: 8
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: langCombo.displayText
+                                    font: langCombo.font
+                                    color: Theme.ink
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                }
+                                indicator: Text {
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: 12
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: "⌄"
+                                    font.family: Theme.sans
+                                    font.pixelSize: 16
+                                    color: Theme.muted
+                                }
+                                popup: Popup {
+                                    y: langCombo.height + 4
+                                    width: langCombo.width
+                                    implicitHeight: contentItem.implicitHeight
+                                    padding: 4
+
+                                    contentItem: ListView {
+                                        clip: true
+                                        implicitHeight: contentHeight
+                                        model: langCombo.popup.visible ? langCombo.delegateModel : null
+                                        currentIndex: langCombo.highlightedIndex
+                                        ScrollIndicator.vertical: ScrollIndicator {}
+                                    }
+                                    background: Rectangle {
+                                        color: Theme.panel
+                                        radius: Theme.radiusControl
+                                        border.width: 1
+                                        border.color: Theme.border
+                                    }
+                                }
+                                delegate: ItemDelegate {
+                                    width: langCombo.width
+                                    highlighted: langCombo.highlightedIndex === index
+
+                                    contentItem: Text {
+                                        leftPadding: 12
+                                        text: modelData.name
+                                        color: Theme.ink
+                                        font.family: Theme.sans
+                                        font.pixelSize: 14
+                                        verticalAlignment: Text.AlignVCenter
+                                    }
+                                    background: Rectangle {
+                                        color: highlighted ? Theme.accentSoft : "transparent"
+                                    }
+                                }
                             }
                         }
                     }
@@ -246,9 +334,18 @@ Item {
                                 // once the deferred dictionary load
                                 // completes - fullDictionaryAvailable() alone
                                 // is a plain invokable QML can't track.
+                                // languageManager.currentLanguage is read for
+                                // the same reason on a language switch:
+                                // fullDictionaryStatus()'s text is translated
+                                // in C++, and engine.retranslate() only
+                                // re-evaluates qsTr() calls written directly
+                                // in QML, not the return value of a plain
+                                // invokable - without this read, the status
+                                // text would keep showing whatever language
+                                // was active when this binding last ran.
                                 text: (solver.dictionariesReady && solver.fullDictionaryAvailable())
                                       ? qsTr("Swap the built-in dictionary for your custom words.txt list.")
-                                      : solver.fullDictionaryStatus()
+                                      : (languageManager.currentLanguage, solver.fullDictionaryStatus())
                                 color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13
                             }
                         }

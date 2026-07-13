@@ -144,71 +144,71 @@
         <translation type="unfinished">Countdown לייזער</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="21"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="29"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Numbers</source>
         <translation type="unfinished">נומערן</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="21"/>
+        <location filename="../qml/Main.qml" line="29"/>
         <source>Reach the target using each number at most once.</source>
         <translation type="unfinished">דערגרייכט דעם ציל מיט יעדער נומער העכסטנס איין מאָל.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="22"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="30"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Letters</source>
         <translation type="unfinished">אותיות</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="22"/>
+        <location filename="../qml/Main.qml" line="30"/>
         <source>Find every word hiding in your nine letters.</source>
         <translation type="unfinished">געפֿינט יעדעס וואָרט וואָס באַהאַלט זיך אין אײַערע נײַן אותיות.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="23"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="31"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Conundrum</source>
         <translation type="unfinished">רעטעניש</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="23"/>
+        <location filename="../qml/Main.qml" line="31"/>
         <source>Unscramble the nine letters into one word.</source>
         <translation type="unfinished">שטעלט צונויף די נײַן אותיות אין איין וואָרט.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="24"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="32"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Settings</source>
         <translation type="unfinished">אײַנשטעלונגען</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="24"/>
+        <location filename="../qml/Main.qml" line="32"/>
         <source>Tune the solver and how results are shown.</source>
         <translation type="unfinished">פֿאַרריכט דעם לייזער און ווי רעזולטאַטן ווערן געוויזן.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="58"/>
+        <location filename="../qml/Main.qml" line="66"/>
         <source>Countdown</source>
         <translation type="unfinished">Countdown</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="59"/>
+        <location filename="../qml/Main.qml" line="67"/>
         <source>SOLVER</source>
         <translation type="unfinished">לייזער</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="83"/>
+        <location filename="../qml/Main.qml" line="91"/>
         <source>%1 words loaded</source>
         <translation type="unfinished">%1 ווערטער אַרײַנגעלאָדן</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="84"/>
+        <location filename="../qml/Main.qml" line="92"/>
         <source>Loading…</source>
         <translation type="unfinished">לאָדט…</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="103"/>
+        <location filename="../qml/Main.qml" line="111"/>
         <source>dirty</source>
         <translation type="unfinished">נישט אָפּגעהיט</translation>
     </message>
@@ -293,112 +293,132 @@
 <context>
     <name>SettingsPage</name>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="29"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="35"/>
         <source>Appearance</source>
         <translation type="unfinished">אויסזען</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="38"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="44"/>
         <source>Theme</source>
         <translation type="unfinished">טעמע</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="39"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="45"/>
         <source>Applies across the whole window.</source>
         <translation type="unfinished">גילט פֿאַרן גאַנצן פֿענצטער.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="43"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="51"/>
         <source>Light</source>
         <translation type="unfinished">ליכטיק</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="43"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="51"/>
         <source>Dark</source>
         <translation type="unfinished">טונקל</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="60"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="51"/>
+        <source>System</source>
+        <translation type="unfinished">סיסטעם</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="68"/>
+        <source>Language</source>
+        <translation type="unfinished">שפראך</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="77"/>
+        <source>Display language</source>
+        <translation type="unfinished">אויסשטעל-שפראך</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="78"/>
+        <source>Changes menus, labels and messages across the app.</source>
+        <translation type="unfinished">טוישט מעניוען, תוויות און מעלדונגען איבער דער גאנצער אפּליקאציע.</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="103"/>
         <source>Solver</source>
         <translation type="unfinished">לייזער</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="70"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="113"/>
         <source>Minimum word length</source>
         <translation type="unfinished">מינימאַלע וואָרט-לענג</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="71"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="114"/>
         <source>Shortest words shown in the letters game.</source>
         <translation type="unfinished">קירצסטע ווערטער וואָס ווערן געוויזן אין דעם אותיות-שפּיל.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="75"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="118"/>
         <source>3+</source>
         <translation type="unfinished">3+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="75"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="118"/>
         <source>4+</source>
         <translation type="unfinished">4+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="75"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="118"/>
         <source>5+</source>
         <translation type="unfinished">5+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="90"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="133"/>
         <source>Flag when no exact answer</source>
         <translation type="unfinished">באַצייכנט ווען עס פֿעלט אַ פּינקטלעכע ענטפֿער</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="91"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="134"/>
         <source>Highlight the closest result in the numbers game.</source>
         <translation type="unfinished">הייבט אַרויס דעם נעענטסטן רעזולטאַט אין דעם נומערן-שפּיל.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="127"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="181"/>
         <source>Max words shown</source>
         <translation type="unfinished">מאַקסימום ווערטער וואָס ווערן געוויזן</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="128"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="182"/>
         <source>Cap the letters-game result list.</source>
         <translation type="unfinished">באַגרענעצט די רשימה פֿון רעזולטאַטן אין דעם אותיות-שפּיל.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="169"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="235"/>
         <source>Dictionary</source>
         <translation type="unfinished">ווערטערבוך</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="174"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="240"/>
         <source>Word list</source>
         <translation type="unfinished">רשימת ווערטער</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="184"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="250"/>
         <source>Swap the built-in dictionary for your custom words.txt list.</source>
         <translation type="unfinished">בײַט אויס דעם אײַנגעבויטן ווערטערבוך מיט אײַער אייגענעם words.txt רשימה.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="193"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="259"/>
         <source>Default</source>
         <translation type="unfinished">פֿאַרויסבאַשטימט</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="193"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="259"/>
         <source>Custom</source>
         <translation type="unfinished">באַזונדער</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="218"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="284"/>
         <source>About</source>
         <translation type="unfinished">וועגן</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="243"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="309"/>
         <source>View on GitHub ↗</source>
         <translation type="unfinished">זען אויף GitHub ↗</translation>
     </message>
@@ -406,17 +426,17 @@
 <context>
     <name>countdown::app::Solver</name>
     <message>
-        <location filename="../solver.cpp" line="390"/>
+        <location filename="../solver.cpp" line="394"/>
         <source>A custom dictionary is available.</source>
         <translation type="unfinished">אַ באַזונדער ווערטערבוך איז פֿאַראַן.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="393"/>
+        <location filename="../solver.cpp" line="397"/>
         <source>A words.txt file was found in the config folder, but it contained no usable words.</source>
         <translation type="unfinished">אַ words.txt דאַטײ איז געפֿונען געוואָרן אין דעם קאָנפֿיגוראַציע-מאַפּע, אָבער זי האָט נישט אַנטהאַלטן קיין ניצלעכע ווערטער.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="395"/>
+        <location filename="../solver.cpp" line="399"/>
         <source>Add a words.txt file to the config folder to enable a custom dictionary.</source>
         <translation type="unfinished">לייגט צו אַ words.txt דאַטײ צום קאָנפֿיגוראַציע-מאַפּע צו אַקטיווירן אַ באַזונדער ווערטערבוך.</translation>
     </message>
