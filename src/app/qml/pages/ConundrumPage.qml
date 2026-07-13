@@ -3,9 +3,12 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 // Conundrum. Delegates solving to the C++ `solver`. See Solver.h.
+// Solving only happens when the user presses Solve (or Enter) - typing
+// letters never solves implicitly.
 Item {
     id: root
-    property var letters: ["O", "C", "T", "N", "U", "D", "W", "O", "N"]
+    focus: StackLayout.isCurrentItem
+    property var letters: []
     property var result: null   // { found, answers[] }
     readonly property var keyRows: ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"]
 
@@ -13,18 +16,32 @@ Item {
         if (typeof solver === "undefined" || !solver) { result = null; return }
         result = solver.solveConundrum(root.letters.join(""))
     }
-    function addLetter(ch) { if (letters.length < 9) { letters = letters.concat([ch]); recalc() } }
-    function backspace()   { letters = letters.slice(0, -1); recalc() }
+    function addLetter(ch) { if (letters.length < 9) { letters = letters.concat([ch]) } }
+    function backspace()   { letters = letters.slice(0, -1) }
     function clearAll()    { letters = []; result = null }
     function randomConundrum() {
         if (typeof solver !== "undefined" && solver && solver.randomConundrum)
             letters = solver.randomConundrum().split("")
         recalc()
     }
-    Component.onCompleted: recalc()
     Connections {
         target: AppState
-        function onUseFullDictionaryChanged() { root.recalc() }
+        function onUseFullDictionaryChanged() { if (root.result !== null) root.recalc() }
+    }
+    Keys.onPressed: function (event) {
+        if (event.key >= Qt.Key_A && event.key <= Qt.Key_Z) {
+            root.addLetter(String.fromCharCode(event.key))
+            event.accepted = true
+        } else if (event.key === Qt.Key_Backspace) {
+            root.backspace()
+            event.accepted = true
+        } else if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
+            root.recalc()
+            event.accepted = true
+        } else if (event.key === Qt.Key_Escape) {
+            root.clearAll()
+            event.accepted = true
+        }
     }
 
     RowLayout {
@@ -91,9 +108,16 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true; spacing: 9
-                FlatButton { Layout.fillWidth: true; primary: true; text: "\u21bb Random conundrum"; onClicked: root.randomConundrum() }
+                FlatButton { Layout.fillWidth: true; text: "\u21bb Random conundrum"; onClicked: root.randomConundrum() }
                 FlatButton { text: "\u232b"; onClicked: root.backspace() }
                 FlatButton { text: "Clear"; onClicked: root.clearAll() }
+            }
+            FlatButton {
+                Layout.fillWidth: true
+                primary: true
+                text: "Solve"
+                enabled: root.letters.length === 9
+                onClicked: root.recalc()
             }
             Item { Layout.fillHeight: true }
         }
@@ -144,8 +168,10 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     text: (root.letters.length < 9)
-                          ? "Enter all nine letters to solve the conundrum."
-                          : "No single word in the list uses these letters."
+                          ? "Enter all nine letters, then press Solve."
+                          : (root.result === null
+                             ? "Press Solve to reveal the solution."
+                             : "No single word in the list uses these letters.")
                     color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
                 }
             }

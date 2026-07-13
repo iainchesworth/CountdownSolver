@@ -3,9 +3,12 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 // Letters game. Delegates solving to the C++ `solver`. See Solver.h.
+// Solving only happens when the user presses Solve (or Enter) - typing
+// letters never solves implicitly.
 Item {
     id: root
-    property var letters: ["R", "E", "T", "A", "I", "N", "D", "O", "S"]
+    focus: StackLayout.isCurrentItem
+    property var letters: []
     property var result: null   // { total, shown, maxLen, longest[], groups[{len,words[]}] }
     readonly property var keyRows: ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"]
 
@@ -13,20 +16,34 @@ Item {
         if (typeof solver === "undefined" || !solver) { result = null; return }
         result = solver.solveLetters(root.letters.join(""), AppState.minLen, AppState.maxResults)
     }
-    function addLetter(ch) { if (letters.length < 9) { letters = letters.concat([ch]); recalc() } }
-    function backspace()   { letters = letters.slice(0, -1); recalc() }
+    function addLetter(ch) { if (letters.length < 9) { letters = letters.concat([ch]) } }
+    function backspace()   { letters = letters.slice(0, -1) }
     function clearAll()    { letters = []; result = null }
     function randomRack() {
         if (typeof solver !== "undefined" && solver && solver.randomRack)
             letters = solver.randomRack().split("")
         recalc()
     }
-    Component.onCompleted: recalc()
     Connections {
         target: AppState
-        function onMinLenChanged()          { root.recalc() }
-        function onMaxResultsChanged()      { root.recalc() }
-        function onUseFullDictionaryChanged() { root.recalc() }
+        function onMinLenChanged()          { if (root.result !== null) root.recalc() }
+        function onMaxResultsChanged()      { if (root.result !== null) root.recalc() }
+        function onUseFullDictionaryChanged() { if (root.result !== null) root.recalc() }
+    }
+    Keys.onPressed: function (event) {
+        if (event.key >= Qt.Key_A && event.key <= Qt.Key_Z) {
+            root.addLetter(String.fromCharCode(event.key))
+            event.accepted = true
+        } else if (event.key === Qt.Key_Backspace) {
+            root.backspace()
+            event.accepted = true
+        } else if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
+            root.recalc()
+            event.accepted = true
+        } else if (event.key === Qt.Key_Escape) {
+            root.clearAll()
+            event.accepted = true
+        }
     }
 
     RowLayout {
@@ -93,9 +110,16 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true; spacing: 9
-                FlatButton { Layout.fillWidth: true; primary: true; text: "\u21bb Random rack"; onClicked: root.randomRack() }
+                FlatButton { Layout.fillWidth: true; text: "\u21bb Random rack"; onClicked: root.randomRack() }
                 FlatButton { text: "\u232b"; onClicked: root.backspace() }
                 FlatButton { text: "Clear"; onClicked: root.clearAll() }
+            }
+            FlatButton {
+                Layout.fillWidth: true
+                primary: true
+                text: "Solve"
+                enabled: root.letters.length > 0
+                onClicked: root.recalc()
             }
             Item { Layout.fillHeight: true }
         }
@@ -201,7 +225,9 @@ Item {
                     wrapMode: Text.WordWrap
                     text: (root.result && root.result.total === 0)
                           ? "No words " + AppState.minLen + "+ letters long. Try a random rack."
-                          : "Type or tap nine letters to find words."
+                          : (root.letters.length > 0
+                             ? "Press Solve to find words."
+                             : "Type or tap nine letters, then press Solve.")
                     color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
                 }
             }
