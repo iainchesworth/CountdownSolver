@@ -14,6 +14,17 @@
 namespace countdown::numbers {
 namespace {
 
+// The real game deals exactly 6 tiles (one each of 25/50/75/100, two each of
+// 1-10), so 6 is both the maximum term count and the maximum individual
+// value a caller can legitimately supply. Enforcing both in validate() -
+// rather than only in the QML UI - closes off the search()/apply() paths
+// below to callers of the public library API directly (e.g.
+// Solver::solveNumbers), which would otherwise be able to trigger
+// combinatorial-cost searches or push apply() towards overflow with
+// arbitrarily long or large input.
+constexpr std::size_t kMaxNumberCount = 6;
+constexpr int kMaxNumberValue = 100;
+
 // A live term in the search: its current value plus the steps used to build it.
 struct Term {
     Value value{};
@@ -92,7 +103,11 @@ Result<void> NumbersGame::validate() const {
     if (target_ < 100 || target_ > 999) {
         return std::unexpected(SolveError::target_out_of_range);
     }
-    if (std::ranges::any_of(numbers_, [](int n) { return n <= 0; })) {
+    if (numbers_.size() > kMaxNumberCount) {
+        return std::unexpected(SolveError::count_out_of_range);
+    }
+    if (std::ranges::any_of(numbers_,
+                             [](int n) { return n <= 0 || n > kMaxNumberValue; })) {
         return std::unexpected(SolveError::number_out_of_range);
     }
     return {};

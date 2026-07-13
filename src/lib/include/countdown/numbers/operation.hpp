@@ -3,6 +3,7 @@
 #include <countdown/error.hpp>
 
 #include <cstdint>
+#include <limits>
 
 namespace countdown::numbers {
 
@@ -16,6 +17,36 @@ enum class Op : std::uint8_t {
     multiply,
     divide,
 };
+
+namespace detail {
+
+// Pre-checks (rather than computing the result and inspecting it afterwards,
+// which would already have invoked the signed overflow UB it's meant to
+// catch) so lhs + rhs / lhs * rhs below are only ever evaluated in range.
+
+[[nodiscard]] constexpr bool add_overflows(Value lhs, Value rhs) noexcept {
+    if (rhs > 0) {
+        return lhs > std::numeric_limits<Value>::max() - rhs;
+    }
+    if (rhs < 0) {
+        return lhs < std::numeric_limits<Value>::min() - rhs;
+    }
+    return false;
+}
+
+[[nodiscard]] constexpr bool multiply_overflows(Value lhs, Value rhs) noexcept {
+    if (lhs == 0 || rhs == 0) {
+        return false;
+    }
+    constexpr Value max_v = std::numeric_limits<Value>::max();
+    constexpr Value min_v = std::numeric_limits<Value>::min();
+    if (lhs > 0) {
+        return rhs > 0 ? lhs > max_v / rhs : rhs < min_v / lhs;
+    }
+    return rhs > 0 ? lhs < min_v / rhs : rhs < max_v / lhs;
+}
+
+}  // namespace detail
 
 [[nodiscard]] constexpr char symbol(Op op) noexcept {
     switch (op) {
@@ -35,6 +66,9 @@ enum class Op : std::uint8_t {
 [[nodiscard]] constexpr Result<Value> apply(Op op, Value lhs, Value rhs) noexcept {
     switch (op) {
         case Op::add:
+            if (detail::add_overflows(lhs, rhs)) {
+                return std::unexpected(SolveError::arithmetic_overflow);
+            }
             return lhs + rhs;
         case Op::subtract:
             if (lhs <= rhs) {
@@ -42,6 +76,9 @@ enum class Op : std::uint8_t {
             }
             return lhs - rhs;
         case Op::multiply:
+            if (detail::multiply_overflows(lhs, rhs)) {
+                return std::unexpected(SolveError::arithmetic_overflow);
+            }
             return lhs * rhs;
         case Op::divide:
             if (rhs == 0 || lhs % rhs != 0) {

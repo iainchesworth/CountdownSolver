@@ -89,12 +89,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-15
 
+      # Installs Clang from LLVM's official apt repository rather than piping
+      # the live contents of https://apt.llvm.org/llvm.sh through sudo. The
+      # signing key is pinned by checksum before use, so apt (not an
+      # unauthenticated script run as root) verifies every package it installs.
       - name: Install Clang 21 (Linux Clang)
         if: matrix.cxx == 'clang++-21'
         run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 21
+          curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key -o /tmp/llvm-snapshot.gpg.key
+          echo "8b2a587ffd672c4687e7581dad4b2f6c1bb2ad6b480cd9771ba2ff48e0b8c75d  /tmp/llvm-snapshot.gpg.key" | sha256sum -c -
+          sudo install -m 0755 -d /etc/apt/keyrings
+          sudo gpg --dearmor -o /etc/apt/keyrings/llvm-snapshot.gpg /tmp/llvm-snapshot.gpg.key
+          echo "deb [signed-by=/etc/apt/keyrings/llvm-snapshot.gpg] http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-21 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          sudo apt-get update
+          sudo apt-get install -y clang-21
 
       - name: Set up MSVC environment (Windows)
         if: runner.os == 'Windows'
