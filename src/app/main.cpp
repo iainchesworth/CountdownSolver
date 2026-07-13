@@ -1,3 +1,4 @@
+#include "language_manager.hpp"
 #include "solver.hpp"
 
 #include "logging/logging.hpp"
@@ -5,6 +6,7 @@
 
 #include <countdown/version.hpp>
 
+#include <QFontDatabase>
 #include <QGuiApplication>
 #include <QIcon>
 #include <QQmlApplicationEngine>
@@ -14,7 +16,6 @@
 #include <QQuickWindow>
 #include <QString>
 #include <QTimer>
-// #include <QFontDatabase>  // uncomment if bundling IBM Plex (see README)
 
 #include <cstdio>
 #include <string_view>
@@ -60,9 +61,13 @@ int main(int argc, char* argv[]) {
     QGuiApplication::setOrganizationName(QStringLiteral("CountdownSolver"));
     QGuiApplication::setApplicationVersion(version_qstring());
 
-    // --- optional: bundle the design's fonts for identical metrics everywhere ---
-    // QFontDatabase::addApplicationFont(":/fonts/IBMPlexSans-Regular.ttf");
-    // QFontDatabase::addApplicationFont(":/fonts/IBMPlexMono-Regular.ttf");
+    // Arabic/Hebrew/Yiddish glyph coverage - IBM Plex Sans (Theme.qml's
+    // default) has none. Theme.qml switches to these by name once a language
+    // needing them is active (see LanguageManager). Both are variable fonts
+    // (a weight axis); Qt registers each under its single family name
+    // ("Noto Sans Arabic"/"Noto Sans Hebrew") regardless.
+    QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/NotoSansArabic.ttf"));
+    QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/NotoSansHebrew.ttf"));
 
     // Dictionary loading is deferred (see Solver::loadDictionaries below)
     // rather than done here in the constructor, so parsing/indexing the
@@ -70,7 +75,15 @@ int main(int argc, char* argv[]) {
     countdown::app::Solver solver(nullptr, countdown::app::Solver::DictionaryLoad::kDeferred);
 
     QQmlApplicationEngine engine;
+
+    // Installs translators and sets the initial layout direction before any
+    // QML is loaded (loadFromModule() below), so the first frame already
+    // renders translated and RTL-mirrored where appropriate.
+    countdown::app::LanguageManager language_manager(app, engine);
+    language_manager.applyInitialLanguage();
+
     engine.rootContext()->setContextProperty(QStringLiteral("solver"), &solver);
+    engine.rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
 
     QObject::connect(&engine, &QQmlApplicationEngine::warnings, &app,
                       [](const QList<QQmlError>& warnings) {

@@ -49,7 +49,7 @@ Item {
                     id: lc
                     anchors.fill: parent; anchors.margins: 18
                     spacing: 12
-                    SectionLabel { text: "Nine letters" }
+                    SectionLabel { text: qsTr("Nine letters") }
                     RowLayout {
                         Layout.fillWidth: true; spacing: 6
                         Repeater {
@@ -75,14 +75,14 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true; spacing: 9
-                FlatButton { Layout.fillWidth: true; text: "\u21bb Random rack"; onClicked: root.randomRack() }
+                FlatButton { Layout.fillWidth: true; text: "\u21bb " + qsTr("Random rack"); onClicked: root.randomRack() }
                 FlatButton { text: "\u232b"; onClicked: rackInput.backspace() }
-                FlatButton { text: "Clear"; onClicked: rackInput.clearAll() }
+                FlatButton { text: qsTr("Clear"); onClicked: rackInput.clearAll() }
             }
             FlatButton {
                 Layout.fillWidth: true
                 primary: true
-                text: "Solve"
+                text: qsTr("Solve")
                 enabled: rackInput.letters.length > 0
                 onClicked: root.recalc()
             }
@@ -108,8 +108,10 @@ Item {
                     spacing: 0
 
                     SectionLabel {
-                        text: (root.result && root.result.longest && root.result.longest.length > 1 ? "Longest words \u00b7 " : "Longest word \u00b7 ")
-                              + (root.result ? root.result.maxLen : 0) + " letters"
+                        text: (root.result && root.result.longest && root.result.longest.length > 1
+                               ? qsTr("Longest words")
+                               : qsTr("Longest word"))
+                              + " \u00b7 " + qsTr("%n letter(s)", "", root.result ? root.result.maxLen : 0)
                     }
                     Flow {
                         Layout.fillWidth: true; Layout.topMargin: 12; spacing: 8
@@ -131,11 +133,11 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        SectionLabel { Layout.fillWidth: true; text: "All valid words" }
+                        SectionLabel { Layout.fillWidth: true; text: qsTr("All valid words") }
                         Text {
                             text: root.result ? (root.result.shown < root.result.total
-                                  ? "showing " + root.result.shown + " of " + root.result.total
-                                  : root.result.total + " found") : ""
+                                  ? qsTr("showing %1 of %2").arg(root.result.shown).arg(root.result.total)
+                                  : qsTr("%n found", "", root.result.total)) : ""
                             color: Theme.faint; font.family: Theme.mono; font.pixelSize: 12
                         }
                     }
@@ -148,8 +150,8 @@ Item {
                                 Layout.fillWidth: true; spacing: 8
                                 property var grp: modelData
                                 Text {
-                                    text: grp.len + " letters (" + grp.count + ")"
-                                          + (grp.count > grp.words.length ? " · showing " + grp.words.length : "")
+                                    text: qsTr("%n letter(s) (%1)", "", grp.len).arg(grp.count)
+                                          + (grp.count > grp.words.length ? " · " + qsTr("showing %1").arg(grp.words.length) : "")
                                     color: Theme.muted; font.family: Theme.mono; font.pixelSize: 12; font.weight: Font.DemiBold
                                 }
                                 Flow {
@@ -190,10 +192,10 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     text: (root.result && root.result.total === 0)
-                          ? "No words " + AppState.minLen + "+ letters long. Try a random rack."
+                          ? qsTr("No words %1+ letters long. Try a random rack.").arg(AppState.minLen)
                           : (root.letters.length > 0
-                             ? "Press Solve to find words."
-                             : "Type or tap nine letters, then press Solve.")
+                             ? qsTr("Press Solve to find words.")
+                             : qsTr("Type or tap nine letters, then press Solve."))
                     color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
                 }
             }

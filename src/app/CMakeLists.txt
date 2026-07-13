@@ -2,7 +2,7 @@
 # countdown_app - the Qt6 Quick (QML) GUI. All game logic lives in
 # countdown::solver; this target is presentation + platform glue only.
 # ---------------------------------------------------------------------------
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Concurrent Quick Gui QuickControls2)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Concurrent Quick Gui QuickControls2 LinguistTools)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
@@ -132,6 +132,32 @@ qt_add_qml_module(countdown_app_qml
         qml/pages/ConundrumPage.qml
         qml/pages/SettingsPage.qml)
 
+# ---------------------------------------------------------------------------
+# Translations: French, German, Spanish, Arabic, Hebrew and Yiddish UI text.
+# qt_add_translations() drives lupdate (scan for tr()/qsTr() calls, update the
+# .ts files) and lrelease (compile them to .qm) at build time, and registers
+# the .qm files as Qt resources so they're embedded in the binary. SOURCES is
+# listed explicitly - the QML files already belong to countdown_app_qml's
+# sources so lupdate would find them either way, but solver.cpp's tr() calls
+# live in the separate countdown_app_core target and wouldn't be scanned
+# without naming it here.
+# ---------------------------------------------------------------------------
+qt_add_translations(countdown_app_qml
+    TS_FILES
+        translations/countdown_fr.ts
+        translations/countdown_de.ts
+        translations/countdown_es.ts
+        translations/countdown_ar.ts
+        translations/countdown_he.ts
+        translations/countdown_yi.ts
+    SOURCES
+        qml/Main.qml
+        qml/pages/NumbersPage.qml
+        qml/pages/LettersPage.qml
+        qml/pages/ConundrumPage.qml
+        qml/pages/SettingsPage.qml
+        solver.cpp)
+
 # The window icon (taskbar/titlebar chrome at runtime, all platforms) is
 # bundled as a Qt resource so main.cpp can load it as ":/icon/app_256.png"
 # and hand it to QQuickWindow::setIcon() regardless of where the app is
@@ -152,7 +178,25 @@ if(WIN32)
     set(COUNTDOWN_APP_ICON_SOURCE resources/icon/app.rc)
 endif()
 
-qt_add_executable(countdown_app main.cpp ${COUNTDOWN_APP_ICON_SOURCE})
+qt_add_executable(countdown_app
+    main.cpp
+    language_manager.cpp
+    language_manager.hpp
+    ${COUNTDOWN_APP_ICON_SOURCE})
+
+# Noto Sans Arabic/Hebrew (SIL Open Font License - see the accompanying
+# *-OFL.txt files), bundled so Arabic/Hebrew/Yiddish text renders with proper
+# glyph coverage regardless of what's installed on the host; IBM Plex Sans
+# (Theme.qml's default) has no Arabic or Hebrew coverage. Only countdown_app
+# needs these - no test target renders text - so unlike the dictionary
+# resource above, this lives directly on the final executable with no
+# WHOLE_ARCHIVE dance required.
+qt_add_resources(countdown_app "fonts"
+    PREFIX "/fonts"
+    BASE "resources/fonts"
+    FILES
+        resources/fonts/NotoSansArabic.ttf
+        resources/fonts/NotoSansHebrew.ttf)
 
 target_link_libraries(countdown_app
     PRIVATE
@@ -196,7 +240,6 @@ if(WIN32)
         add_custom_command(TARGET countdown_app POST_BUILD
             COMMAND "${COUNTDOWN_WINDEPLOYQT_EXECUTABLE}"
                 --qmldir "${CMAKE_CURRENT_SOURCE_DIR}/qml"
-                --no-translations
                 --compiler-runtime
                 "$<TARGET_FILE:countdown_app>"
             COMMENT "Deploying Qt runtime dependencies for countdown_app")

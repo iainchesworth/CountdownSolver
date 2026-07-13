@@ -176,7 +176,19 @@ if(COUNTDOWN_BUILD_APP)
     # tst_qml_setup.hpp is listed explicitly for the same reason as
     # solver_test.hpp above - its basename doesn't match tst_qml.cpp, so
     # AUTOMOC's implicit same-name-header heuristic wouldn't find it.
-    qt_add_executable(countdown_qml_tests qml/tst_qml.cpp qml/tst_qml_setup.hpp)
+    # language_manager.cpp/.hpp aren't part of countdown_app_core (that target
+    # deliberately stays free of Quick/Gui - see its comment in
+    # src/app/CMakeLists.txt), so they're compiled in directly here, the same
+    # way countdown_app itself does it - countdown_qml_tests already links
+    # Quick/Gui/QuickControls2 to run Quick Test in the first place, and
+    # tst_qml_setup.hpp registers a real LanguageManager as the
+    # `languageManager` context property so Theme.qml/SettingsPage.qml's
+    # bindings resolve exactly as they do in the real app.
+    qt_add_executable(countdown_qml_tests
+        qml/tst_qml.cpp
+        qml/tst_qml_setup.hpp
+        "${CMAKE_SOURCE_DIR}/src/app/language_manager.cpp"
+        "${CMAKE_SOURCE_DIR}/src/app/language_manager.hpp")
 
     target_link_libraries(countdown_qml_tests
         PRIVATE
@@ -252,7 +264,7 @@ if(COUNTDOWN_BUILD_APP)
     # needed); Qt Quick Test's "-input dir/file" option accepts a single QML
     # file as well as a directory, so each entry just restricts that shared
     # binary to its own tst_*.qml file.
-    set(COUNTDOWN_QML_TEST_PAGES ConundrumPage LettersPage NumbersPage SettingsPage)
+    set(COUNTDOWN_QML_TEST_PAGES ConundrumPage LettersPage NumbersPage SettingsPage Theme LanguageManager)
 
     foreach(page IN LISTS COUNTDOWN_QML_TEST_PAGES)
         add_test(NAME countdown_qml_tests_${page}

@@ -47,7 +47,7 @@ Item {
                     id: cc
                     anchors.fill: parent; anchors.margins: 18
                     spacing: 12
-                    SectionLabel { text: "Scrambled nine" }
+                    SectionLabel { text: qsTr("Scrambled nine") }
                     RowLayout {
                         Layout.fillWidth: true; spacing: 6
                         Repeater {
@@ -73,14 +73,14 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true; spacing: 9
-                FlatButton { Layout.fillWidth: true; text: "\u21bb Random conundrum"; onClicked: root.randomConundrum() }
+                FlatButton { Layout.fillWidth: true; text: "\u21bb " + qsTr("Random conundrum"); onClicked: root.randomConundrum() }
                 FlatButton { text: "\u232b"; onClicked: rackInput.backspace() }
-                FlatButton { text: "Clear"; onClicked: rackInput.clearAll() }
+                FlatButton { text: qsTr("Clear"); onClicked: rackInput.clearAll() }
             }
             FlatButton {
                 Layout.fillWidth: true
                 primary: true
-                text: "Solve"
+                text: qsTr("Solve")
                 enabled: rackInput.letters.length === 9
                 onClicked: root.recalc()
             }
@@ -96,7 +96,7 @@ Item {
                 anchors.centerIn: parent
                 spacing: 16
                 visible: root.result && root.result.found
-                SectionLabel { Layout.alignment: Qt.AlignHCenter; text: "Solution" }
+                SectionLabel { Layout.alignment: Qt.AlignHCenter; text: qsTr("Solution") }
                 Flow {
                     Layout.alignment: Qt.AlignHCenter
                     width: 300; spacing: 7
@@ -111,7 +111,7 @@ Item {
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     visible: root.result && root.result.answers && root.result.answers.length > 1
-                    text: "Also valid: " + (root.result && root.result.answers ? root.result.answers.slice(1).join(", ").toUpperCase() : "")
+                    text: qsTr("Also valid: %1").arg(root.result && root.result.answers ? root.result.answers.slice(1).join(", ").toUpperCase() : "")
                     color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13
                 }
             }
@@ -133,10 +133,10 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     text: (root.letters.length < 9)
-                          ? "Enter all nine letters, then press Solve."
+                          ? qsTr("Enter all nine letters, then press Solve.")
                           : (root.result === null
-                             ? "Press Solve to reveal the solution."
-                             : "No single word in the list uses these letters.")
+                             ? qsTr("Press Solve to reveal the solution.")
+                             : qsTr("No single word in the list uses these letters."))
                     color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
                 }
             }
