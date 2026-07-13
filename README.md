@@ -32,10 +32,16 @@ This project deliberately uses modern **C++23** throughout:
 - A **C++23** compiler: GCC 14+, Clang 18+, or MSVC 19.40+ (VS 2022 17.10+ / VS 18).
 - **CMake 4.0+** and **Ninja**.
 - **Git** — **vcpkg is vendored** as a submodule at [`deps/vcpkg`](deps/vcpkg),
-  so no machine-wide vcpkg or `VCPKG_ROOT` is required. Dependencies (Qt 6,
-  Catch2) are declared in [`vcpkg.json`](vcpkg.json) and installed automatically
-  in manifest mode. The vcpkg baseline is pinned to the submodule commit for
-  reproducible builds.
+  so no machine-wide vcpkg or `VCPKG_ROOT` is required. vcpkg provides **Catch2**
+  (declared in [`vcpkg.json`](vcpkg.json), installed automatically in manifest
+  mode; baseline pinned to the submodule commit).
+- **Qt 6.8** — used as an official **prebuilt** package, not built from source
+  (Qt's deep build tree overruns Windows' `MAX_PATH`, and a source build is
+  huge). Install it with [`ci/install-qt.ps1`](ci/install-qt.ps1) /
+  [`ci/install-qt.sh`](ci/install-qt.sh) (both use `aqtinstall`), then point the
+  build at it with `-DCMAKE_PREFIX_PATH=<qt>/6.8.3/<arch>`. CI does the same via
+  `install-qt-action`. See [`ci/README.md`](ci/README.md). Only needed when
+  building the app (`COUNTDOWN_BUILD_APP=ON`, the default).
 
 Clone with submodules (or initialise them after cloning):
 

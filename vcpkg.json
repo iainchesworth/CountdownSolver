@@ -9,19 +9,6 @@
   "dependencies": [],
   "default-features": [],
   "features": {
-    "app": {
-      "description": "Dependencies for the Qt6 Quick (QML) GUI application",
-      "dependencies": [
-        {
-          "name": "qtbase",
-          "default-features": false,
-          "features": [
-            "gui"
-          ]
-        },
-        "qtdeclarative"
-      ]
-    },
     "tests": {
       "description": "Dependencies for the unit and integration test suites",
       "dependencies": [

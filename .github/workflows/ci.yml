@@ -91,14 +91,21 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      # COUNTDOWN_BUILD_APP=OFF keeps Qt out of CI: with the app feature
-      # disabled, vcpkg installs only Catch2, so the library and full test
-      # suite build and run without a lengthy Qt-from-source build.
-      # COUNTDOWN_BUILD_APP=OFF keeps Qt out of CI: with the app feature
-      # disabled, vcpkg installs only Catch2.
+      # Prebuilt Qt (official binaries) so the GUI app builds without compiling
+      # Qt from source. Sets QT_ROOT_DIR for find_package(Qt6). Keep the version
+      # in sync with ci/README.md and ci/install-qt.*.
+      - name: Install Qt (prebuilt)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.3"
+          cache: true
+
+      # Builds the library, tests AND the Qt app (COUNTDOWN_BUILD_APP defaults
+      # ON); vcpkg supplies only Catch2, Qt comes from the prebuilt install.
       - name: Configure
         run: >
-          cmake --preset ${{ matrix.preset }} -DCOUNTDOWN_BUILD_APP=OFF
+          cmake --preset ${{ matrix.preset }}
+          -DCMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}
           ${{ matrix.cxx && format('-DCMAKE_CXX_COMPILER={0}', matrix.cxx) || '' }}
           ${{ matrix.cxxflags && format('-DCMAKE_CXX_FLAGS={0}', matrix.cxxflags) || '' }}
 

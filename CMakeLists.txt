@@ -35,14 +35,10 @@ endif()
 
 # ---------------------------------------------------------------------------
 # Select vcpkg manifest features BEFORE project() (the vcpkg toolchain reads
-# VCPKG_MANIFEST_FEATURES when it is loaded at project() time). This ensures a
-# lib/tests-only configuration does not drag in Qt: only the "app" feature pulls
-# qtbase, and only "tests" pulls Catch2. The switches mirror the
-# COUNTDOWN_BUILD_* options, read here from the cache/command line.
+# VCPKG_MANIFEST_FEATURES when it is loaded at project() time). vcpkg only
+# provides Catch2 (the "tests" feature); Qt is a prebuilt dependency found via
+# CMAKE_PREFIX_PATH (see ci/ and the README), not built from source.
 # ---------------------------------------------------------------------------
-if(NOT DEFINED COUNTDOWN_BUILD_APP OR COUNTDOWN_BUILD_APP)
-    list(APPEND VCPKG_MANIFEST_FEATURES "app")
-endif()
 if(NOT DEFINED COUNTDOWN_BUILD_TESTS OR COUNTDOWN_BUILD_TESTS)
     list(APPEND VCPKG_MANIFEST_FEATURES "tests")
 endif()
