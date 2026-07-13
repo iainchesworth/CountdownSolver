@@ -69,19 +69,22 @@ missing.
 
 ```sh
 # Configure + build the full project (library, Qt app, tests) with a preset.
-cmake --preset windows-msvc      # or linux-gcc / linux-clang / macos-clang / windows-clang
-cmake --build --preset windows-msvc
+# Every preset states its build type explicitly: <toolchain>-debug or
+# <toolchain>-release, e.g. windows-msvc-debug, linux-gcc-release,
+# linux-clang-debug, macos-clang-release, windows-clang-debug.
+cmake --preset windows-msvc-debug
+cmake --build --preset windows-msvc-debug
 
 # Run the test suite via CTest.
-ctest --preset windows-msvc
+ctest --preset windows-msvc-debug
 ```
 
 Library + tests only (no Qt):
 
 ```sh
-cmake --preset linux-gcc -DCOUNTDOWN_BUILD_APP=OFF
-cmake --build --preset linux-gcc
-ctest --preset linux-gcc
+cmake --preset linux-gcc-debug -DCOUNTDOWN_BUILD_APP=OFF
+cmake --build --preset linux-gcc-debug
+ctest --preset linux-gcc-debug
 ```
 
 ## Debug builds: sanitizers & hardening
