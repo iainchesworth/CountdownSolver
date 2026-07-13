@@ -35,6 +35,7 @@ target_sources(countdown_solver
     PRIVATE
         src/numbers/numbers_game.cpp
         src/numbers/solution.cpp
+        src/letters/alphabet.cpp
         src/letters/dictionary.cpp
         src/version.cpp)
 

@@ -1,6 +1,7 @@
 #include <countdown/letters/dictionary.hpp>
 
 #include <countdown/detail/ranges_compat.hpp>
+#include <countdown/letters/alphabet.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -15,9 +16,14 @@
 namespace countdown::letters {
 namespace {
 
-// Trims ASCII whitespace and lowercases a candidate word. A word containing any
-// interior non-letter (digit, apostrophe, hyphen) is rejected outright.
-[[nodiscard]] std::optional<std::string> normalise(std::string_view raw) {
+// Trims ASCII whitespace and lowercases ASCII letters (non-ASCII bytes pass
+// through unchanged - real-world word lists are conventionally already
+// lowercase, including their accented letters, so this doesn't need a full
+// per-codepoint case-folding table). Returns nullopt if the word is empty
+// after trimming, or contains any codepoint `alphabet` doesn't recognise at
+// all (digit, punctuation, foreign script) - mirroring the previous
+// "reject anything not a letter" behaviour, generalized past ASCII.
+[[nodiscard]] std::optional<std::string> normalise(std::string_view raw, const Alphabet& alphabet) {
     constexpr auto is_space = [](char c) noexcept {
         return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f' || c == '\v';
     };
@@ -36,24 +42,32 @@ namespace {
         return std::nullopt;
     }
 
-    std::string word;
-    word.reserve(trimmed.size());
+    std::string display;
+    display.reserve(trimmed.size());
     for (const char c : trimmed) {
-        const int index = letter_index(c);
-        if (index < 0) {
+        display.push_back((c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c);
+    }
+
+    const std::vector<char32_t> codepoints = decode_utf8(display);
+    if (codepoints.empty()) {
+        return std::nullopt;
+    }
+    for (const char32_t cp : codepoints) {
+        if (alphabet.fold(cp).count == 0) {
             return std::nullopt;
         }
-        word.push_back(static_cast<char>('a' + index));
     }
-    return word;
+
+    return display;
 }
 
 }  // namespace
 
-Dictionary Dictionary::from_words(const std::vector<std::string>& words) {
+Dictionary Dictionary::from_words(const std::vector<std::string>& words, const Alphabet& alphabet) {
     Dictionary dictionary;
+    dictionary.alphabet_ = alphabet;
     for (const std::string& raw : words) {
-        if (std::optional<std::string> word = normalise(raw)) {
+        if (std::optional<std::string> word = normalise(raw, alphabet)) {
             dictionary.words_.push_back(*std::move(word));
         }
     }
@@ -66,13 +80,15 @@ Dictionary Dictionary::from_words(const std::vector<std::string>& words) {
     // Pre-compute a frequency table per word via a ranges pipeline.
     dictionary.frequencies_ =
         dictionary.words_
-        | std::views::transform([](const std::string& word) { return frequencies_of(word); })
+        | std::views::transform(
+              [&alphabet](const std::string& word) { return frequencies_of(word, alphabet); })
         | std::ranges::to<std::vector<Frequencies>>();
 
     return dictionary;
 }
 
-Result<Dictionary> Dictionary::load_from_file(const std::filesystem::path& path) {
+Result<Dictionary> Dictionary::load_from_file(const std::filesystem::path& path,
+                                               const Alphabet& alphabet) {
     std::ifstream input(path);
     if (!input) {
         return std::unexpected(SolveError::dictionary_not_found);
@@ -83,7 +99,7 @@ Result<Dictionary> Dictionary::load_from_file(const std::filesystem::path& path)
         raw_words.push_back(std::move(line));
     }
 
-    Dictionary dictionary = from_words(raw_words);
+    Dictionary dictionary = from_words(raw_words, alphabet);
     if (dictionary.empty()) {
         return std::unexpected(SolveError::dictionary_empty);
     }
@@ -98,20 +114,21 @@ Result<std::vector<std::string>> Dictionary::best_words(std::string_view letters
         return std::unexpected(SolveError::dictionary_empty);
     }
 
-    const Frequencies have = frequencies_of(letters);
+    const Frequencies have = frequencies_of(letters, alphabet_);
 
     std::vector<std::string> candidates;
-    std::size_t longest = 0;
+    int longest = 0;
     // zip walks each word alongside its pre-computed frequency table.
     for (const auto [word, frequency] : std::views::zip(words_, frequencies_)) {
         if (!covers(have, frequency)) {
             continue;
         }
-        if (word.size() > longest) {
-            longest = word.size();
+        const int length = letter_count(frequency);
+        if (length > longest) {
+            longest = length;
             candidates.clear();
         }
-        if (word.size() == longest) {
+        if (length == longest) {
             candidates.push_back(word);
         }
     }
@@ -132,12 +149,18 @@ Result<std::vector<std::string>> Dictionary::find_matches(std::string_view lette
         return std::unexpected(SolveError::dictionary_empty);
     }
 
-    const Frequencies have = frequencies_of(letters);
+    const Frequencies have = frequencies_of(letters, alphabet_);
 
-    std::vector<std::string> matches;
+    // Paired with each match's own folded length so the sort below doesn't
+    // need to recompute it per comparison (this dictionary can hold the
+    // full ~122k-word bundled English list, so re-deriving length via a
+    // fresh frequencies_of() call inside the comparator would be real
+    // overhead, not just noise).
+    std::vector<std::pair<std::string, int>> matches;
     for (const auto [word, frequency] : std::views::zip(words_, frequencies_)) {
-        if (word.size() >= min_length && covers(have, frequency)) {
-            matches.push_back(word);
+        const int length = letter_count(frequency);
+        if (static_cast<std::size_t>(length) >= min_length && covers(have, frequency)) {
+            matches.emplace_back(word, length);
         }
     }
 
@@ -146,16 +169,25 @@ Result<std::vector<std::string>> Dictionary::find_matches(std::string_view lette
     }
 
     // Longest first; alphabetical within a length.
-    std::ranges::sort(matches, [](const std::string& lhs, const std::string& rhs) {
-        return lhs.size() != rhs.size() ? lhs.size() > rhs.size() : lhs < rhs;
+    std::ranges::sort(matches, [](const auto& lhs, const auto& rhs) {
+        return lhs.second != rhs.second ? lhs.second > rhs.second : lhs.first < rhs.first;
     });
-    return matches;
+
+    return matches
+        | std::views::transform([](auto& entry) { return std::move(entry.first); })
+        | std::ranges::to<std::vector<std::string>>();
 }
 
 std::vector<std::string> Dictionary::words_of_length(std::size_t length) const {
-    auto view = words_
-        | std::views::filter([length](const std::string& word) { return word.size() == length; });
-    return std::ranges::to<std::vector<std::string>>(view);
+    // words_ is already alphabetically sorted (see from_words()), so a
+    // filtered subset of it needs no further sorting.
+    std::vector<std::string> result;
+    for (const auto [word, frequency] : std::views::zip(words_, frequencies_)) {
+        if (static_cast<std::size_t>(letter_count(frequency)) == length) {
+            result.push_back(word);
+        }
+    }
+    return result;
 }
 
 std::vector<std::string> Dictionary::sample(std::size_t step, std::size_t count) const {

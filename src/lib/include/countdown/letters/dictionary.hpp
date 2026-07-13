@@ -1,6 +1,7 @@
 #pragma once
 
 #include <countdown/error.hpp>
+#include <countdown/letters/alphabet.hpp>
 #include <countdown/letters/frequencies.hpp>
 
 #include <cstddef>
@@ -14,13 +15,20 @@ namespace countdown::letters {
 // word so that solving a round is a single linear scan.
 class Dictionary {
 public:
-    // Builds a dictionary from an in-memory word list. Words are normalised to
-    // lowercase; any word containing a non-letter is discarded.
-    [[nodiscard]] static Dictionary from_words(const std::vector<std::string>& words);
+    // Builds a dictionary from an in-memory word list, folded through
+    // `alphabet` (English by default, matching every call site that existed
+    // before Alphabet did). A word containing any codepoint `alphabet`
+    // rejects is discarded; the original UTF-8 spelling is kept for display
+    // (e.g. "café", not "cafe") while matching/length always use the folded
+    // form (see Frequencies/letter_count in frequencies.hpp).
+    [[nodiscard]] static Dictionary from_words(const std::vector<std::string>& words,
+                                                const Alphabet& alphabet = english_alphabet());
 
-    // Loads a newline-delimited word list from disk. Returns a SolveError
-    // instead of throwing if the file is missing or yields no usable words.
-    [[nodiscard]] static Result<Dictionary> load_from_file(const std::filesystem::path& path);
+    // Loads a newline-delimited UTF-8 word list from disk. Returns a
+    // SolveError instead of throwing if the file is missing or yields no
+    // usable words.
+    [[nodiscard]] static Result<Dictionary> load_from_file(
+        const std::filesystem::path& path, const Alphabet& alphabet = english_alphabet());
 
     // Returns every longest word that can be spelled from `letters`
     // (respecting letter multiplicities), sorted alphabetically.
@@ -43,11 +51,18 @@ public:
     // std::views::stride.
     [[nodiscard]] std::vector<std::string> sample(std::size_t step, std::size_t count) const;
 
+    // The Alphabet this dictionary was built with. LettersGame/ConundrumGame
+    // use it to validate rack input consistently with how this dictionary's
+    // own words were folded (e.g. a French dictionary's rack should accept
+    // "é", not just plain ASCII).
+    [[nodiscard]] const Alphabet& alphabet() const noexcept { return alphabet_; }
+
 private:
     Dictionary() = default;
 
-    std::vector<std::string> words_;
-    std::vector<Frequencies> frequencies_;
+    Alphabet alphabet_ = english_alphabet();
+    std::vector<std::string> words_;        // original UTF-8 spelling, for display
+    std::vector<Frequencies> frequencies_;  // folded via alphabet_, for matching/length
 };
 
 }  // namespace countdown::letters

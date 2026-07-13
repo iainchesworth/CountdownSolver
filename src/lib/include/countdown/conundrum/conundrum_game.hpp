@@ -1,6 +1,7 @@
 #pragma once
 
 #include <countdown/error.hpp>
+#include <countdown/letters/alphabet.hpp>
 #include <countdown/letters/dictionary.hpp>
 #include <countdown/letters/frequencies.hpp>
 
@@ -29,22 +30,27 @@ public:
         return std::forward<Self>(self);
     }
 
-    // Rejects a rack containing any non-alphabetic character; an empty rack
-    // is left to Dictionary::find_matches, which reports empty_input.
+    // Rejects a rack containing any codepoint the dictionary's own Alphabet
+    // doesn't recognise; an empty rack is left to Dictionary::find_matches,
+    // which reports empty_input.
     [[nodiscard]] Result<void> validate() const {
-        for (const char c : letters_) {
-            if (letters::letter_index(c) < 0) {
+        for (const char32_t codepoint : letters::decode_utf8(letters_)) {
+            if (dictionary_->alphabet().fold(codepoint).count == 0) {
                 return std::unexpected(SolveError::invalid_letter);
             }
         }
         return {};
     }
 
-    // A full anagram is a match whose length equals the rack length, so
-    // min_length == letters().size() restricts find_matches to exactly that.
+    // A full anagram is a match whose length equals the rack's own folded
+    // letter count - NOT letters_.size() (a byte count once the rack can
+    // contain multi-byte UTF-8) - so min_length restricts find_matches to
+    // exactly that.
     [[nodiscard]] Result<std::vector<std::string>> solve() const {
         return validate().and_then([this] {
-            return dictionary_->find_matches(letters_, letters_.size());
+            const auto rack_length = static_cast<std::size_t>(
+                letters::letter_count(letters::frequencies_of(letters_, dictionary_->alphabet())));
+            return dictionary_->find_matches(letters_, rack_length);
         });
     }
 

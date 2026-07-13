@@ -1,6 +1,7 @@
 #pragma once
 
 #include <countdown/error.hpp>
+#include <countdown/letters/alphabet.hpp>
 #include <countdown/letters/dictionary.hpp>
 #include <countdown/letters/frequencies.hpp>
 
@@ -34,11 +35,13 @@ public:
         return std::forward<Self>(self);
     }
 
-    // Rejects a rack containing any non-alphabetic character; an empty rack
-    // is left to Dictionary::best_words, which reports empty_input.
+    // Rejects a rack containing any codepoint the dictionary's own Alphabet
+    // doesn't recognise (so a French dictionary's rack accepts "é", not just
+    // plain ASCII); an empty rack is left to Dictionary::best_words, which
+    // reports empty_input.
     [[nodiscard]] Result<void> validate() const {
-        for (const char c : letters_) {
-            if (letter_index(c) < 0) {
+        for (const char32_t codepoint : decode_utf8(letters_)) {
+            if (dictionary_->alphabet().fold(codepoint).count == 0) {
                 return std::unexpected(SolveError::invalid_letter);
             }
         }
