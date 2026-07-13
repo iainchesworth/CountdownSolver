@@ -31,11 +31,10 @@
       }
     },
     {
-      "name": "windows-msvc",
-      "displayName": "Windows (MSVC)",
+      "name": "windows-msvc-base",
+      "hidden": true,
       "inherits": [
-        "base",
-        "debug"
+        "base"
       ],
       "condition": {
         "type": "equals",
@@ -47,10 +46,18 @@
       }
     },
     {
+      "name": "windows-msvc",
+      "displayName": "Windows (MSVC)",
+      "inherits": [
+        "windows-msvc-base",
+        "debug"
+      ]
+    },
+    {
       "name": "windows-msvc-release",
       "displayName": "Windows (MSVC, Release)",
       "inherits": [
-        "windows-msvc",
+        "windows-msvc-base",
         "release"
       ]
     },

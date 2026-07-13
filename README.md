@@ -97,6 +97,24 @@ Debug configurations enable, via [`Sanitizers.cmake`](cmake/Sanitizers.cmake):
 All of this is gated on `$<CONFIG:Debug>`, so Release builds are unaffected.
 Turn it off with `-DCOUNTDOWN_ENABLE_SANITIZERS=OFF`.
 
+## Packaging
+
+`cpack` builds a redistributable package from an existing build directory. The
+Qt app's Qt runtime, plugins, and QML modules are deployed into the package
+automatically (via Qt's `qt_generate_deploy_app_script()` — no manual
+`windeployqt`/`macdeployqt` step needed):
+
+```sh
+cmake --build --preset windows-msvc-release   # or any other release preset
+cd build/windows-msvc-release
+cpack                                          # writes CountdownSolver-<ver>-<platform>.zip, etc.
+```
+
+A plain `ZIP` archive is always produced; a platform-native format is added
+when its packaging tool is available: `NSIS` installer on Windows, `DragNDrop`
+(`.dmg`) on macOS, `TGZ` + `DEB` on Linux. Linux packages rely on a system Qt6
+install — Qt's CMake deploy step doesn't support Linux.
+
 ## Versioning
 
 The project follows **[Semantic Versioning](https://semver.org)**; the canonical
