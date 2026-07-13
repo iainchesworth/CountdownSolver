@@ -17,11 +17,13 @@ private slots:
     void solveConundrum_found();
     void solveConundrum_notFound();
 
-    void randomRack_returnsARealFallbackWordsLetters();
+    void randomRack_respectsWeightedTilePool();
     void randomConundrum_returnsNineLetters();
 
     void versionDetails_nonEmpty();
     void shortVersion_matchesLibraryVersion();
+
+    void dictionaryWordCount_matchesActiveDictionary();
 
     void fullDictionary_defaultInvariant();
 #ifdef Q_OS_LINUX

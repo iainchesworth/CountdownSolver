@@ -20,12 +20,16 @@ TestCase {
         const page = createTemporaryObject(pageComponent, testCase)
         verify(page !== null)
 
-        page.addNumber(50)
-        page.addNumber(50)
+        // The real board supplies only one tile each of 25/50/75/100, so
+        // 25 + 75 (each used once) is the exact-solve combination here,
+        // padded with four small numbers (each also used at most once) to
+        // reach the required six.
+        page.addNumber(25)
+        page.addNumber(75)
         page.addNumber(1)
-        page.addNumber(1)
-        page.addNumber(1)
-        page.addNumber(1)
+        page.addNumber(2)
+        page.addNumber(3)
+        page.addNumber(4)
         compare(page.numbers.length, 6)
 
         page.targetDigit("1")
@@ -44,7 +48,7 @@ TestCase {
     function test_clearAllResetsState() {
         const page = createTemporaryObject(pageComponent, testCase)
         page.addNumber(50)
-        page.addNumber(50)
+        page.addNumber(75)
         page.targetDigit("5")
         page.clearAll()
 
@@ -58,7 +62,7 @@ TestCase {
         page.randomGame()
 
         compare(page.numbers.length, 6)
-        verify(/^[0-9]{1,3}$/.test(page.target))
+        verify(page.targetIsValid())
         verify(page.result !== null)
     }
 }

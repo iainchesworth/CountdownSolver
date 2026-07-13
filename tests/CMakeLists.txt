@@ -68,7 +68,11 @@ if(COUNTDOWN_BUILD_APP)
 
     target_link_libraries(countdown_app_tests
         PRIVATE
-            countdown_app_core
+            # WHOLE_ARCHIVE: countdown_app_core's bundled-dictionary resource
+            # object file has no direct symbol references, so a plain link
+            # would let the linker silently drop it - see the qt_add_resources
+            # comment in src/app/CMakeLists.txt.
+            $<LINK_LIBRARY:WHOLE_ARCHIVE,countdown_app_core>
             countdown::warnings
             countdown::sanitizers
             countdown::coverage
@@ -104,11 +108,12 @@ if(COUNTDOWN_BUILD_APP)
 
     target_link_libraries(countdown_qml_tests
         PRIVATE
-            countdown_app_core
-            # WHOLE_ARCHIVE: countdown_app_qml's Qt resource-registration
-            # static initializers must run even though nothing here calls
-            # into it directly - see the comment on its qt_add_library() in
-            # src/app/CMakeLists.txt for why plain linking silently drops it.
+            # WHOLE_ARCHIVE on both: countdown_app_core's bundled-dictionary
+            # resource and countdown_app_qml's Qt resource-registration static
+            # initializers must run even though nothing here calls into either
+            # directly - see the qt_add_resources/qt_add_library comments in
+            # src/app/CMakeLists.txt for why plain linking silently drops them.
+            $<LINK_LIBRARY:WHOLE_ARCHIVE,countdown_app_core>
             $<LINK_LIBRARY:WHOLE_ARCHIVE,countdown_app_qml>
             countdown::warnings
             countdown::sanitizers

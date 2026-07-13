@@ -15,23 +15,41 @@
 #include <QVariantMap>
 
 #include <algorithm>
+#include <array>
 
 using countdown::app::Solver;
 
 namespace {
 
-// Nine-letter words present in Solver's built-in fallback dictionary
-// (see kFallbackWords in src/app/solver.cpp) - used to check randomRack()/
-// randomConundrum() invariants without depending on the RNG's exact draw.
-const QStringList kNineLetterFallbackWords = {
-    QStringLiteral("countdown"), QStringLiteral("conundrum"), QStringLiteral("rectangle"),
-    QStringLiteral("cratering"), QStringLiteral("consonant"), QStringLiteral("operation"),
-};
+// Legal vowel/consonant splits for a 9-letter rack, mirroring
+// Solver::randomRack()'s kVowelConsonantSplits (src/app/solver.cpp) - not
+// exposed publicly, so duplicated here to check the contract from outside.
+constexpr std::array<std::pair<int, int>, 3> kLegalSplits{{{3, 6}, {4, 5}, {5, 4}}};
 
-[[nodiscard]] QString sortedLower(const QString& text) {
-    QString lowered = text.toLower();
-    std::sort(lowered.begin(), lowered.end());
-    return lowered;
+[[nodiscard]] bool isVowel(QChar ch) {
+    switch (ch.toLower().unicode()) {
+        case 'a': case 'e': case 'i': case 'o': case 'u': return true;
+        default: return false;
+    }
+}
+
+// True iff every letter in `word` occurs in `rack` at least as often - i.e.
+// `word` is genuinely spellable from `rack`'s letters. Used to check the
+// solving algorithm's correctness without depending on the exact contents of
+// the (large, real) bundled dictionary.
+[[nodiscard]] bool canSpell(const QString& rack, const QString& word) {
+    std::array<int, 26> counts{};
+    for (const QChar ch : rack.toLower()) {
+        if (ch.isLetter()) {
+            ++counts[static_cast<std::size_t>(ch.unicode() - u'a')];
+        }
+    }
+    for (const QChar ch : word.toLower()) {
+        if (!ch.isLetter() || --counts[static_cast<std::size_t>(ch.unicode() - u'a')] < 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
 }  // namespace
@@ -71,35 +89,63 @@ void SolverTest::solveNumbers_emptyInput() {
 
 void SolverTest::solveLetters_groupsByLength() {
     const Solver solver;
-    // Covers exactly two fallback words: "notice" (6) and "vowel" (5).
-    const QVariantMap result = solver.solveLetters(QStringLiteral("noticevowel"), 1, 10);
+    // A letter-rich rack against the real bundled dictionary - exact content
+    // isn't asserted (the dictionary can change independently of this test);
+    // instead every structural invariant of the response shape is checked.
+    const QString rack = QStringLiteral("considerations");
+    const QVariantMap result = solver.solveLetters(rack, 1, 10000);
 
-    QCOMPARE(result["total"].toInt(), 2);
-    QCOMPARE(result["shown"].toInt(), 2);
-    QCOMPARE(result["maxLen"].toInt(), 6);
-    QCOMPARE(result["longest"].toStringList(), QStringList{QStringLiteral("notice")});
+    const int total = result["total"].toInt();
+    QVERIFY(total > 0);
+    const int maxLen = result["maxLen"].toInt();
+    const QStringList longest = result["longest"].toStringList();
+    QVERIFY(!longest.isEmpty());
+    for (const QString& word : longest) {
+        QCOMPARE(word.size(), maxLen);
+        QVERIFY(canSpell(rack, word));
+    }
 
     const QVariantList groups = result["groups"].toList();
-    QCOMPARE(groups.size(), 2);
-    QCOMPARE(groups[0].toMap()["len"].toInt(), 6);
-    QCOMPARE(groups[0].toMap()["words"].toStringList(), QStringList{QStringLiteral("notice")});
-    QCOMPARE(groups[1].toMap()["len"].toInt(), 5);
-    QCOMPARE(groups[1].toMap()["words"].toStringList(), QStringList{QStringLiteral("vowel")});
+    QVERIFY(!groups.isEmpty());
+    int previousLen = maxLen + 1;
+    int wordsSeen = 0;
+    for (const QVariant& groupVariant : groups) {
+        const QVariantMap group = groupVariant.toMap();
+        const int len = group["len"].toInt();
+        // Groups are ordered longest-first.
+        QVERIFY(len < previousLen);
+        previousLen = len;
+        const QStringList words = group["words"].toStringList();
+        for (const QString& word : words) {
+            QCOMPARE(word.size(), len);
+            QVERIFY(canSpell(rack, word));
+        }
+        wordsSeen += static_cast<int>(words.size());
+    }
+    // Nothing was truncated: maxResults (1000) comfortably exceeds however
+    // many matches "considerations" actually has.
+    QCOMPARE(result["shown"].toInt(), total);
+    QCOMPARE(wordsSeen, total);
 }
 
 void SolverTest::solveLetters_respectsMaxResults() {
     const Solver solver;
-    const QVariantMap result = solver.solveLetters(QStringLiteral("noticevowel"), 1, 1);
+    const QString rack = QStringLiteral("considerations");
+    const QVariantMap full = solver.solveLetters(rack, 1, 1000);
+    QVERIFY(full["total"].toInt() > 1);
 
-    QCOMPARE(result["total"].toInt(), 2);
-    QCOMPARE(result["shown"].toInt(), 1);
-    const QVariantList groups = result["groups"].toList();
+    const QVariantMap capped = solver.solveLetters(rack, 1, 1);
+    QCOMPARE(capped["total"].toInt(), full["total"].toInt());
+    QCOMPARE(capped["shown"].toInt(), 1);
+
+    const QVariantList groups = capped["groups"].toList();
     QCOMPARE(groups.size(), 1);
-    QCOMPARE(groups[0].toMap()["words"].toStringList(), QStringList{QStringLiteral("notice")});
+    QCOMPARE(groups[0].toMap()["words"].toStringList().size(), 1);
 }
 
 void SolverTest::solveLetters_noMatches() {
     const Solver solver;
+    // No dictionary word is spelled from only x/y/z.
     const QVariantMap result = solver.solveLetters(QStringLiteral("xyzxyz"), 1, 10);
 
     QCOMPARE(result["total"].toInt(), 0);
@@ -114,22 +160,29 @@ void SolverTest::solveLetters_noMatches() {
 
 void SolverTest::solveConundrum_found() {
     const Solver solver;
-    // An anagram of the fallback word "notice".
-    const QVariantMap result = solver.solveConundrum(QStringLiteral("ecitno"));
+    // A scrambled anagram of "countdown", the unique 9-letter anagram of
+    // these letters in the bundled dictionary.
+    const QString rack = QStringLiteral("wodnuocnt");
+    const QVariantMap result = solver.solveConundrum(rack);
 
     QCOMPARE(result["found"].toBool(), true);
-    QCOMPARE(result["answers"].toStringList(), QStringList{QStringLiteral("notice")});
+    const QStringList answers = result["answers"].toStringList();
+    QCOMPARE(answers, QStringList{QStringLiteral("countdown")});
+    for (const QString& answer : answers) {
+        QCOMPARE(answer.size(), rack.size());
+        QVERIFY(canSpell(rack, answer));
+    }
 }
 
 void SolverTest::solveConundrum_notFound() {
     const Solver solver;
-    const QVariantMap result = solver.solveConundrum(QStringLiteral("xyzxyz"));
+    const QVariantMap result = solver.solveConundrum(QStringLiteral("zzzzzzzzz"));
 
     QCOMPARE(result["found"].toBool(), false);
     QVERIFY(result["answers"].toStringList().isEmpty());
 }
 
-void SolverTest::randomRack_returnsARealFallbackWordsLetters() {
+void SolverTest::randomRack_respectsWeightedTilePool() {
     const Solver solver;
     const QString rack = solver.randomRack();
 
@@ -137,11 +190,12 @@ void SolverTest::randomRack_returnsARealFallbackWordsLetters() {
     QCOMPARE(rack.size(), 9);
     QCOMPARE(rack, rack.toUpper());
 
-    const QString sorted = sortedLower(rack);
-    const bool matchesAFallbackWord = std::any_of(
-        kNineLetterFallbackWords.begin(), kNineLetterFallbackWords.end(),
-        [&](const QString& word) { return sortedLower(word) == sorted; });
-    QVERIFY(matchesAFallbackWord);
+    const int vowels = static_cast<int>(std::count_if(rack.begin(), rack.end(), isVowel));
+    const int consonants = static_cast<int>(rack.size()) - vowels;
+    const bool isLegalSplit = std::any_of(
+        kLegalSplits.begin(), kLegalSplits.end(),
+        [&](const auto& split) { return split.first == vowels && split.second == consonants; });
+    QVERIFY(isLegalSplit);
 }
 
 void SolverTest::randomConundrum_returnsNineLetters() {
@@ -151,6 +205,11 @@ void SolverTest::randomConundrum_returnsNineLetters() {
     QVERIFY(!rack.isEmpty());
     QCOMPARE(rack.size(), 9);
     QCOMPARE(rack, rack.toUpper());
+
+    // randomConundrum shuffles a real dictionary word, so solving it back
+    // must always find at least that word again.
+    const QVariantMap result = solver.solveConundrum(rack);
+    QCOMPARE(result["found"].toBool(), true);
 }
 
 void SolverTest::versionDetails_nonEmpty() {
@@ -166,6 +225,18 @@ void SolverTest::shortVersion_matchesLibraryVersion() {
     const QString expected = QString::fromUtf8(countdown::version_string.data(),
                                                  static_cast<qsizetype>(countdown::version_string.size()));
     QCOMPARE(solver.shortVersion(), expected);
+}
+
+void SolverTest::dictionaryWordCount_matchesActiveDictionary() {
+    Solver solver;
+
+    const int defaultCount = solver.dictionaryWordCount();
+    QVERIFY(defaultCount > 0);
+
+    if (solver.fullDictionaryAvailable()) {
+        QVERIFY(solver.setUseFullDictionary(true));
+        QVERIFY(solver.dictionaryWordCount() > 0);
+    }
 }
 
 void SolverTest::fullDictionary_defaultInvariant() {
