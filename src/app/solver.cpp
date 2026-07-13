@@ -166,9 +166,12 @@ QVariantMap Solver::solveNumbers(const QVariantList& numbers, int target) const 
     QVariantMap result;
     const auto outcome = numbers::NumbersGame{}.with_target(target).with_numbers(chosen).solve();
     if (!outcome) {
-        if (outcome.error() != SolveError::no_solution) {
-            qCWarning(lcSolver) << "solveNumbers rejected input:" << to_qstring(outcome.error());
-        }
+        // NumbersGame::solve() always keeps a "closest so far" candidate once
+        // validate() passes (even a single valid term is one), so a failure
+        // here is always a validation problem (empty_input/target_out_of_range/
+        // number_out_of_range) - worth logging unconditionally rather than
+        // gating on which SolveError it is.
+        qCWarning(lcSolver) << "solveNumbers rejected input:" << to_qstring(outcome.error());
         result["value"] = 0;
         result["diff"] = target;
         result["exact"] = false;
@@ -210,8 +213,12 @@ QVariantMap Solver::solveLetters(const QString& rack, int minLen, int maxResults
 
     const auto matches = active_dictionary().find_matches(letters, min_length);
     if (!matches) {
-        if (matches.error() == SolveError::dictionary_empty) {
-            qCWarning(lcSolver) << "solveLetters: active dictionary is empty";
+        // Anything other than the routine "no rack produces a match" is
+        // worth flagging - most notably dictionary_empty, an active
+        // dictionary that failed to load properly rather than a legitimate
+        // no-matches result.
+        if (matches.error() != SolveError::no_solution) {
+            qCWarning(lcSolver) << "solveLetters rejected input:" << to_qstring(matches.error());
         }
         return result;
     }
@@ -279,8 +286,9 @@ QVariantMap Solver::solveConundrum(const QString& letters) const {
     const std::string rack = letters.toLower().toStdString();
     const auto anagrams = conundrum::ConundrumGame{active_dictionary()}.with_letters(rack).solve();
     if (!anagrams) {
-        if (anagrams.error() == SolveError::dictionary_empty) {
-            qCWarning(lcSolver) << "solveConundrum: active dictionary is empty";
+        // See the equivalent check in solveLetters() above.
+        if (anagrams.error() != SolveError::no_solution) {
+            qCWarning(lcSolver) << "solveConundrum rejected input:" << to_qstring(anagrams.error());
         }
         return result;
     }

@@ -18,6 +18,7 @@ private slots:
 
     void solveConundrum_found();
     void solveConundrum_notFound();
+    void solveConundrum_emptyInput();
 
     void randomRack_respectsWeightedTilePool();
     void randomConundrum_returnsNineLetters();
@@ -30,6 +31,10 @@ private slots:
     void fullDictionary_defaultInvariant();
 #ifdef Q_OS_LINUX
     void fullDictionary_foundOnDisk();
+    void fullDictionary_foundButEmpty();
+
+    void logging_installWithoutConfigDirSkipsFileSink();
+    void logging_installRotatesAndWritesAllSeverities();
 #endif
 
 private:
