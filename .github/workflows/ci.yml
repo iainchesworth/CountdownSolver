@@ -45,7 +45,7 @@ jobs:
             preset: windows-msvc-debug
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
 
@@ -65,7 +65,7 @@ jobs:
         run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ runner.temp }}/vcpkg-cache,readwrite" >> "$GITHUB_ENV"
 
       - name: Cache vcpkg binaries
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/vcpkg-cache
           key: vcpkg-binary-cache-${{ matrix.preset }}-${{ hashFiles('vcpkg.json') }}
@@ -76,7 +76,7 @@ jobs:
       # require CMake 4. get-cmake installs a matching CMake 4 and Ninja on
       # every OS.
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@latest
+        uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
         with:
           cmakeVersion: "latest"
 
@@ -98,13 +98,13 @@ jobs:
 
       - name: Set up MSVC environment (Windows)
         if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
       # Prebuilt Qt (official binaries) so the GUI app builds without compiling
       # Qt from source. Sets QT_ROOT_DIR for find_package(Qt6). Keep the version
       # in sync with ci/README.md and ci/install-qt.*.
       - name: Install Qt (prebuilt)
-        uses: jurplel/install-qt-action@v4
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
         with:
           version: "6.8.3"
           cache: true
@@ -129,7 +129,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
 
@@ -141,7 +141,7 @@ jobs:
         run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ runner.temp }}/vcpkg-cache,readwrite" >> "$GITHUB_ENV"
 
       - name: Cache vcpkg binaries
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/vcpkg-cache
           key: vcpkg-binary-cache-linux-gcc-coverage-${{ hashFiles('vcpkg.json') }}
@@ -149,7 +149,7 @@ jobs:
             vcpkg-binary-cache-linux-gcc-coverage-
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@latest
+        uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
         with:
           cmakeVersion: "latest"
 
@@ -164,7 +164,7 @@ jobs:
         run: sudo apt-get install -y libxkbcommon0
 
       - name: Install Qt (prebuilt)
-        uses: jurplel/install-qt-action@v4
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
         with:
           version: "6.8.3"
           cache: true
@@ -202,7 +202,7 @@ jobs:
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage-report
           path: build/coverage*.html
