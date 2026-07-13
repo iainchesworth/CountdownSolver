@@ -178,6 +178,7 @@ jobs:
       - name: Coverage report + gate
         run: >
           gcovr --root . --filter 'src/.*' --exclude 'src/app/main\.cpp'
+          --gcov-executable gcov-15
           --exclude-throw-branches --exclude-unreachable-branches
           --gcov-ignore-errors=no_working_dir_found
           --object-directory build/linux-gcc-coverage

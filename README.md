@@ -170,7 +170,13 @@ $ gcovr --root . --filter 'src/.*' --exclude 'src/app/main\.cpp' \
     --object-directory build/linux-gcc-coverage --print-summary
 ```
 
-CI runs this on every push/PR (`Coverage (Linux, GCC)` in `ci.yml`) and fails
+If your default `gcov` doesn't match the compiler that built the coverage
+data (e.g. building with `g++-15` but `gcov` resolves to an older default),
+add `--gcov-executable gcov-<N>` - a version mismatch doesn't error, it just
+silently reports 0% coverage.
+
+CI runs this on every push/PR (`Coverage (Linux, GCC)` in `ci.yml`, pinning
+`--gcov-executable gcov-15` to match the `g++-15` it builds with) and fails
 the job below 80% line or branch coverage.
 
 The **letters** game ships with a bundled default dictionary (~122k words). Drop
