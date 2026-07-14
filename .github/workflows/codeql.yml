@@ -2,10 +2,10 @@ name: CodeQL (C++)
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     tags: ["v*.*.*"]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
   schedule:
     # Weekly scan catches new CodeQL query packs even without code changes.
     - cron: "17 3 * * 1"
