@@ -21,6 +21,20 @@ Dialog {
             summary: "Application framework and GUI toolkit (Core, Gui, Quick, QuickControls2, Concurrent).",
             licenseName: "GNU Lesser General Public License v3.0",
             licenseUrl: "https://www.gnu.org/licenses/lgpl-3.0.html"
+        },
+        {
+            name: "Noto Sans Arabic",
+            version: "",
+            summary: "Bundled font providing Arabic script coverage for the Arabic display language.",
+            licenseName: "SIL Open Font License, Version 1.1",
+            licenseUrl: "https://scripts.sil.org/OFL"
+        },
+        {
+            name: "Noto Sans Hebrew",
+            version: "",
+            summary: "Bundled font providing Hebrew script coverage for the Hebrew and Yiddish display languages.",
+            licenseName: "SIL Open Font License, Version 1.1",
+            licenseUrl: "https://scripts.sil.org/OFL"
         }
     ]
 
