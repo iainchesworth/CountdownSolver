@@ -64,7 +64,10 @@ missing instead of showing a result.
 
 Settings also has a language picker: **English**, plus **French, German,
 Spanish, Arabic, Hebrew, and Yiddish** — including right-to-left layout
-for Arabic and Hebrew.
+for Arabic and Hebrew, shown here with the display language set to
+Arabic:
+
+![Settings page in Arabic, showing the mirrored right-to-left layout](assets/screenshots/settings-arabic-rtl.png)
 
 As of `0.1.0-beta.1`, this switches the app's UI chrome — menus, buttons,
 Settings itself — fully. It does **not** yet change the gameplay: the
