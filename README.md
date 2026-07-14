@@ -65,6 +65,7 @@ ctest --preset linux-gcc-debug
 
 | | |
 | --- | --- |
+| [How to play](https://iainchesworth.github.io/CountdownSolver/how-to-play/) | Each round explained, and what the results mean |
 | [Getting started](https://iainchesworth.github.io/CountdownSolver/getting-started/) | Requirements, cloning, first build |
 | [Building & packaging](https://iainchesworth.github.io/CountdownSolver/building/) | Every preset, sanitizers, `cpack` |
 | [Testing & coverage](https://iainchesworth.github.io/CountdownSolver/testing/) | TDD, test layers, the 80% coverage gate |

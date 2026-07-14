@@ -20,7 +20,9 @@ into one word), which the app can generate and solve too.
 
 Grab a build from the project's
 [releases](https://github.com/iainchesworth/CountdownSolver/releases), or
-build it yourself — see [Getting started](getting-started.md).
+build it yourself — see [Getting started](getting-started.md). New to the
+app? [How to play](how-to-play.md) walks through each round and what the
+results mean.
 
 ## A tour of the app
 
