@@ -100,3 +100,22 @@ environment) — treat a first real release run's failures in these two
 jobs as expected things to fix (exact NDK version, `androiddeployqt`'s CLI
 surface, the generated Xcode project/scheme names), not as a sign the
 overall approach is wrong.
+
+**`ios-build` currently fails at the CMake Generate step, known cause, not
+yet resolved**: Xcode's "new build system" refuses to generate the project
+because two targets — `CountdownSolver_lrelease` (from
+`qt_add_translations()` in `src/app/CMakeLists.txt`) and
+`countdownsolver_qml_countdownsolver_qml_translations` (created internally
+when `qt_add_executable()`'s app-bundle finalizer embeds
+`countdownsolver_qml`'s translations) — both independently produce
+`countdown_<lang>.qm`, with neither a dependency of the other. Ninja
+tolerates this everywhere else; Xcode's new build system does not. Wiring
+an explicit `add_dependencies()` between the two once both exist doesn't
+work either: the QML-module translations target never becomes visible to
+CMake script code, even via a self-rescheduling
+`cmake_language(DEFER CALL)` retried well past `qt_add_executable()` — it's
+most likely synthesized by the Xcode generator itself while emitting the
+`.xcodeproj`, after all configure-time scripting has already run. Needs a
+real Xcode/Apple Developer environment to investigate further (e.g.
+whether restructuring the QML module's translation handling avoids the
+second target being created at all).

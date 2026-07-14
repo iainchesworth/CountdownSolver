@@ -197,39 +197,27 @@ qt_add_executable(countdownsolver
     language_manager.hpp
     ${COUNTDOWN_SOLVER_ICON_SOURCE})
 
-# qt_add_translations() (above) and countdownsolver_qml's own QML-module
-# resource embedding both independently produce build/<preset>/src/app/
-# countdown_<lang>.qm, with no dependency edge between the two targets that
-# own them (CountdownSolver_lrelease and
-# countdownsolver_qml_countdownsolver_qml_translations - both Qt-internal
-# names, confirmed against a real Qt 6.8.3 kit on CI). Ninja tolerates two
-# targets sharing an output; Xcode's "new build system" hard-errors unless
-# one explicitly depends on the other. The QML-module translations target
-# is created by qt_add_executable()'s own app-bundle finalizer, itself
-# invoked via cmake_language(DEFER CALL) - and that finalizer schedules a
-# further nested DEFER CALL of its own to actually create the target, so a
-# single "run after qt_add_executable()" defer still fires too early
-# (confirmed against a real Qt 6.8.3/Xcode 16.4 CI run: the target didn't
-# exist yet even inside our own deferred call). Keep re-deferring until the
-# target is visible, bounded so a future Qt CMake API change degrades to a
-# warning instead of an infinite configure loop.
-if(IOS)
-    function(_countdown_link_ios_translation_targets retries_left)
-        if(TARGET countdownsolver_qml_countdownsolver_qml_translations AND TARGET CountdownSolver_lrelease)
-            add_dependencies(countdownsolver_qml_countdownsolver_qml_translations CountdownSolver_lrelease)
-        elseif(retries_left GREATER 0)
-            math(EXPR retries_left "${retries_left} - 1")
-            cmake_language(DEFER CALL _countdown_link_ios_translation_targets "${retries_left}")
-        else()
-            message(WARNING
-                "iOS: countdownsolver_qml_countdownsolver_qml_translations never "
-                "appeared to link against CountdownSolver_lrelease; the Xcode "
-                "'new build system' generate step will likely fail with a "
-                "duplicate-output error for countdown_<lang>.qm.")
-        endif()
-    endfunction()
-    cmake_language(DEFER CALL _countdown_link_ios_translation_targets 10)
-endif()
+# KNOWN FAILURE (iOS/Xcode only, not yet resolved - see docs/ci.md): Xcode's
+# "new build system" refuses to generate the project because two targets -
+# CountdownSolver_lrelease (from qt_add_translations() above) and
+# countdownsolver_qml_countdownsolver_qml_translations (created internally
+# by qt_add_executable()'s app-bundle finalizer when it embeds
+# countdownsolver_qml's translations) - both independently produce
+# build/<preset>/src/app/countdown_<lang>.qm, with neither a dependency of
+# the other. Ninja (every other platform here) tolerates a shared output
+# across targets; Xcode's new build system does not.
+#
+# The obvious fix - add_dependencies() between the two targets once both
+# exist - does not work: countdownsolver_qml_countdownsolver_qml_translations
+# never becomes visible to CMake script code, even via a self-rescheduling
+# cmake_language(DEFER CALL) retried 10 times past qt_add_executable(). It's
+# most likely synthesized by the Xcode generator itself while emitting the
+# .xcodeproj, after all configure-time scripting (including DEFER CALL) has
+# already run - which would make it fundamentally unreachable from script,
+# not just awkward to reach. Needs a real Xcode/Apple Developer environment
+# to investigate further (e.g. whether renaming the QML module's I18N
+# handling avoids the second target being created at all); none is
+# available in this project's day-to-day dev environment - see docs/ci.md.
 
 # QT_ANDROID_PACKAGE_SOURCE_DIR points Qt's CMake integration at the directory
 # holding AndroidManifest.xml (and androiddeployqt's other package inputs);
