@@ -171,19 +171,6 @@ qt_add_translations(countdownsolver_qml
         qml/pages/SettingsPage.qml
         solver.cpp)
 
-# qt_add_translations() (above) and countdownsolver_qml's own QML-module
-# resource embedding both independently produce build/<preset>/src/app/
-# countdown_<lang>.qm, with no dependency edge between the two targets that
-# own them (CountdownSolver_lrelease and
-# countdownsolver_qml_countdownsolver_qml_translations - both Qt-internal
-# names, confirmed against a real Qt 6.8.3 kit on CI). Ninja tolerates two
-# targets sharing an output; Xcode's "new build system" hard-errors unless
-# one explicitly depends on the other. iOS is the only Xcode-generator
-# target here, so scope the fix to it.
-if(IOS AND TARGET countdownsolver_qml_countdownsolver_qml_translations AND TARGET CountdownSolver_lrelease)
-    add_dependencies(countdownsolver_qml_countdownsolver_qml_translations CountdownSolver_lrelease)
-endif()
-
 # The window icon (taskbar/titlebar chrome at runtime, all platforms) is
 # bundled as a Qt resource so main.cpp can load it as ":/icon/app_256.png"
 # and hand it to QQuickWindow::setIcon() regardless of where the app is
@@ -209,6 +196,24 @@ qt_add_executable(countdownsolver
     language_manager.cpp
     language_manager.hpp
     ${COUNTDOWN_SOLVER_ICON_SOURCE})
+
+# qt_add_translations() (above) and countdownsolver_qml's own QML-module
+# resource embedding both independently produce build/<preset>/src/app/
+# countdown_<lang>.qm, with no dependency edge between the two targets that
+# own them (CountdownSolver_lrelease and
+# countdownsolver_qml_countdownsolver_qml_translations - both Qt-internal
+# names, confirmed against a real Qt 6.8.3 kit on CI). Ninja tolerates two
+# targets sharing an output; Xcode's "new build system" hard-errors unless
+# one explicitly depends on the other. The QML-module translations target
+# only exists once qt_add_executable() above finishes finalizing the app
+# bundle, itself done via that call's own cmake_language(DEFER CALL) - so
+# ours must be deferred too, and registered after it (DEFER runs callbacks
+# in registration order) to see the target once it actually exists.
+if(IOS)
+    cmake_language(DEFER CALL add_dependencies
+        countdownsolver_qml_countdownsolver_qml_translations
+        CountdownSolver_lrelease)
+endif()
 
 # QT_ANDROID_PACKAGE_SOURCE_DIR points Qt's CMake integration at the directory
 # holding AndroidManifest.xml (and androiddeployqt's other package inputs);
