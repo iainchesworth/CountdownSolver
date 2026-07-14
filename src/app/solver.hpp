@@ -33,9 +33,19 @@ public:
     explicit Solver(QObject* parent = nullptr, DictionaryLoad load = DictionaryLoad::kEager);
 
     // Parses and indexes the default (and, if present, the user-supplied
-    // full) dictionary. Safe to call exactly once; kEager construction calls
-    // it immediately, kDeferred construction leaves it to the caller.
+    // full) dictionary using whichever language setLanguageCode() last
+    // recorded (English if never called). Safe to call more than once -
+    // setLanguageCode() re-calls this itself once dictionaries are already
+    // loaded, to reload with the new language's alphabet/word list.
     void loadDictionaries();
+
+    // Records which language's alphabet + bundled word list Solver's game
+    // logic should use. If dictionaries have already loaded, reloads them
+    // immediately with the new language; otherwise just records the pending
+    // choice for the first (deferred) loadDictionaries() call to pick up.
+    // Decoupled from LanguageManager on purpose - main.cpp is what connects
+    // LanguageManager::currentLanguageChanged to this.
+    Q_INVOKABLE void setLanguageCode(const QString& code);
 
     [[nodiscard]] bool dictionariesReady() const noexcept { return dictionaries_ready_; }
 
@@ -58,12 +68,19 @@ public:
     // { "found": bool, "answers": [QString] }
     Q_INVOKABLE QVariantMap solveConundrum(const QString& letters) const;
 
-    // Nine letters for the letters game, drawn from a Scrabble-weighted tile
-    // pool respecting Countdown's 3v/6c, 4v/5c or 5v/4c vowel-consonant
-    // split - independent of the active dictionary, same as the real show.
+    // A rack of active_dictionary().alphabet().rack_size letters (9 for most
+    // languages, 10 for French), drawn from that alphabet's own
+    // Scrabble-weighted tile pool respecting its vowel/consonant split where
+    // it defines one - independent of the active dictionary's actual words,
+    // same as the real show.
     Q_INVOKABLE QString randomRack() const;
-    // Nine scrambled letters of a real word; "" if unavailable.
+    // rackSize() scrambled letters of a real word from the active
+    // dictionary; "" if unavailable.
     Q_INVOKABLE QString randomConundrum() const;
+    // Letters drawn for a Letters-game rack or Conundrum round in the
+    // active language (9 usually, 10 for French) - the single source of
+    // truth QML binds against instead of hardcoding 9.
+    Q_INVOKABLE int rackSize() const;
 
     // Version + git provenance, for an About/Settings display.
     Q_INVOKABLE QString versionDetails() const;
@@ -111,6 +128,7 @@ private:
     Result<letters::Dictionary> full_dictionary_;
     bool using_full_dictionary_ = false;
     bool dictionaries_ready_ = false;
+    QString language_code_ = QStringLiteral("en");
     mutable std::mt19937 rng_;
 };
 

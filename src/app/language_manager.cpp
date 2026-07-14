@@ -89,8 +89,13 @@ bool LanguageManager::setLanguage(const QString& code) {
 
     installTranslators(code);
     app_.setLayoutDirection(QLocale(code).textDirection());
-    engine_.retranslate();
+    // current_language_ must be updated before retranslate(): retranslate()
+    // synchronously re-evaluates every live qsTr()-using binding, and any of
+    // those that also read currentLanguage() (e.g. SettingsPage.qml's
+    // dictionary-status text) must see the new code, not the language being
+    // switched away from.
     current_language_ = code;
+    engine_.retranslate();
 
     QSettings settings;
     settings.setValue(QLatin1String(kSettingsKey), code);

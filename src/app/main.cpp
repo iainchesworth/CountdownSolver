@@ -18,6 +18,7 @@
 #include <QTimer>
 
 #include <cstdio>
+#include <optional>
 #include <string_view>
 
 namespace {
@@ -51,7 +52,7 @@ int main(int argc, char* argv[]) {
         }
         if (arg == "--help" || arg == "-h") {
             countdown::platform::ensure_console_output();
-            std::printf("Usage: countdown_app [--version] [--help]\n");
+            std::printf("Usage: countdownsolver [--version] [--help]\n");
             return 0;
         }
     }
@@ -74,18 +75,40 @@ int main(int argc, char* argv[]) {
     // ~1.1MB bundled word list doesn't block the window from appearing.
     countdown::app::Solver solver(nullptr, countdown::app::Solver::DictionaryLoad::kDeferred);
 
-    QQmlApplicationEngine engine;
+    // Held in an optional (rather than a plain stack object) so it can be
+    // destroyed explicitly, before main() returns, rather than via the
+    // default stack-unwind order. solver/language_manager are declared
+    // below and would otherwise be destroyed *before* engine (C++ destroys
+    // locals in reverse declaration order) - but engine's QML tree holds
+    // both as context properties, and Qt nulls out a QML reference the
+    // moment the underlying QObject is destroyed. Any binding still being
+    // evaluated while the engine itself tears down (Theme.qml's singleton,
+    // SettingsPage.qml, LetterRackInput.qml all read languageManager) would
+    // then see it as null and throw - reproduced on every close of a real
+    // build, not just intermittently. Destroying engine first (see below)
+    // ensures the whole QML tree is gone before solver/language_manager are.
+    std::optional<QQmlApplicationEngine> engine{std::in_place};
 
     // Installs translators and sets the initial layout direction before any
     // QML is loaded (loadFromModule() below), so the first frame already
     // renders translated and RTL-mirrored where appropriate.
-    countdown::app::LanguageManager language_manager(app, engine);
+    countdown::app::LanguageManager language_manager(app, *engine);
     language_manager.applyInitialLanguage();
 
-    engine.rootContext()->setContextProperty(QStringLiteral("solver"), &solver);
-    engine.rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+    // Cheap - dictionaries haven't loaded yet (see the deferred
+    // loadDictionaries() call below), so this only records which alphabet/
+    // word list the first load should use; every subsequent language
+    // switch reloads immediately via this same connection.
+    solver.setLanguageCode(language_manager.currentLanguage());
+    QObject::connect(&language_manager, &countdown::app::LanguageManager::currentLanguageChanged,
+                      &solver, [&language_manager, &solver]() {
+                          solver.setLanguageCode(language_manager.currentLanguage());
+                      });
 
-    QObject::connect(&engine, &QQmlApplicationEngine::warnings, &app,
+    engine->rootContext()->setContextProperty(QStringLiteral("solver"), &solver);
+    engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+
+    QObject::connect(&*engine, &QQmlApplicationEngine::warnings, &app,
                       [](const QList<QQmlError>& warnings) {
                           for (const QQmlError& warning : warnings) {
                               qCWarning(lcQml) << warning.toString();
@@ -93,14 +116,14 @@ int main(int argc, char* argv[]) {
                       });
 
     QObject::connect(
-        &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
+        &*engine, &QQmlApplicationEngine::objectCreationFailed, &app,
         [](const QUrl& url) {
             qCCritical(lcQml) << "failed to create QML root object from" << url;
             QCoreApplication::exit(-1);
         },
         Qt::QueuedConnection);
 
-    engine.loadFromModule("Countdown", "Main");
+    engine->loadFromModule("Countdown", "Main");
 
     // QQuickWindow::setIcon() has no QML-facing equivalent (unlike QWindow,
     // QQuickWindow never grew an `icon` property - see QTBUG-31601), so the
@@ -109,8 +132,8 @@ int main(int argc, char* argv[]) {
     // which only covers the exe file's own icon in Explorer/Alt-Tab before
     // any window exists; this covers the actual running window on every
     // platform, including the ones without an embeddable exe icon resource.
-    if (!engine.rootObjects().isEmpty()) {
-        if (auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst())) {
+    if (!engine->rootObjects().isEmpty()) {
+        if (auto* window = qobject_cast<QQuickWindow*>(engine->rootObjects().constFirst())) {
             window->setIcon(QIcon(QStringLiteral(":/icon/app_256.png")));
         }
     }
@@ -120,5 +143,13 @@ int main(int argc, char* argv[]) {
     // blocking every launch on dictionary I/O before anything is shown.
     QTimer::singleShot(0, &solver, &countdown::app::Solver::loadDictionaries);
 
-    return QGuiApplication::exec();
+    const int exit_code = QGuiApplication::exec();
+
+    // Explicitly torn down here - see the comment on `engine`'s declaration
+    // above - while solver/language_manager (destroyed below, via the
+    // ordinary end-of-scope unwind) are still alive to be read by any
+    // binding evaluated during this teardown.
+    engine.reset();
+
+    return exit_code;
 }

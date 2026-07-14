@@ -65,14 +65,14 @@ catch_discover_tests(countdown_integration_tests DISCOVERY_MODE PRE_TEST)
 # does for the suites above) would make its numbers meaningless - build and
 # run `countdown_benchmark_tests` directly, ideally from a Release configure,
 # when checking for a regression like the one that made a single
-# countdown_app_tests slot rebuild this same dictionary 15 times over (see
+# countdownsolver_tests slot rebuild this same dictionary 15 times over (see
 # app_tests_main.cpp's shared Solver instance, in tests/app/).
 # ---------------------------------------------------------------------------
 add_executable(countdown_benchmark_tests
     benchmark/dictionary_benchmark.cpp)
 
 target_compile_definitions(countdown_benchmark_tests PRIVATE
-    "COUNTDOWN_DICTIONARY_PATH=\"${CMAKE_SOURCE_DIR}/src/app/resources/dictionary/words.txt\"")
+    "COUNTDOWN_DICTIONARY_PATH=\"${CMAKE_SOURCE_DIR}/src/app/resources/dictionary/words_en.txt\"")
 
 target_link_libraries(countdown_benchmark_tests
     PRIVATE
@@ -81,9 +81,9 @@ target_link_libraries(countdown_benchmark_tests
         Catch2::Catch2WithMain)
 
 # ---------------------------------------------------------------------------
-# App tests: exercise the Qt-facing Solver facade (countdown_app_core) with
+# App tests: exercise the Qt-facing Solver facade (countdownsolver_core) with
 # Qt Test, without linking Quick/Gui/QuickControls2. Only built alongside the
-# app itself, since countdown_app_core only exists when COUNTDOWN_BUILD_APP
+# app itself, since countdownsolver_core only exists when COUNTDOWN_BUILD_APP
 # is on.
 # ---------------------------------------------------------------------------
 if(COUNTDOWN_BUILD_APP)
@@ -103,12 +103,12 @@ if(COUNTDOWN_BUILD_APP)
     # version/dictionary/logging) rather than one lumped class with every
     # slot in it, so a failure narrows straight to the concern that broke
     # instead of forcing a scroll through one large Qt Test report. All
-    # still link into a single countdown_app_tests binary/CTest entry -
+    # still link into a single countdownsolver_tests binary/CTest entry -
     # app_tests_main.cpp's hand-written main() runs each class in turn (see
     # its own comment for why that replaces QTEST_APPLESS_MAIN). Every *.hpp
     # is listed explicitly (not just #included) so AUTOMOC reliably scans it
     # for Q_OBJECT regardless of basename-matching quirks.
-    qt_add_executable(countdown_app_tests
+    qt_add_executable(countdownsolver_tests
         app/app_tests_main.cpp
         app/solver_numbers_test.cpp
         app/solver_numbers_test.hpp
@@ -126,43 +126,43 @@ if(COUNTDOWN_BUILD_APP)
         app/solver_logging_test.hpp
         app/solver_test_utils.hpp)
 
-    target_link_libraries(countdown_app_tests
+    target_link_libraries(countdownsolver_tests
         PRIVATE
-            # WHOLE_ARCHIVE: countdown_app_core's bundled-dictionary resource
+            # WHOLE_ARCHIVE: countdownsolver_core's bundled-dictionary resource
             # object file has no direct symbol references, so a plain link
             # would let the linker silently drop it - see the qt_add_resources
             # comment in src/app/CMakeLists.txt.
-            $<LINK_LIBRARY:WHOLE_ARCHIVE,countdown_app_core>
+            $<LINK_LIBRARY:WHOLE_ARCHIVE,countdownsolver_core>
             countdown::warnings
             countdown::sanitizers
             countdown::coverage
             Qt6::Test)
 
-    countdown_deploy_sanitizer_runtime(countdown_app_tests)
+    countdown_deploy_sanitizer_runtime(countdownsolver_tests)
 
-    # windeployqt only runs against countdown_app (see src/app/CMakeLists.txt)
+    # windeployqt only runs against countdownsolver (see src/app/CMakeLists.txt)
     # and only copies the Qt DLLs *that target* depends on, so Qt6Test.dll
     # never lands in the shared bin/ output directory otherwise: the test exe
     # fails to start (STATUS_DLL_NOT_FOUND) even though it links fine.
     if(WIN32 AND COUNTDOWN_WINDEPLOYQT_EXECUTABLE)
-        # countdown_app, countdown_app_tests and countdown_qml_tests each run a
+        # countdownsolver, countdownsolver_tests and countdown_qml_tests each run a
         # windeployqt POST_BUILD step that writes into the same shared
         # CMAKE_RUNTIME_OUTPUT_DIRECTORY (bin/qml, bin/platforms, ...). Ninja
         # otherwise links + deploys all three concurrently, and two windeployqt
         # processes race to create the same destination file - observed in CI as
         # "Cannot create ... QtQuick/Controls/Fusion/RadioButton.qml ... file
-        # already exists" (PR #12). add_dependencies() forces countdown_app to
-        # fully build (link *and* deploy) before countdown_app_tests starts;
-        # countdown_qml_tests below chains behind countdown_app_tests the same
+        # already exists" (PR #12). add_dependencies() forces countdownsolver to
+        # fully build (link *and* deploy) before countdownsolver_tests starts;
+        # countdown_qml_tests below chains behind countdownsolver_tests the same
         # way, giving a total order across all three windeployqt invocations.
-        add_dependencies(countdown_app_tests countdown_app)
+        add_dependencies(countdownsolver_tests countdownsolver)
 
-        add_custom_command(TARGET countdown_app_tests POST_BUILD
+        add_custom_command(TARGET countdownsolver_tests POST_BUILD
             COMMAND "${COUNTDOWN_WINDEPLOYQT_EXECUTABLE}"
                 --no-translations
                 --compiler-runtime
-                "$<TARGET_FILE:countdown_app_tests>"
-            COMMENT "Deploying Qt runtime dependencies for countdown_app_tests")
+                "$<TARGET_FILE:countdownsolver_tests>"
+            COMMENT "Deploying Qt runtime dependencies for countdownsolver_tests")
 
         # Every windeployqt invocation writes into the same shared
         # CMAKE_RUNTIME_OUTPUT_DIRECTORY (bin/), but each is a separate
@@ -173,26 +173,26 @@ if(COUNTDOWN_BUILD_APP)
         # hit once for the ASan runtime DLL copy; see
         # countdown_deploy_sanitizer_runtime in Sanitizers.cmake). Forcing an
         # explicit target dependency on the previous windeployqt-using
-        # target in the chain (countdown_app here) makes ninja serialize
+        # target in the chain (countdownsolver here) makes ninja serialize
         # them instead.
-        add_dependencies(countdown_app_tests countdown_app)
+        add_dependencies(countdownsolver_tests countdownsolver)
     endif()
 
-    add_test(NAME countdown_app_tests COMMAND countdown_app_tests)
+    add_test(NAME countdownsolver_tests COMMAND countdownsolver_tests)
 
     # -----------------------------------------------------------------------
     # QML tests: Qt Quick Test drives the real "Countdown" QML module (pages +
-    # solver wiring) headlessly. countdown_app_qml is the same compiled module
-    # countdown_app itself links, so this exercises the exact QML shipped -
+    # solver wiring) headlessly. countdownsolver_qml is the same compiled module
+    # countdownsolver itself links, so this exercises the exact QML shipped -
     # no separate copy of the QML_FILES list.
     # -----------------------------------------------------------------------
     # tst_qml_setup.hpp is listed explicitly for the same reason as
     # solver_test.hpp above - its basename doesn't match tst_qml.cpp, so
     # AUTOMOC's implicit same-name-header heuristic wouldn't find it.
-    # language_manager.cpp/.hpp aren't part of countdown_app_core (that target
+    # language_manager.cpp/.hpp aren't part of countdownsolver_core (that target
     # deliberately stays free of Quick/Gui - see its comment in
     # src/app/CMakeLists.txt), so they're compiled in directly here, the same
-    # way countdown_app itself does it - countdown_qml_tests already links
+    # way countdownsolver itself does it - countdown_qml_tests already links
     # Quick/Gui/QuickControls2 to run Quick Test in the first place, and
     # tst_qml_setup.hpp registers a real LanguageManager as the
     # `languageManager` context property so Theme.qml/SettingsPage.qml's
@@ -205,13 +205,13 @@ if(COUNTDOWN_BUILD_APP)
 
     target_link_libraries(countdown_qml_tests
         PRIVATE
-            # WHOLE_ARCHIVE on both: countdown_app_core's bundled-dictionary
-            # resource and countdown_app_qml's Qt resource-registration static
+            # WHOLE_ARCHIVE on both: countdownsolver_core's bundled-dictionary
+            # resource and countdownsolver_qml's Qt resource-registration static
             # initializers must run even though nothing here calls into either
             # directly - see the qt_add_resources/qt_add_library comments in
             # src/app/CMakeLists.txt for why plain linking silently drops them.
-            $<LINK_LIBRARY:WHOLE_ARCHIVE,countdown_app_core>
-            $<LINK_LIBRARY:WHOLE_ARCHIVE,countdown_app_qml>
+            $<LINK_LIBRARY:WHOLE_ARCHIVE,countdownsolver_core>
+            $<LINK_LIBRARY:WHOLE_ARCHIVE,countdownsolver_qml>
             countdown::warnings
             countdown::sanitizers
             countdown::coverage
@@ -225,14 +225,14 @@ if(COUNTDOWN_BUILD_APP)
 
     countdown_deploy_sanitizer_runtime(countdown_qml_tests)
 
-    # Same reasoning as countdown_app_tests above, plus --qmldir so
+    # Same reasoning as countdownsolver_tests above, plus --qmldir so
     # windeployqt's static QML scan picks up "import QtTest" from the
-    # tst_*.qml files themselves (not just the countdown_app_qml module).
+    # tst_*.qml files themselves (not just the countdownsolver_qml module).
     if(WIN32 AND COUNTDOWN_WINDEPLOYQT_EXECUTABLE)
-        # Chains behind countdown_app_tests's windeployqt step - see the
-        # add_dependencies() comment above countdown_app_tests's windeployqt
+        # Chains behind countdownsolver_tests's windeployqt step - see the
+        # add_dependencies() comment above countdownsolver_tests's windeployqt
         # block for why.
-        add_dependencies(countdown_qml_tests countdown_app_tests)
+        add_dependencies(countdown_qml_tests countdownsolver_tests)
 
         add_custom_command(TARGET countdown_qml_tests POST_BUILD
             COMMAND "${COUNTDOWN_WINDEPLOYQT_EXECUTABLE}"
@@ -243,10 +243,10 @@ if(COUNTDOWN_BUILD_APP)
                 "$<TARGET_FILE:countdown_qml_tests>"
             COMMENT "Deploying Qt runtime dependencies for countdown_qml_tests")
 
-        # See the countdown_app_tests windeployqt comment above: chain this
+        # See the countdownsolver_tests windeployqt comment above: chain this
         # invocation after the previous one so ninja never runs two
         # windeployqt copies into bin/ concurrently.
-        add_dependencies(countdown_qml_tests countdown_app_tests)
+        add_dependencies(countdown_qml_tests countdownsolver_tests)
 
         # windeployqt only deploys the platform plugin the real windowed app
         # needs (qwindows.dll); this test runs headless in CI via
@@ -277,7 +277,7 @@ if(COUNTDOWN_BUILD_APP)
     # needed); Qt Quick Test's "-input dir/file" option accepts a single QML
     # file as well as a directory, so each entry just restricts that shared
     # binary to its own tst_*.qml file.
-    set(COUNTDOWN_QML_TEST_PAGES ConundrumPage LettersPage NumbersPage SettingsPage Theme LanguageManager)
+    set(COUNTDOWN_QML_TEST_PAGES ConundrumPage LettersPage NumbersPage SettingsPage Theme LanguageManager LanguageSwitching)
 
     foreach(page IN LISTS COUNTDOWN_QML_TEST_PAGES)
         add_test(NAME countdown_qml_tests_${page}
