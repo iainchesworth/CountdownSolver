@@ -146,8 +146,48 @@ jobs:
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
 
+      # Re-runs lupdate (via the update_translations target qt_add_translations
+      # generates - see src/app/CMakeLists.txt) against the same sources it
+      # scans at release time, then checks the regenerated .ts files for any
+      # <translation type="unfinished"> - lupdate's marker for a <source>
+      # string that's new, changed, or was never actually translated. Only
+      # runs once (this matrix leg) since it doesn't depend on OS/compiler.
+      # Companion to the 'Translations complete' job below, which checks the
+      # same marker on the committed files without rebuilding - this one
+      # additionally catches a UI string that changed/was added but lupdate
+      # was never re-run to reflect it in src/app/translations.
+      - name: Check translations are up to date
+        if: matrix.name == 'Linux (GCC 15)'
+        shell: bash
+        run: |
+          cmake --build --preset ${{ matrix.preset }} --target update_translations
+          if grep -rl 'type="unfinished"' src/app/translations/*.ts; then
+            echo "::error::lupdate found UI text with no finished translation in the file(s) listed above. Translate/review the new or changed <source> entries in src/app/translations and remove type=\"unfinished\" from their <translation> tag." >&2
+            exit 1
+          fi
+
       - name: Test
         run: ctest --preset ${{ matrix.preset }}
+
+  translations:
+    name: Translations complete
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # Fast, build-free companion to 'Check translations are up to date'
+      # above: every <translation> in src/app/translations/*.ts must be
+      # reviewed and marked finished (no type="unfinished" attribute) before
+      # it ships. Catches a hand-edited .ts file left unreviewed even when
+      # nothing in the QML/C++ sources changed.
+      - name: Check for unreviewed/untranslated strings
+        run: |
+          if grep -rn 'type="unfinished"' src/app/translations/*.ts; then
+            echo "::error::Found translation(s) marked unfinished (listed above). Translate/review them and remove type=\"unfinished\" from the <translation> tag before merging." >&2
+            exit 1
+          fi
+          echo "All translations reviewed and finished."
 
   coverage:
     name: Coverage (Linux, GCC)

@@ -3,10 +3,18 @@ name: Release
 # Builds redistributable packages (via CPack) and publishes a GitHub Release
 # whenever a semver tag is pushed. Tags are expected on 'main', at the end of
 # a gitflow release/hotfix finish (see memory: countdown-build-env).
+#
+# workflow_dispatch lets the whole packaging pipeline - including the Qt
+# dependency check below - be run on demand from any branch, so packaging
+# changes can be validated before cutting a real version tag rather than
+# discovering a break only once a tag is pushed. Manual runs stop after the
+# package job (see the publish job's if:); they never create a GitHub
+# Release.
 
 on:
   push:
     tags: ["v*.*.*"]
+  workflow_dispatch: {}
 
 # Minimal at workflow level; 'contents: write' is only granted to the
 # publish job below, which is the one that actually needs it.
@@ -100,6 +108,48 @@ jobs:
         working-directory: build/${{ matrix.preset }}
         run: cpack
 
+      # Windows/macOS bundle their own private copy of Qt via
+      # qt_generate_deploy_app_script (see src/app/CMakeLists.txt); Linux has
+      # no such deploy step and instead relies on
+      # CPACK_DEBIAN_PACKAGE_SHLIBDEPS / CPACK_RPM_PACKAGE_AUTOREQPROV
+      # (cmake/Packaging.cmake) to auto-detect the Qt6 shared libraries the
+      # binary links against and record them as a package dependency, so
+      # apt/dnf pull Qt in for the user on install. Verify that actually
+      # happened rather than assume it: dpkg-shlibdeps/rpmbuild's
+      # auto-requires can silently omit a library if it can't map its soname
+      # to an owning package - a real risk here since Qt comes from
+      # jurplel/install-qt-action's private prebuilt archive, not an
+      # apt/dnf-installed package.
+      - name: Verify Qt dependency in Linux packages (DEB/RPM)
+        if: runner.os == 'Linux'
+        working-directory: build/${{ matrix.preset }}
+        shell: bash
+        run: |
+          shopt -s nullglob
+          status=0
+
+          for deb in *.deb; do
+            depends=$(dpkg-deb -f "$deb" Depends)
+            echo "== $deb =="
+            echo "Depends: $depends"
+            if ! grep -qi 'qt6\|libqt' <<< "$depends"; then
+              echo "::error::$deb has no Qt6 dependency in its Depends field" >&2
+              status=1
+            fi
+          done
+
+          for rpm in *.rpm; do
+            requires=$(rpm -qp --requires "$rpm")
+            echo "== $rpm =="
+            echo "$requires"
+            if ! grep -qi 'qt6' <<< "$requires"; then
+              echo "::error::$rpm has no Qt6 dependency in its Requires list" >&2
+              status=1
+            fi
+          done
+
+          exit $status
+
       # Only these six extensions are ever produced (see cmake/Packaging.cmake):
       # ZIP always, plus DragNDrop/.dmg, NSIS/.exe, TGZ/.tar.gz, DEB/.deb,
       # RPM/.rpm depending on platform and which packaging tool was found.
@@ -153,6 +203,10 @@ jobs:
   publish:
     name: Publish GitHub Release
     needs: package
+    # Manual (workflow_dispatch) runs are for validating the packaging
+    # pipeline only - e.g. that DEB/RPM still declare a Qt dependency, see
+    # cmake/Packaging.cmake - and must never create a draft GitHub Release.
+    if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     permissions:
       contents: write

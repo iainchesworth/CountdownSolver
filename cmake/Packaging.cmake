@@ -39,6 +39,45 @@ if(COUNTDOWN_BUILD_APP)
             set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR}")
             set(CPACK_DEBIAN_PACKAGE_SECTION "games")
             set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+
+            # SHLIBDEPS alone is not enough: dpkg-shlibdeps resolves a shared
+            # library to a Depends entry by asking dpkg which *installed apt
+            # package* owns that .so file. Qt here comes from a private
+            # prebuilt archive (see docs/ci.md / ci/install-qt.*), not an apt
+            # package, so dpkg-shlibdeps silently drops every libQt6*.so it
+            # finds - confirmed empirically: a real build produced a .deb
+            # whose Depends field had every non-Qt shared library correctly
+            # listed and *zero* Qt entries. Declare the actual Ubuntu/Debian
+            # runtime packages explicitly; SHLIBDEPS still appends whatever
+            # it can resolve on its own (glibc, X11, fontconfig, ...)
+            # alongside these.
+            #
+            # Two kinds of package are needed, both empirically confirmed by
+            # an `apt install` of a real build: the shared-library packages
+            # (apt resolves libqt6core6t64/libqt6gui6t64/libqt6qml6/etc.
+            # transitively via just these three), and separately the
+            # qml6-module-* packages - Debian/Ubuntu ship each QML module's
+            # actual plugin (the qmldir + .so that `import QtQuick.Controls`
+            # resolves at runtime) in its own package, apart from the
+            # matching shared library.
+            #
+            # >= 6.8 matters, not just as a floor: this app is built against
+            # whatever Qt SDK CI pins (6.8.3 - see docs/ci.md), and its
+            # compiled QML metadata hard-requires that same major.minor at
+            # runtime (Qt's QML engine refuses an older module version, e.g.
+            # "module ... version 6.8 ... QtQuick.Controls.Basic ... is not
+            # installed" against a 6.4 runtime - confirmed empirically).
+            # Qt 6.8 first appears in Debian 13 (trixie) and Ubuntu 25.04;
+            # Ubuntu 24.04 LTS and Debian 12 only have Qt 6.4, so a plain
+            # `apt install` there now correctly refuses instead of installing
+            # a binary that fails at startup.
+            set(CPACK_DEBIAN_PACKAGE_DEPENDS
+                "libqt6quick6 (>= 6.8)"
+                "libqt6quickcontrols2-6 (>= 6.8)"
+                "libqt6svg6 (>= 6.8)"
+                "qml6-module-qtquick (>= 6.8)"
+                "qml6-module-qtquick-controls (>= 6.8)"
+                "qml6-module-qtquick-layouts (>= 6.8)")
         endif()
         find_program(COUNTDOWN_RPMBUILD_EXECUTABLE rpmbuild)
         if(COUNTDOWN_RPMBUILD_EXECUTABLE)
