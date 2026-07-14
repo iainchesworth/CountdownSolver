@@ -231,7 +231,6 @@
       "name": "ios-base",
       "hidden": true,
       "generator": "Xcode",
-      "toolset": "buildsystem=1",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "condition": {
         "type": "equals",
