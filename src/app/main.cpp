@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
         }
         if (arg == "--help" || arg == "-h") {
             countdown::platform::ensure_console_output();
-            std::printf("Usage: countdown_app [--version] [--help]\n");
+            std::printf("Usage: countdownsolver [--version] [--help]\n");
             return 0;
         }
     }

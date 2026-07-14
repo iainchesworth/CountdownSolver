@@ -44,7 +44,7 @@ git clone --recurse-submodules https://github.com/iainchesworth/CountdownSolver
 cd CountdownSolver
 cmake --preset windows-msvc-debug -DCMAKE_PREFIX_PATH=<qt>/6.8.3/<arch>
 cmake --build --preset windows-msvc-debug
-./build/windows-msvc-debug/bin/countdown_app
+./build/windows-msvc-debug/bin/countdownsolver
 ```
 
 That needs a C++23 compiler, CMake 4+, Ninja, and Qt 6.8 — see

@@ -84,7 +84,7 @@ stamped into a generated `countdown/version.hpp`. Tag releases as
 The information is surfaced two ways:
 
 ```console
-$ countdown_app --version
+$ countdownsolver --version
 CountdownSolver 0.1.0
   build:  v0.1.0
   commit: 1a2b3c4d...
