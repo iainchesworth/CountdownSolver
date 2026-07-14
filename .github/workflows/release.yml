@@ -216,9 +216,17 @@ jobs:
         with:
           path: dist
 
+      # gh is preinstalled on GitHub-hosted runners, so a dedicated release
+      # action buys nothing here but another third-party dependency (flagged
+      # by zizmor's superfluous-actions check) - no checkout in this job, so
+      # --repo is explicit since there's no local git context to infer it
+      # from.
       - name: Create release
-        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
-        with:
-          draft: true
-          generate_release_notes: true
-          files: dist/**/*
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s globstar
+          gh release create "${{ github.ref_name }}" dist/**/* \
+            --repo "${{ github.repository }}" \
+            --draft \
+            --generate-notes
