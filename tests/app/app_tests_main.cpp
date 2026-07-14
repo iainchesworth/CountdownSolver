@@ -10,8 +10,8 @@
 
 #include <QTest>
 
-// countdown_app_tests bundles several one-class-per-concern QtTest suites
-// (see the split rationale in tests/CMakeLists.txt's countdown_app_tests
+// countdownsolver_tests bundles several one-class-per-concern QtTest suites
+// (see the split rationale in tests/CMakeLists.txt's countdownsolver_tests
 // comment). QTEST_APPLESS_MAIN only wires up a single QObject-derived class,
 // so with several classes in one binary a hand-written main() aggregating
 // them via QTest::qExec() - the pattern Qt's own docs recommend for multiple

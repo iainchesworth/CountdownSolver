@@ -7,6 +7,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # Wait a week after a new action version is published before opening a
+    # PR for it -- gives the community time to catch a compromised release
+    # before this repo auto-updates to it.
+    cooldown:
+      default-days: 7
     groups:
       github-actions:
         patterns:

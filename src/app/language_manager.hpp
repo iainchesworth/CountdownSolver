@@ -9,7 +9,7 @@
 
 namespace countdown::app {
 
-// Owns the app's QTranslators (Qt's own base strings plus the countdown_app
+// Owns the app's QTranslators (Qt's own base strings plus the countdownsolver
 // UI strings), the persisted language preference, and everything a language
 // switch touches: installed translators, the application's layout direction
 // (LTR/RTL), and QQmlEngine::retranslate(). No game logic lives here - Solver
