@@ -18,6 +18,10 @@
   [`ci/install-qt.sh`](https://github.com/iainchesworth/CountdownSolver/blob/develop/ci/install-qt.sh)
   (Linux/macOS) — both use [aqtinstall](https://github.com/miurahr/aqtinstall).
   See [CI & dependencies](ci.md) for details.
+- **Mobile builds only** (Android/iOS, tablet + landscape-only — see
+  [Building & packaging](building.md)): an Android SDK + a pinned NDK
+  version plus a Qt-for-Android kit, or Xcode + a Qt-for-iOS kit on macOS.
+  Not needed for the desktop presets above.
 
 ## Clone
 

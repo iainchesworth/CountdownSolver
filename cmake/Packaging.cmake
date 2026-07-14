@@ -6,7 +6,19 @@
 # native formats are layered on top when the GUI app is being built and the
 # packaging tool for that format is actually available, so `cmake --build .
 # --target package` degrades gracefully instead of failing outright.
+#
+# None of this applies to mobile: real packaging there is androiddeployqt's
+# generated APK/AAB and Xcode's archive+export, not CPack. ANDROID also
+# implies UNIX, so without this early return a mobile configure would hit
+# the UNIX branch below and try (and fail) to build a TGZ/DEB/RPM image.
 # ---------------------------------------------------------------------------
+if(ANDROID OR IOS)
+    message(STATUS
+        "Skipping CPack packaging for mobile target (ANDROID/IOS); "
+        "use androiddeployqt/Xcode archive+export instead.")
+    return()
+endif()
+
 set(CPACK_PACKAGE_NAME "CountdownSolver")
 set(CPACK_PACKAGE_VENDOR "Iain Chesworth")
 set(CPACK_PACKAGE_CONTACT "Iain Chesworth")

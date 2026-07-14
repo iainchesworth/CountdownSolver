@@ -45,3 +45,58 @@ cmake --build --preset windows-msvc-debug
 | Windows (MSVC) | `<outdir>/6.8.3/msvc2022_64` |
 | Linux (GCC)    | `<outdir>/6.8.3/gcc_64` |
 | macOS          | `<outdir>/6.8.3/macos` |
+| Android (arm64-v8a) | `<outdir>/6.8.3/android_arm64_v8a` — also needs a **second**, desktop Qt install (`QT_HOST_PATH`) for cross-build host tools (`moc`, `qmlcachegen`, ...) |
+| iOS (device)   | `<outdir>/6.8.3/ios` — macOS/Xcode only |
+
+## Mobile CI jobs
+
+Two build-only, unsigned jobs in [`ci.yml`](https://github.com/iainchesworth/CountdownSolver/blob/develop/.github/workflows/ci.yml)
+gate every PR/branch push, mirroring the desktop `build-and-test` jobs but
+without a `ctest` step (mobile presets set `COUNTDOWN_BUILD_TESTS=OFF` —
+see [Building & packaging](building.md)):
+
+- **`android-build`** (`ubuntu-24.04`): installs a JDK, the Android SDK, a
+  pinned NDK version, and *two* Qt kits via `install-qt-action` — a desktop
+  one (`QT_HOST_PATH`) and an Android one (`QT_ANDROID_ROOT`) — then
+  configures/builds the `android-arm64-v8a-debug` preset.
+- **`ios-build`** (`macos-15`, ships Xcode already): installs a single
+  Qt-for-iOS kit, then configures/builds the `ios-debug` preset (unsigned,
+  per that preset's `CODE_SIGNING_ALLOWED=NO` cache variables).
+
+## Signed mobile release packaging
+
+The [release workflow](https://github.com/iainchesworth/CountdownSolver/blob/develop/.github/workflows/release.yml)'s
+`android-release`/`ios-release` jobs produce a real, signed, distributable
+package for each mobile platform (alongside the existing signed-by-checksum
+Windows/Linux/macOS packages, all with the same SHA256/512 + Sigstore
+attestation treatment). This needs the following **GitHub Secrets**
+(Settings → Secrets and variables → Actions), which you create yourself —
+the workflow never sees or stores the underlying key material beyond the
+lifetime of a single job run:
+
+| Secret | Purpose |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | Your Android release keystore file, base64-encoded (`base64 -w0 release.keystore`) |
+| `ANDROID_KEYSTORE_PASSWORD` | The keystore's store password |
+| `ANDROID_KEY_ALIAS` | The signing key's alias inside the keystore |
+| `ANDROID_KEY_PASSWORD` | The signing key's own password |
+| `IOS_DIST_CERTIFICATE_BASE64` | Your Apple Distribution certificate `.p12`, base64-encoded |
+| `IOS_DIST_CERTIFICATE_PASSWORD` | The `.p12`'s export password |
+| `IOS_PROVISIONING_PROFILE_BASE64` | An **ad-hoc** provisioning profile (`.mobileprovision`), base64-encoded |
+| `APPLE_TEAM_ID` | Your Apple Developer Team ID |
+
+If any of these are unset, the corresponding release job fails fast with an
+explicit error rather than silently producing an unsigned package.
+
+**iOS distribution note**: a standard Apple Developer account can only
+produce an *ad-hoc* signed IPA — installable solely on devices whose UDIDs
+are pre-registered in the provisioning profile above, not on arbitrary iOS
+devices the way a sideloaded Android APK is. Wider distribution (TestFlight
+or an Apple Developer Enterprise account) is a separate, later decision.
+
+**Android/iOS signing mechanics are unverified locally** (no Android
+SDK/NDK, no Mac/Xcode available in this project's day-to-day dev
+environment) — treat a first real release run's failures in these two
+jobs as expected things to fix (exact NDK version, `androiddeployqt`'s CLI
+surface, the generated Xcode project/scheme names), not as a sign the
+overall approach is wrong.

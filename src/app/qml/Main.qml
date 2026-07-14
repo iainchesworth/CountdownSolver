@@ -1,18 +1,32 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Window
 
 // Application shell: sidebar navigation + page stack. The OS provides the
 // window frame (no faux titlebar), matching a native desktop look.
 ApplicationWindow {
     id: win
     visible: true
-    width: 1140
-    height: 740
-    minimumWidth: 1140
-    minimumHeight: 740
-    maximumWidth: 1140
-    maximumHeight: 740
+
+    // Mobile builds (tablet, landscape-only - see AndroidManifest.xml/Info.plist.in)
+    // get a fullscreen window sized to the device instead of the fixed desktop
+    // size below; the layout itself is unchanged; RowLayout/ColumnLayout fill
+    // bindings throughout already adapt to whatever size the window ends up.
+    readonly property bool isMobile: Qt.platform.os === "android" || Qt.platform.os === "ios"
+
+    width: isMobile ? Screen.width : 1140
+    height: isMobile ? Screen.height : 740
+    visibility: isMobile ? ApplicationWindow.FullScreen : ApplicationWindow.Windowed
+
+    // Bindings that only apply when !isMobile - a ternary can't "leave a
+    // property unset", but an inactive Binding never assigns at all, leaving
+    // these at Qt's own default (0 / effectively unbounded) on mobile.
+    Binding { target: win; property: "minimumWidth";  value: 1140; when: !win.isMobile }
+    Binding { target: win; property: "minimumHeight"; value: 740;  when: !win.isMobile }
+    Binding { target: win; property: "maximumWidth";  value: 1140; when: !win.isMobile }
+    Binding { target: win; property: "maximumHeight"; value: 740;  when: !win.isMobile }
+
     title: qsTr("Countdown Solver")
     color: Theme.bg
 

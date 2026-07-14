@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+  Base structure follows Qt6's default androiddeployqt template (activity
+  class/package placeholders included below). This has NOT been verified
+  against a real Qt 6.8.3-for-Android kit (none is installed on this
+  machine) - on the first real Android build, diff this against the
+  default AndroidManifest.xml the installed kit ships and reconcile any
+  drift, keeping only the two additions below (screenOrientation and
+  supports-screens), which are specific to this app's tablet/landscape
+  scope and not part of Qt's template.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.countdownsolver.app"
+    android:versionName="-- %%INSERT_VERSION_NAME%% --"
+    android:versionCode="-- %%INSERT_VERSION_CODE%% --"
+    android:installLocation="auto">
+
+    <application
+        android:name="org.qtproject.qt.android.bindings.QtApplication"
+        android:label="Countdown Solver"
+        android:extractNativeLibs="true">
+
+        <activity
+            android:name="org.qtproject.qt.android.bindings.QtActivity"
+            android:label="Countdown Solver"
+            android:launchMode="singleTop"
+            android:exported="true"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.lib_name" android:value="countdown_app" />
+        </activity>
+    </application>
+
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
+
+    <!--
+      Tablet-only: this is a legacy/weak signal that some tooling still
+      reads, but it does NOT by itself stop the Play Store from showing/
+      installing the app on phones - real phone exclusion for a Play
+      Store listing happens in Play Console's device catalog config, not
+      here. Kept anyway since it's cheap and harmless.
+    -->
+    <supports-screens
+        android:smallScreens="false"
+        android:normalScreens="false"
+        android:largeScreens="true"
+        android:xlargeScreens="true"
+        android:requiresSmallestWidthDp="600" />
+</manifest>

@@ -12,8 +12,14 @@ qt_standard_project_setup(REQUIRES 6.5)
 qt_policy(SET QTP0004 NEW)
 
 # Select the single platform implementation for the target OS. No #ifdefs: CMake
-# decides which translation unit is compiled.
-if(WIN32)
+# decides which translation unit is compiled. ANDROID/IOS must be checked
+# before WIN32/APPLE/UNIX: CMake sets ANDROID alongside UNIX, and IOS alongside
+# APPLE, when cross-compiling for those targets.
+if(ANDROID)
+    set(COUNTDOWN_PLATFORM_SOURCE platform/android/platform_android.cpp)
+elseif(IOS)
+    set(COUNTDOWN_PLATFORM_SOURCE platform/ios/platform_ios.cpp)
+elseif(WIN32)
     set(COUNTDOWN_PLATFORM_SOURCE platform/windows/platform_windows.cpp)
 elseif(APPLE)
     set(COUNTDOWN_PLATFORM_SOURCE platform/macos/platform_macos.cpp)
@@ -183,6 +189,23 @@ qt_add_executable(countdown_app
     language_manager.cpp
     language_manager.hpp
     ${COUNTDOWN_APP_ICON_SOURCE})
+
+# QT_ANDROID_PACKAGE_SOURCE_DIR points Qt's CMake integration at the directory
+# holding AndroidManifest.xml (and androiddeployqt's other package inputs);
+# MACOSX_BUNDLE_INFO_PLIST is CMake's own bundle-Info.plist mechanism, which
+# also drives iOS bundles under the Xcode generator (MACOSX_BUNDLE ON below
+# already triggers bundle output there). TARGETED_DEVICE_FAMILY "2" restricts
+# the iOS build to iPad only, matching the tablet-only scope of this app.
+if(ANDROID)
+    set_target_properties(countdown_app PROPERTIES
+        QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/platform/android")
+endif()
+
+if(IOS)
+    set_target_properties(countdown_app PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/platform/ios/Info.plist.in"
+        XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2")
+endif()
 
 # Noto Sans Arabic/Hebrew (SIL Open Font License - see the accompanying
 # *-OFL.txt files), bundled so Arabic/Hebrew/Yiddish text renders with proper
