@@ -216,6 +216,23 @@ jobs:
         with:
           path: dist
 
+      # Each platform's package job names its checksum manifest SHA256SUMS/
+      # SHA512SUMS identically (see the 'Generate checksums' step above), so
+      # downloading all three artifacts leaves three same-named files in
+      # separate dist/<artifact>/ subdirectories. Uploading them as release
+      # assets by basename then collides - the GitHub Releases API rejects a
+      # second asset with a name already taken, which is exactly what broke
+      # the very first tagged release (v0.1.0-beta.1) here. Concatenate them
+      # into one manifest per algorithm at the dist/ root instead - each
+      # entry already carries its own package filename with no path prefix,
+      # so combining is safe - and remove the per-platform originals so the
+      # later glob only picks up the combined ones.
+      - name: Combine per-platform checksums
+        run: |
+          cat dist/*/SHA256SUMS > dist/SHA256SUMS
+          cat dist/*/SHA512SUMS > dist/SHA512SUMS
+          rm dist/*/SHA256SUMS dist/*/SHA512SUMS
+
       # Only needed to read CHANGELOG.md below - the package job already
       # checked out the tagged commit for the actual build.
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
