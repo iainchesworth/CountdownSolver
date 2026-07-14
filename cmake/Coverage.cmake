@@ -10,7 +10,7 @@
 # Link it PRIVATE into every first-party target whose coverage should be
 # measured (library, app core, test executables) - both the instrumentation
 # (compile) and the gcov runtime (link) are needed on every executable that
-# ends up containing instrumented objects, even ones (like countdown_app)
+# ends up containing instrumented objects, even ones (like countdownsolver)
 # whose own sources aren't of direct interest, since the final link must
 # resolve the gcov runtime symbols pulled in by whatever it links against.
 # ---------------------------------------------------------------------------
