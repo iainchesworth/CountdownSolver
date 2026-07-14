@@ -216,9 +216,61 @@ jobs:
         with:
           path: dist
 
-      - name: Create release
-        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
+      # Only needed to read CHANGELOG.md below - the package job already
+      # checked out the tagged commit for the actual build.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          draft: true
-          generate_release_notes: true
-          files: dist/**/*
+          persist-credentials: false
+
+      # Release notes should be curated, not a raw PR/commit dump - pull the
+      # section matching this tag out of CHANGELOG.md (Keep a Changelog
+      # format: "## [x.y.z] - date" headings). Falls back to --generate-notes
+      # if the tag has no changelog entry yet, so a release is never blocked
+      # on this.
+      - name: Extract changelog section for this tag
+        id: notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          # Plain substring matching (index), not regex: a dynamic regex
+          # built from "\\[" + version + "\\]" silently mismatches under
+          # gawk's regex compilation (backslash-escaped brackets don't
+          # survive being embedded in a runtime string-to-regex, so
+          # "[0.1.0-beta.1]" gets compiled as a *character class* covering
+          # a wide ASCII range instead of a literal bracket) - confirmed by
+          # testing it swallows unrelated lines and fails to stop at the
+          # next version heading. index() sidesteps escaping entirely.
+          awk -v hdr="## [$version]" '
+            index($0, hdr) == 1 { found=1; next }
+            found && index($0, "## [") == 1 { exit }
+            found { print }
+          ' CHANGELOG.md > /tmp/release-notes.md
+          if [ -s /tmp/release-notes.md ]; then
+            echo "has_notes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::No CHANGELOG.md section found for [${version}] - falling back to --generate-notes. Add one before tagging next time so the release gets curated notes instead of a PR dump."
+            echo "has_notes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # gh is preinstalled on GitHub-hosted runners, so a dedicated release
+      # action buys nothing here but another third-party dependency (flagged
+      # by zizmor's superfluous-actions check) - checkout above makes --repo
+      # inferrable, but it's passed explicitly anyway for clarity.
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_REPO: ${{ github.repository }}
+          HAS_NOTES: ${{ steps.notes.outputs.has_notes }}
+        run: |
+          shopt -s globstar
+          if [ "$HAS_NOTES" = "true" ]; then
+            gh release create "$RELEASE_TAG" dist/**/* \
+              --repo "$RELEASE_REPO" \
+              --draft \
+              --notes-file /tmp/release-notes.md
+          else
+            gh release create "$RELEASE_TAG" dist/**/* \
+              --repo "$RELEASE_REPO" \
+              --draft \
+              --generate-notes
+          fi
