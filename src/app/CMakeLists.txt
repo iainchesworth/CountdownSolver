@@ -300,17 +300,27 @@ endif()
 # "/usr/lib/x86_64-linux-gnu/qt6/qml"), breaking QtQuick.Controls at
 # startup even when a compatible Qt6 is installed. Skip the whole call on
 # Linux, where it has nothing useful left to do anyway.
+#
+# Mobile (ANDROID/IOS) skips this entire block, same rationale as the CPack
+# early-return in cmake/Packaging.cmake: real mobile packaging is
+# androiddeployqt's generated APK/AAB and Xcode's archive+export, neither of
+# which goes through `cmake --install`. Worse, on Android qt_add_executable()
+# produces a MODULE (shared library) target rather than a true executable,
+# so install(TARGETS ... RUNTIME DESTINATION ...) with no LIBRARY DESTINATION
+# is a hard configure-time error there.
 # ---------------------------------------------------------------------------
-include(GNUInstallDirs)
+if(NOT (ANDROID OR IOS))
+    include(GNUInstallDirs)
 
-install(TARGETS countdownsolver
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-    BUNDLE DESTINATION ".")
+    install(TARGETS countdownsolver
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        BUNDLE DESTINATION ".")
 
-if(WIN32 OR APPLE)
-    qt_generate_deploy_app_script(
-        TARGET countdownsolver
-        OUTPUT_SCRIPT COUNTDOWN_SOLVER_DEPLOY_SCRIPT
-        NO_UNSUPPORTED_PLATFORM_ERROR)
-    install(SCRIPT "${COUNTDOWN_SOLVER_DEPLOY_SCRIPT}")
+    if(WIN32 OR APPLE)
+        qt_generate_deploy_app_script(
+            TARGET countdownsolver
+            OUTPUT_SCRIPT COUNTDOWN_SOLVER_DEPLOY_SCRIPT
+            NO_UNSUPPORTED_PLATFORM_ERROR)
+        install(SCRIPT "${COUNTDOWN_SOLVER_DEPLOY_SCRIPT}")
+    endif()
 endif()
