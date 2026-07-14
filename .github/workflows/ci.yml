@@ -1,0 +1,274 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    # Jobs flagged experimental (macOS/libc++) may fail without failing the run.
+    continue-on-error: ${{ matrix.experimental || false }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Toolchain baseline: GCC 15+, Clang 21+, MSVC 14.51+, AppleClang 17+.
+          # Anything older lacks the C++23 features used here (deducing this,
+          # views::enumerate / stride / zip, ranges::to, std::expected).
+          - name: Linux (GCC 15)
+            os: ubuntu-24.04
+            preset: linux-gcc-debug
+            cxx: g++-15
+          - name: Linux (Clang 21)
+            os: ubuntu-24.04
+            preset: linux-clang-debug
+            cxx: clang++-21
+            # Use libstdc++ (from GCC 15): libc++ does not yet implement
+            # views::enumerate / views::stride. clang 21 handles libstdc++'s
+            # <expected> fine (unlike the older clang 18).
+          - name: macOS (AppleClang)
+            os: macos-15
+            preset: macos-clang-debug
+            # macOS uses libc++, which still lacks views::enumerate / stride;
+            # countdown/detail/ranges_compat.hpp provides fallbacks so it builds.
+          - name: Windows (MSVC)
+            os: windows-2025
+            preset: windows-msvc-debug
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      # Cache vcpkg build artefacts between runs via a local binary cache
+      # directory (the 'files' provider), persisted across runs by
+      # actions/cache below. The vcpkg provider itself is the vendored
+      # deps/vcpkg submodule and is bootstrapped automatically by its CMake
+      # toolchain on first configure.
+      #
+      # x-gha was removed from vcpkg (https://learn.microsoft.com/vcpkg/users/binarycaching);
+      # 'files' + actions/cache is the simplest supported replacement.
+      #
+      # The 'runner' context isn't available in job-level env: blocks, so this
+      # is set via GITHUB_ENV in a step instead.
+      - name: Configure vcpkg binary cache
+        shell: bash
+        run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ runner.temp }}/vcpkg-cache,readwrite" >> "$GITHUB_ENV"
+
+      - name: Cache vcpkg binaries
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/vcpkg-cache
+          key: vcpkg-binary-cache-${{ matrix.preset }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-binary-cache-${{ matrix.preset }}-
+
+      # The GitHub runners ship CMake 3.x; the project (and CMakePresets)
+      # require CMake 4. get-cmake installs a matching CMake 4 and Ninja on
+      # every OS.
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
+        with:
+          cmakeVersion: "latest"
+
+      # GCC 15 provides libstdc++ 15 for both the GCC job and (as the standard
+      # library) the Clang job.
+      - name: Install GCC 15 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-15
+
+      # Installs Clang from LLVM's official apt repository rather than piping
+      # the live contents of https://apt.llvm.org/llvm.sh through sudo. The
+      # signing key is pinned by checksum before use, so apt (not an
+      # unauthenticated script run as root) verifies every package it installs.
+      - name: Install Clang 21 (Linux Clang)
+        if: matrix.cxx == 'clang++-21'
+        run: |
+          curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key -o /tmp/llvm-snapshot.gpg.key
+          echo "8b2a587ffd672c4687e7581dad4b2f6c1bb2ad6b480cd9771ba2ff48e0b8c75d  /tmp/llvm-snapshot.gpg.key" | sha256sum -c -
+          sudo install -m 0755 -d /etc/apt/keyrings
+          sudo gpg --dearmor -o /etc/apt/keyrings/llvm-snapshot.gpg /tmp/llvm-snapshot.gpg.key
+          echo "deb [signed-by=/etc/apt/keyrings/llvm-snapshot.gpg] http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-21 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          sudo apt-get update
+          sudo apt-get install -y clang-21
+
+      - name: Set up MSVC environment (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+
+      # Prebuilt Qt (official binaries) so the GUI app builds without compiling
+      # Qt from source. Sets QT_ROOT_DIR for find_package(Qt6). Keep the version
+      # in sync with docs/ci.md and ci/install-qt.*.
+      - name: Install Qt (prebuilt)
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: "6.8.3"
+          cache: true
+
+      # Builds the library, tests AND the Qt app (COUNTDOWN_BUILD_APP defaults
+      # ON); vcpkg supplies only Catch2, Qt comes from the prebuilt install.
+      # Matrix values are routed through env: rather than expanded directly
+      # into the run: script -- the shell sees them as plain variables
+      # instead of literal template-substituted text, which is the
+      # recommended way to avoid a code-injection-shaped script (even though
+      # these particular values come from this workflow's own matrix, not
+      # attacker-controlled event input). shell: bash keeps $VAR syntax
+      # working the same way on the Windows runner too (default there is
+      # pwsh, where plain $VAR means something else).
+      - name: Configure
+        shell: bash
+        env:
+          CMAKE_PRESET: ${{ matrix.preset }}
+          EXTRA_CXX_COMPILER: ${{ matrix.cxx && format('-DCMAKE_CXX_COMPILER={0}', matrix.cxx) || '' }}
+          EXTRA_CXX_FLAGS: ${{ matrix.cxxflags && format('-DCMAKE_CXX_FLAGS={0}', matrix.cxxflags) || '' }}
+        run: >
+          cmake --preset "$CMAKE_PRESET"
+          -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
+          $EXTRA_CXX_COMPILER
+          $EXTRA_CXX_FLAGS
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      # Re-runs lupdate (via the update_translations target qt_add_translations
+      # generates - see src/app/CMakeLists.txt) against the same sources it
+      # scans at release time, then checks the regenerated .ts files for any
+      # <translation type="unfinished"> - lupdate's marker for a <source>
+      # string that's new, changed, or was never actually translated. Only
+      # runs once (this matrix leg) since it doesn't depend on OS/compiler.
+      # Companion to the 'Translations complete' job below, which checks the
+      # same marker on the committed files without rebuilding - this one
+      # additionally catches a UI string that changed/was added but lupdate
+      # was never re-run to reflect it in src/app/translations.
+      - name: Check translations are up to date
+        if: matrix.name == 'Linux (GCC 15)'
+        shell: bash
+        run: |
+          cmake --build --preset ${{ matrix.preset }} --target update_translations
+          if grep -rl 'type="unfinished"' src/app/translations/*.ts; then
+            echo "::error::lupdate found UI text with no finished translation in the file(s) listed above. Translate/review the new or changed <source> entries in src/app/translations and remove type=\"unfinished\" from their <translation> tag." >&2
+            exit 1
+          fi
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }}
+
+  translations:
+    name: Translations complete
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # Fast, build-free companion to 'Check translations are up to date'
+      # above: every <translation> in src/app/translations/*.ts must be
+      # reviewed and marked finished (no type="unfinished" attribute) before
+      # it ships. Catches a hand-edited .ts file left unreviewed even when
+      # nothing in the QML/C++ sources changed.
+      - name: Check for unreviewed/untranslated strings
+        run: |
+          if grep -rn 'type="unfinished"' src/app/translations/*.ts; then
+            echo "::error::Found translation(s) marked unfinished (listed above). Translate/review them and remove type=\"unfinished\" from the <translation> tag before merging." >&2
+            exit 1
+          fi
+          echo "All translations reviewed and finished."
+
+  coverage:
+    name: Coverage (Linux, GCC)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      # See the build-and-test job above for why 'files' + actions/cache
+      # replaces the removed x-gha binary caching backend, and why this is
+      # set via GITHUB_ENV rather than a job-level env:.
+      - name: Configure vcpkg binary cache
+        shell: bash
+        run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ runner.temp }}/vcpkg-cache,readwrite" >> "$GITHUB_ENV"
+
+      - name: Cache vcpkg binaries
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/vcpkg-cache
+          key: vcpkg-binary-cache-linux-gcc-coverage-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-binary-cache-linux-gcc-coverage-
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
+        with:
+          cmakeVersion: "latest"
+
+      - name: Install GCC 15 (Linux)
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-15
+
+      # Qt Quick's offscreen QPA plugin needs libxkbcommon at runtime.
+      - name: Install offscreen QPA runtime dependencies
+        run: sudo apt-get install -y libxkbcommon0
+
+      - name: Install Qt (prebuilt)
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: "6.8.3"
+          cache: true
+
+      - name: Install gcovr
+        run: pip install --quiet gcovr
+
+      - name: Configure
+        run: >
+          cmake --preset linux-gcc-coverage
+          -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
+          -DCMAKE_CXX_COMPILER=g++-15
+
+      - name: Build
+        run: cmake --build --preset linux-gcc-coverage
+
+      - name: Test
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --preset linux-gcc-coverage
+
+      # Line/branch coverage gate: fails the job (and so the PR check) below
+      # 80%. main.cpp is excluded as a thin, argv-parsing entry point with no
+      # own test main; the non-Linux platform implementations are simply
+      # never compiled on this runner, so they don't appear in the report.
+      - name: Coverage report + gate
+        run: >
+          gcovr --root . --filter 'src/.*' --exclude 'src/app/main\.cpp'
+          --gcov-executable gcov-15
+          --exclude-throw-branches --exclude-unreachable-branches
+          --gcov-ignore-errors=no_working_dir_found
+          --object-directory build/linux-gcc-coverage
+          --print-summary --html-details build/coverage.html
+          --fail-under-line 80 --fail-under-branch 80
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-report
+          path: build/coverage*.html

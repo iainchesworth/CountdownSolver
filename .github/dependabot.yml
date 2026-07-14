@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # Keep GitHub Actions used in workflows up to date (including runtime
+  # bumps like the Node 20 -> Node 24 migration across actions/* and
+  # github/codeql-action). Grouped into a single weekly PR to cut noise.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Wait a week after a new action version is published before opening a
+    # PR for it -- gives the community time to catch a compromised release
+    # before this repo auto-updates to it.
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - "*"
