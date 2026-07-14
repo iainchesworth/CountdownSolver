@@ -278,28 +278,55 @@ jobs:
       # action buys nothing here but another third-party dependency (flagged
       # by zizmor's superfluous-actions check) - checkout above makes --repo
       # inferrable, but it's passed explicitly anyway for clarity.
-      - name: Create release
+      #
+      # Release creation and asset upload are deliberately separate steps.
+      # A combined `gh release create <tag> <files...>` silently uploaded
+      # only 4 of 9 files on the first real run here - exit 0, no error,
+      # just missing assets - so upload is split out and its result is
+      # verified explicitly rather than trusted.
+      - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
           RELEASE_REPO: ${{ github.repository }}
           HAS_NOTES: ${{ steps.notes.outputs.has_notes }}
         run: |
-          # A dist/**/* glob (even with globstar) also matches the
-          # artifact directories themselves, not just their contents -
-          # `gh release create` then tries to upload e.g. dist/countdown-
-          # Linux/ as a file and fails with "is a directory". find -type f
-          # only ever lists actual files, at any depth, with no such
-          # ambiguity.
-          mapfile -t files < <(find dist -type f)
           if [ "$HAS_NOTES" = "true" ]; then
-            gh release create "$RELEASE_TAG" "${files[@]}" \
+            gh release create "$RELEASE_TAG" \
               --repo "$RELEASE_REPO" \
               --draft \
+              --prerelease \
               --notes-file /tmp/release-notes.md
           else
-            gh release create "$RELEASE_TAG" "${files[@]}" \
+            gh release create "$RELEASE_TAG" \
               --repo "$RELEASE_REPO" \
               --draft \
+              --prerelease \
               --generate-notes
+          fi
+
+      # A dist/**/* glob (even with globstar) also matches the artifact
+      # directories themselves, not just their contents - `gh release
+      # upload` then tries to upload e.g. dist/countdown-Linux/ as a file
+      # and fails with "is a directory". find -type f only ever lists
+      # actual files, at any depth, with no such ambiguity.
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_REPO: ${{ github.repository }}
+        run: |
+          mapfile -t files < <(find dist -type f)
+          echo "Uploading ${#files[@]} file(s): ${files[*]}"
+          gh release upload "$RELEASE_TAG" "${files[@]}" \
+            --repo "$RELEASE_REPO" \
+            --clobber
+
+          # gh release create silently dropping assets with no error is
+          # exactly what happened above before this was split out - verify
+          # the count explicitly instead of trusting a clean exit code.
+          uploaded=$(gh release view "$RELEASE_TAG" --repo "$RELEASE_REPO" --json assets --jq '.assets | length')
+          if [ "$uploaded" -ne "${#files[@]}" ]; then
+            echo "::error::Expected ${#files[@]} release assets, found $uploaded - upload silently dropped some files."
+            exit 1
           fi
