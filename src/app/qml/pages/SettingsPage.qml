@@ -74,13 +74,23 @@ Item {
                             anchors.fill: parent
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Text { text: qsTr("Display language"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                Text { text: qsTr("Changes menus, labels and messages across the app."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                                Text { Layout.fillWidth: true; text: qsTr("Display language"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { Layout.fillWidth: true; text: qsTr("Changes menus, labels and messages across the app."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             ComboBox {
                                 id: langCombo
+                                // Fixed min/max, not just preferredWidth: this
+                                // Control's own implicit-size calculation
+                                // (from its heavily-customized background/
+                                // contentItem/indicator) can otherwise win an
+                                // initial-layout race against RowLayout's
+                                // fillWidth allocation and leave the control
+                                // stuck off the row's trailing edge - the same
+                                // class of bug fixed in NavItem's badge.
                                 Layout.fillWidth: false
+                                Layout.minimumWidth: 160
                                 Layout.preferredWidth: 160
+                                Layout.maximumWidth: 160
                                 textRole: "name"
                                 valueRole: "code"
                                 model: languageManager.availableLanguages()
