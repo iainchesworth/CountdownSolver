@@ -58,16 +58,51 @@ private:
     QElapsedTimer timer_;
 };
 
+// Maps a LanguageManager language code to the Alphabet Solver's game logic
+// should use. Kept here (app layer), not in the library - the library has
+// no business knowing about ISO-ish language codes. Arabic/Hebrew/Yiddish
+// fall back to English until a later phase adds their alphabets.
+[[nodiscard]] const letters::Alphabet& alphabet_for_language(const QString& code) {
+    static const letters::Alphabet english = letters::english_alphabet();
+    static const letters::Alphabet french = letters::french_alphabet();
+    static const letters::Alphabet german = letters::german_alphabet();
+    static const letters::Alphabet spanish = letters::spanish_alphabet();
+    static const letters::Alphabet arabic = letters::arabic_alphabet();
+    static const letters::Alphabet hebrew = letters::hebrew_alphabet();
+    static const letters::Alphabet yiddish = letters::yiddish_alphabet();
+    if (code == QStringLiteral("fr")) return french;
+    if (code == QStringLiteral("de")) return german;
+    if (code == QStringLiteral("es")) return spanish;
+    if (code == QStringLiteral("ar")) return arabic;
+    if (code == QStringLiteral("he")) return hebrew;
+    if (code == QStringLiteral("yi")) return yiddish;
+    return english;
+}
+
+// Maps a language code to its bundled default-dictionary resource path,
+// falling back to the English word list for any language without its own
+// placeholder/real dictionary yet.
+[[nodiscard]] QString dictionary_resource_for_language(const QString& code) {
+    if (code == QStringLiteral("fr")) return QStringLiteral(":/dictionary/words_fr.txt");
+    if (code == QStringLiteral("de")) return QStringLiteral(":/dictionary/words_de.txt");
+    if (code == QStringLiteral("es")) return QStringLiteral(":/dictionary/words_es.txt");
+    if (code == QStringLiteral("ar")) return QStringLiteral(":/dictionary/words_ar.txt");
+    if (code == QStringLiteral("he")) return QStringLiteral(":/dictionary/words_he.txt");
+    if (code == QStringLiteral("yi")) return QStringLiteral(":/dictionary/words_yi.txt");
+    return QStringLiteral(":/dictionary/words_en.txt");
+}
+
 // Loads the word list bundled into the binary as a Qt resource (see
-// src/app/resources/dictionary/words.txt and the qt_add_resources call in
+// src/app/resources/dictionary/ and the qt_add_resources call in
 // src/app/CMakeLists.txt), giving the app a complete dictionary with no user
 // setup required.
-[[nodiscard]] letters::Dictionary load_default_dictionary() {
-    QFile file(QStringLiteral(":/dictionary/words.txt"));
+[[nodiscard]] letters::Dictionary load_default_dictionary(const QString& resource_path,
+                                                           const letters::Alphabet& alphabet) {
+    QFile file(resource_path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qCCritical(lcDictionary) << "failed to open bundled dictionary resource"
                                   << file.fileName() << ":" << file.errorString();
-        return letters::Dictionary::from_words({});
+        return letters::Dictionary::from_words({}, alphabet);
     }
 
     std::vector<std::string> words;
@@ -75,38 +110,12 @@ private:
     while (!stream.atEnd()) {
         words.push_back(stream.readLine().toStdString());
     }
-    letters::Dictionary dictionary = letters::Dictionary::from_words(words);
+    letters::Dictionary dictionary = letters::Dictionary::from_words(words, alphabet);
     if (dictionary.empty()) {
         qCWarning(lcDictionary) << "bundled dictionary resource" << file.fileName()
                                  << "opened but yielded no usable words";
     }
     return dictionary;
-}
-
-// Countdown draws its letter tiles from a Scrabble-weighted pool (the show
-// doesn't publish its own exact counts, but describes the weighting as
-// following Scrabble's); Y is treated as a consonant, matching the show.
-constexpr std::array<std::pair<char, int>, 5> kVowelCounts{{
-    {'a', 9}, {'e', 12}, {'i', 9}, {'o', 8}, {'u', 4},
-}};
-constexpr std::array<std::pair<char, int>, 21> kConsonantCounts{{
-    {'b', 2}, {'c', 2}, {'d', 4}, {'f', 2}, {'g', 3}, {'h', 2}, {'j', 1},
-    {'k', 1}, {'l', 4}, {'m', 2}, {'n', 6}, {'p', 2}, {'q', 1}, {'r', 6},
-    {'s', 4}, {'t', 6}, {'v', 2}, {'w', 2}, {'x', 1}, {'y', 2}, {'z', 1},
-}};
-// The only three legal vowel/consonant splits: at least 3 vowels, at least 4
-// consonants, nine letters total.
-constexpr std::array<std::pair<int, int>, 3> kVowelConsonantSplits{{
-    {3, 6}, {4, 5}, {5, 4},
-}};
-
-template <std::size_t N>
-[[nodiscard]] std::vector<char> expand_tiles(const std::array<std::pair<char, int>, N>& counts) {
-    std::vector<char> tiles;
-    for (const auto& [letter, count] : counts) {
-        tiles.insert(tiles.end(), static_cast<std::size_t>(count), letter);
-    }
-    return tiles;
 }
 
 [[nodiscard]] QString op_symbol(numbers::Op op) {
@@ -124,12 +133,12 @@ template <std::size_t N>
 // distinguishing SolveError is preserved rather than collapsed to
 // std::nullopt: Solver::fullDictionaryStatus() surfaces it to the Settings UI,
 // and it's logged here for anyone diagnosing headlessly.
-[[nodiscard]] Result<letters::Dictionary> load_full_dictionary() {
+[[nodiscard]] Result<letters::Dictionary> load_full_dictionary(const letters::Alphabet& alphabet) {
     const platform::PlatformInfo info = platform::current();
     if (info.config_dir.empty()) {
         return std::unexpected(SolveError::dictionary_not_found);
     }
-    return letters::Dictionary::load_from_file(info.config_dir / "words.txt");
+    return letters::Dictionary::load_from_file(info.config_dir / "words.txt", alphabet);
 }
 
 }  // namespace
@@ -149,15 +158,30 @@ Solver::Solver(QObject* parent, DictionaryLoad load)
     }
 }
 
+void Solver::setLanguageCode(const QString& code) {
+    if (code == language_code_) {
+        return;
+    }
+    language_code_ = code;
+    if (dictionaries_ready_) {
+        loadDictionaries();
+    }
+    // Else: dictionaries haven't loaded yet - the deferred first
+    // loadDictionaries() call (see main.cpp) will pick up language_code_.
+}
+
 void Solver::loadDictionaries() {
-    default_dictionary_ = load_default_dictionary();
-    full_dictionary_ = load_full_dictionary();
+    const letters::Alphabet& alphabet = alphabet_for_language(language_code_);
+    default_dictionary_ = load_default_dictionary(dictionary_resource_for_language(language_code_), alphabet);
+    full_dictionary_ = load_full_dictionary(alphabet);
     dictionaries_ready_ = true;
 
     // A handful of sampled words (not the full list - that would flood the
     // log) confirms at a glance that the intended dictionary loaded and its
     // contents look sane, without adding a dedicated word-dump API.
-    qCDebug(lcDictionary) << "default dictionary loaded:" << default_dictionary_.size()
+    qCDebug(lcDictionary) << "default dictionary loaded for" << language_code_
+                           << "(rack size" << alphabet.rack_size << "):"
+                           << default_dictionary_.size()
                            << "words; sample:" << to_qstringlist(default_dictionary_.sample(500, 5));
     if (full_dictionary_) {
         qCDebug(lcDictionary) << "full dictionary loaded:" << full_dictionary_->size()
@@ -340,32 +364,69 @@ QString Solver::shuffledWord(std::size_t length) const {
         return {};
     }
     std::uniform_int_distribution<std::size_t> pick(0, candidates.size() - 1);
-    std::string word = candidates[pick(rng_)];
-    std::ranges::shuffle(word, rng_);
-    return QString::fromStdString(word).toUpper();
+    // Shuffles decoded codepoints, not raw bytes: a byte-level shuffle would
+    // silently corrupt any multi-byte UTF-8 letter (é, ñ, ä, ...) by
+    // splitting its continuation bytes across the string. Only matters once
+    // a non-English dictionary can supply this word, but it's just as wrong
+    // for English in principle - fixed generally rather than special-cased.
+    std::vector<char32_t> codepoints = letters::decode_utf8(candidates[pick(rng_)]);
+    std::ranges::shuffle(codepoints, rng_);
+    return QString::fromUcs4(codepoints.data(), static_cast<qsizetype>(codepoints.size())).toUpper();
 }
 
 QString Solver::randomRack() const {
-    // Draws from the same weighted tile pools the real game uses, respecting
-    // one of the three legal vowel/consonant splits - not every rack will
-    // yield a rich set of words, same as the real show.
-    std::uniform_int_distribution<std::size_t> pick_split(0, kVowelConsonantSplits.size() - 1);
-    const auto [vowel_count, consonant_count] = kVowelConsonantSplits[pick_split(rng_)];
+    const letters::Alphabet& alphabet = active_dictionary().alphabet();
 
-    std::vector<char> vowels = expand_tiles(kVowelCounts);
-    std::vector<char> consonants = expand_tiles(kConsonantCounts);
-    std::ranges::shuffle(vowels, rng_);
-    std::ranges::shuffle(consonants, rng_);
+    std::vector<int> rack_slots;
+    if (!alphabet.vowel_consonant_splits.empty()) {
+        // Draws from the alphabet's weighted tile pools, respecting one of
+        // its legal vowel/consonant splits - not every rack will yield a
+        // rich set of words, same as the real show.
+        std::uniform_int_distribution<std::size_t> pick_split(
+            0, alphabet.vowel_consonant_splits.size() - 1);
+        const auto [vowel_count, consonant_count] = alphabet.vowel_consonant_splits[pick_split(rng_)];
 
-    std::string rack;
-    rack.append(vowels.begin(), vowels.begin() + vowel_count);
-    rack.append(consonants.begin(), consonants.begin() + consonant_count);
-    std::ranges::shuffle(rack, rng_);
-    return QString::fromStdString(rack).toUpper();
+        std::vector<int> vowel_pool;
+        std::vector<int> consonant_pool;
+        for (std::size_t i = 0; i < alphabet.size; ++i) {
+            std::vector<int>& pool = alphabet.is_vowel[i] ? vowel_pool : consonant_pool;
+            pool.insert(pool.end(), static_cast<std::size_t>(alphabet.letter_weights[i]),
+                        static_cast<int>(i));
+        }
+        std::ranges::shuffle(vowel_pool, rng_);
+        std::ranges::shuffle(consonant_pool, rng_);
+
+        rack_slots.insert(rack_slots.end(), vowel_pool.begin(),
+                     vowel_pool.begin() + static_cast<std::ptrdiff_t>(vowel_count));
+        rack_slots.insert(rack_slots.end(), consonant_pool.begin(),
+                     consonant_pool.begin() + static_cast<std::ptrdiff_t>(consonant_count));
+    } else {
+        // No split defined (abjad scripts): flat weighted draw of rack_size
+        // letter slots with no vowel/consonant constraint.
+        std::vector<int> pool;
+        for (std::size_t i = 0; i < alphabet.size; ++i) {
+            pool.insert(pool.end(), static_cast<std::size_t>(alphabet.letter_weights[i]),
+                        static_cast<int>(i));
+        }
+        std::ranges::shuffle(pool, rng_);
+        const std::size_t take = std::min(alphabet.rack_size, pool.size());
+        rack_slots.assign(pool.begin(), pool.begin() + static_cast<std::ptrdiff_t>(take));
+    }
+    std::ranges::shuffle(rack_slots, rng_);
+
+    QString rack;
+    for (const int slot : rack_slots) {
+        rack += QString::fromStdString(alphabet.display_letters[static_cast<std::size_t>(slot)]);
+    }
+    return rack.toUpper();
 }
 
 QString Solver::randomConundrum() const {
-    return shuffledWord(9);
+    return shuffledWord(active_dictionary().alphabet().rack_size);
+}
+
+int Solver::rackSize() const {
+    return static_cast<int>(active_dictionary().alphabet().rack_size);
 }
 
 QString Solver::versionDetails() const {

@@ -51,3 +51,24 @@ void RackGenerationTest::randomConundrum_returnsNineLetters() {
     const QVariantMap result = solver_.solveConundrum(rack);
     QCOMPARE(result["found"].toBool(), true);
 }
+
+void RackGenerationTest::randomRack_respectsFrenchRackSize() {
+    // A dedicated, separately-constructed Solver rather than reusing the
+    // shared `solver_` fixture - switching that shared instance's language
+    // would leak into every other test class sharing it (see
+    // app_tests_main.cpp). kDeferred + an explicit loadDictionaries() call
+    // (mirroring main.cpp's own startup sequence) avoids wastefully loading
+    // the full English dictionary first, since setLanguageCode() only
+    // triggers a reload once dictionaries have already loaded once.
+    countdown::app::Solver french_solver(nullptr,
+                                          countdown::app::Solver::DictionaryLoad::kDeferred);
+    french_solver.setLanguageCode(QStringLiteral("fr"));
+    french_solver.loadDictionaries();
+
+    QCOMPARE(french_solver.rackSize(), 10);
+
+    const QString rack = french_solver.randomRack();
+    QVERIFY(!rack.isEmpty());
+    QCOMPARE(rack.size(), 10);
+    QCOMPARE(rack, rack.toUpper());
+}

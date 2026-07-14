@@ -90,6 +90,14 @@ needs `dpkg-deb`, `RPM` needs `rpmbuild`; each is skipped if its tool
 isn't on `PATH`. Linux packages rely on a system Qt6 install — Qt's CMake
 deploy step doesn't support Linux.
 
+The `.deb` requires Qt 6.8+ (the app is built against whatever Qt SDK CI
+pins — see [ci.md](ci.md) — and its compiled QML metadata hard-requires
+that major.minor at runtime). That means **Debian 13 (trixie) or newer,
+and Ubuntu 25.04 or newer (including 26.04 LTS)** — Ubuntu 24.04 LTS and
+Debian 12 only ship Qt 6.4 and can't satisfy it via `apt install`. The
+`.rpm` doesn't need a manual version pin: `rpmbuild`'s auto-requires picks
+up Qt's own versioned symbols (`libQt6Core.so.6(Qt_6.8)`) automatically.
+
 Released packages (built via the [release workflow](https://github.com/iainchesworth/CountdownSolver/blob/develop/.github/workflows/release.yml))
 also ship a `SHA256SUMS`/`SHA512SUMS` per platform and a
 [build provenance attestation](https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds)
@@ -114,7 +122,7 @@ stamped into a generated `countdown/version.hpp`. Tag releases as
 The information is surfaced two ways:
 
 ```console
-$ countdown_app --version
+$ countdownsolver --version
 CountdownSolver 0.1.0
   build:  v0.1.0
   commit: 1a2b3c4d...

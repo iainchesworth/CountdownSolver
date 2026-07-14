@@ -1,6 +1,10 @@
 # CountdownSolver
 
 [![CI](https://github.com/iainchesworth/CountdownSolver/actions/workflows/ci.yml/badge.svg)](https://github.com/iainchesworth/CountdownSolver/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/iainchesworth/CountdownSolver/actions/workflows/codeql.yml/badge.svg)](https://github.com/iainchesworth/CountdownSolver/actions/workflows/codeql.yml)
+[![OSV-Scanner](https://github.com/iainchesworth/CountdownSolver/actions/workflows/osv-scanner.yml/badge.svg)](https://github.com/iainchesworth/CountdownSolver/actions/workflows/osv-scanner.yml)
+[![Zizmor](https://github.com/iainchesworth/CountdownSolver/actions/workflows/zizmor.yml/badge.svg)](https://github.com/iainchesworth/CountdownSolver/actions/workflows/zizmor.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/iainchesworth/CountdownSolver/badge)](https://scorecard.dev/viewer/?uri=github.com/iainchesworth/CountdownSolver)
 [![Docs](https://img.shields.io/badge/docs-published-2f7d7b)](https://iainchesworth.github.io/CountdownSolver/)
 [![C++23](https://img.shields.io/badge/C%2B%2B-23-blue)](docs/architecture.md)
 [![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
@@ -40,7 +44,7 @@ git clone --recurse-submodules https://github.com/iainchesworth/CountdownSolver
 cd CountdownSolver
 cmake --preset windows-msvc-debug -DCMAKE_PREFIX_PATH=<qt>/6.8.3/<arch>
 cmake --build --preset windows-msvc-debug
-./build/windows-msvc-debug/bin/countdown_app
+./build/windows-msvc-debug/bin/countdownsolver
 ```
 
 That needs a C++23 compiler, CMake 4+, Ninja, and Qt 6.8 — see

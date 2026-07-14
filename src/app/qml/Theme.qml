@@ -34,13 +34,19 @@ QtObject {
     // Sans has no Arabic or Hebrew glyph coverage. Noto Sans Arabic/Hebrew
     // are bundled as application fonts (see main.cpp) for exactly this.
     // Bound to languageManager.currentLanguage (a NOTIFYing property) rather
-    // than Qt.locale(), so it re-evaluates on every language switch.
+    // than Qt.locale(), so it re-evaluates on every language switch. Guarded
+    // against a null languageManager - a QML binding re-evaluation can land
+    // before the context property is (re)resolved (see LanguageManager's
+    // retranslate()/currentLanguageChanged sequencing) - falling back to the
+    // Latin default until the next re-evaluation picks up the real value.
     readonly property var rtlFonts: ({
         "ar": "Noto Sans Arabic",
         "he": "Noto Sans Hebrew",
         "yi": "Noto Sans Hebrew",
     })
-    readonly property string sans: rtlFonts[languageManager.currentLanguage] || "IBM Plex Sans"
+    readonly property string sans: languageManager
+        ? (rtlFonts[languageManager.currentLanguage] || "IBM Plex Sans")
+        : "IBM Plex Sans"
     readonly property string mono: "IBM Plex Mono"
 
     // ---- geometry ----

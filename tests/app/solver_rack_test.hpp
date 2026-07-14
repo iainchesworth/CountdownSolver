@@ -18,6 +18,7 @@ public:
 private slots:
     void randomRack_respectsWeightedTilePool();
     void randomConundrum_returnsNineLetters();
+    void randomRack_respectsFrenchRackSize();
 
 private:
     countdown::app::Solver& solver_;

@@ -4,136 +4,136 @@
 <context>
     <name>ConundrumPage</name>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="50"/>
-        <source>Scrambled nine</source>
-        <translation type="unfinished">Neuf lettres mélangées</translation>
+        <location filename="../qml/pages/ConundrumPage.qml" line="57"/>
+        <source>Scrambled %1</source>
+        <translation>%1 mélangées</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="76"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="86"/>
         <source>Random conundrum</source>
-        <translation type="unfinished">Anagramme aléatoire</translation>
+        <translation>Anagramme aléatoire</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="78"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="88"/>
         <source>Clear</source>
-        <translation type="unfinished">Effacer</translation>
+        <translation>Effacer</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="83"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="93"/>
         <source>Solve</source>
-        <translation type="unfinished">Résoudre</translation>
+        <translation>Résoudre</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="99"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="109"/>
         <source>Solution</source>
-        <translation type="unfinished">Solution</translation>
+        <translation>Solution</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="114"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="124"/>
         <source>Also valid: %1</source>
-        <translation type="unfinished">Également valide : %1</translation>
+        <translation>Également valide : %1</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="136"/>
-        <source>Enter all nine letters, then press Solve.</source>
-        <translation type="unfinished">Entrez les neuf lettres, puis appuyez sur Résoudre.</translation>
+        <location filename="../qml/pages/ConundrumPage.qml" line="146"/>
+        <source>Enter all %1 letters, then press Solve.</source>
+        <translation>Entrez les %1 lettres, puis appuyez sur Résoudre.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="138"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="148"/>
         <source>Press Solve to reveal the solution.</source>
-        <translation type="unfinished">Appuyez sur Résoudre pour révéler la solution.</translation>
+        <translation>Appuyez sur Résoudre pour révéler la solution.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="139"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="149"/>
         <source>No single word in the list uses these letters.</source>
-        <translation type="unfinished">Aucun mot de la liste n'utilise ces lettres.</translation>
+        <translation>Aucun mot de la liste n&apos;utilise ces lettres.</translation>
     </message>
 </context>
 <context>
     <name>LettersPage</name>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="52"/>
-        <source>Nine letters</source>
-        <translation type="unfinished">Neuf lettres</translation>
+        <location filename="../qml/pages/LettersPage.qml" line="61"/>
+        <source>%1 letters</source>
+        <translation>%1 lettres</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="78"/>
+        <location filename="../qml/pages/LettersPage.qml" line="90"/>
         <source>Random rack</source>
-        <translation type="unfinished">Lettres aléatoires</translation>
+        <translation>Lettres aléatoires</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="80"/>
+        <location filename="../qml/pages/LettersPage.qml" line="92"/>
         <source>Clear</source>
-        <translation type="unfinished">Effacer</translation>
+        <translation>Effacer</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="85"/>
+        <location filename="../qml/pages/LettersPage.qml" line="97"/>
         <source>Solve</source>
-        <translation type="unfinished">Résoudre</translation>
+        <translation>Résoudre</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="112"/>
+        <location filename="../qml/pages/LettersPage.qml" line="124"/>
         <source>Longest words</source>
-        <translation type="unfinished">Mots les plus longs</translation>
+        <translation>Mots les plus longs</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="113"/>
+        <location filename="../qml/pages/LettersPage.qml" line="125"/>
         <source>Longest word</source>
-        <translation type="unfinished">Mot le plus long</translation>
+        <translation>Mot le plus long</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/pages/LettersPage.qml" line="114"/>
+        <location filename="../qml/pages/LettersPage.qml" line="126"/>
         <source>%n letter(s)</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>%n lettre</numerusform>
             <numerusform>%n lettres</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="136"/>
+        <location filename="../qml/pages/LettersPage.qml" line="148"/>
         <source>All valid words</source>
-        <translation type="unfinished">Tous les mots valides</translation>
+        <translation>Tous les mots valides</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="139"/>
+        <location filename="../qml/pages/LettersPage.qml" line="151"/>
         <source>showing %1 of %2</source>
-        <translation type="unfinished">%1 sur %2 affichés</translation>
+        <translation>%1 sur %2 affichés</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/pages/LettersPage.qml" line="140"/>
+        <location filename="../qml/pages/LettersPage.qml" line="152"/>
         <source>%n found</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>%n trouvé</numerusform>
             <numerusform>%n trouvés</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/pages/LettersPage.qml" line="153"/>
+        <location filename="../qml/pages/LettersPage.qml" line="165"/>
         <source>%n letter(s) (%1)</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>%n lettre (%1)</numerusform>
             <numerusform>%n lettres (%1)</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="154"/>
+        <location filename="../qml/pages/LettersPage.qml" line="166"/>
         <source>showing %1</source>
-        <translation type="unfinished">%1 affichés</translation>
+        <translation>%1 affichés</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="195"/>
+        <location filename="../qml/pages/LettersPage.qml" line="207"/>
         <source>No words %1+ letters long. Try a random rack.</source>
-        <translation type="unfinished">Aucun mot de %1 lettres ou plus. Essayez des lettres aléatoires.</translation>
+        <translation>Aucun mot de %1 lettres ou plus. Essayez des lettres aléatoires.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="197"/>
+        <location filename="../qml/pages/LettersPage.qml" line="209"/>
         <source>Press Solve to find words.</source>
-        <translation type="unfinished">Appuyez sur Résoudre pour trouver des mots.</translation>
+        <translation>Appuyez sur Résoudre pour trouver des mots.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="198"/>
-        <source>Type or tap nine letters, then press Solve.</source>
-        <translation type="unfinished">Saisissez neuf lettres, puis appuyez sur Résoudre.</translation>
+        <location filename="../qml/pages/LettersPage.qml" line="210"/>
+        <source>Type or tap %1 letters, then press Solve.</source>
+        <translation>Saisissez %1 lettres, puis appuyez sur Résoudre.</translation>
     </message>
 </context>
 <context>
@@ -141,76 +141,76 @@
     <message>
         <location filename="../qml/Main.qml" line="16"/>
         <source>Countdown Solver</source>
-        <translation type="unfinished">Solveur Countdown</translation>
+        <translation>Solveur Countdown</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="21"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="29"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Numbers</source>
-        <translation type="unfinished">Chiffres</translation>
+        <translation>Chiffres</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="21"/>
+        <location filename="../qml/Main.qml" line="29"/>
         <source>Reach the target using each number at most once.</source>
-        <translation type="unfinished">Atteignez la cible en utilisant chaque nombre au plus une fois.</translation>
+        <translation>Atteignez la cible en utilisant chaque nombre au plus une fois.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="22"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="30"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Letters</source>
-        <translation type="unfinished">Lettres</translation>
+        <translation>Lettres</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="22"/>
+        <location filename="../qml/Main.qml" line="30"/>
         <source>Find every word hiding in your nine letters.</source>
-        <translation type="unfinished">Trouvez tous les mots cachés dans vos neuf lettres.</translation>
+        <translation>Trouvez tous les mots cachés dans vos neuf lettres.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="23"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="31"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Conundrum</source>
-        <translation type="unfinished">Anagramme</translation>
+        <translation>Anagramme</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="23"/>
+        <location filename="../qml/Main.qml" line="31"/>
         <source>Unscramble the nine letters into one word.</source>
-        <translation type="unfinished">Reformez un mot à partir des neuf lettres.</translation>
+        <translation>Reformez un mot à partir des neuf lettres.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="24"/>
-        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="32"/>
+        <location filename="../qml/Main.qml" line="72"/>
         <source>Settings</source>
-        <translation type="unfinished">Paramètres</translation>
+        <translation>Paramètres</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="24"/>
+        <location filename="../qml/Main.qml" line="32"/>
         <source>Tune the solver and how results are shown.</source>
-        <translation type="unfinished">Ajustez le solveur et l'affichage des résultats.</translation>
+        <translation>Ajustez le solveur et l&apos;affichage des résultats.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="58"/>
+        <location filename="../qml/Main.qml" line="66"/>
         <source>Countdown</source>
-        <translation type="unfinished">Countdown</translation>
+        <translation>Countdown</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="59"/>
+        <location filename="../qml/Main.qml" line="67"/>
         <source>SOLVER</source>
-        <translation type="unfinished">SOLVEUR</translation>
+        <translation>SOLVEUR</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="83"/>
+        <location filename="../qml/Main.qml" line="91"/>
         <source>%1 words loaded</source>
-        <translation type="unfinished">%1 mots chargés</translation>
+        <translation>%1 mots chargés</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="84"/>
+        <location filename="../qml/Main.qml" line="92"/>
         <source>Loading…</source>
-        <translation type="unfinished">Chargement…</translation>
+        <translation>Chargement…</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="103"/>
+        <location filename="../qml/Main.qml" line="111"/>
         <source>dirty</source>
-        <translation type="unfinished">modifié</translation>
+        <translation>modifié</translation>
     </message>
 </context>
 <context>
@@ -218,58 +218,58 @@
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="136"/>
         <source>Your six numbers</source>
-        <translation type="unfinished">Vos six nombres</translation>
+        <translation>Vos six nombres</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="187"/>
         <source>Target</source>
-        <translation type="unfinished">Cible</translation>
+        <translation>Cible</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="215"/>
         <source>Random game</source>
-        <translation type="unfinished">Partie aléatoire</translation>
+        <translation>Partie aléatoire</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="217"/>
         <source>Clear</source>
-        <translation type="unfinished">Effacer</translation>
+        <translation>Effacer</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="222"/>
         <location filename="../qml/pages/NumbersPage.qml" line="303"/>
         <source>Solving…</source>
-        <translation type="unfinished">Résolution…</translation>
+        <translation>Résolution…</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="222"/>
         <source>Solve</source>
-        <translation type="unfinished">Résoudre</translation>
+        <translation>Résoudre</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="243"/>
         <source>Best result</source>
-        <translation type="unfinished">Meilleur résultat</translation>
+        <translation>Meilleur résultat</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="262"/>
         <source>Exact</source>
-        <translation type="unfinished">Exact</translation>
+        <translation>Exact</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="262"/>
         <source>%1 away</source>
-        <translation type="unfinished">%1 d'écart</translation>
+        <translation>%1 d&apos;écart</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="272"/>
         <source>Working</source>
-        <translation type="unfinished">Calcul</translation>
+        <translation>Calcul</translation>
     </message>
     <message numerus="yes">
         <location filename="../qml/pages/NumbersPage.qml" line="325"/>
         <source>Choose %n more number(s), then set a target.</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>Choisissez %n nombre de plus, puis définissez une cible.</numerusform>
             <numerusform>Choisissez %n nombres de plus, puis définissez une cible.</numerusform>
         </translation>
@@ -277,148 +277,168 @@
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="327"/>
         <source>Enter a 3-digit target (100–999), then press Solve.</source>
-        <translation type="unfinished">Entrez une cible à 3 chiffres (100–999), puis appuyez sur Résoudre.</translation>
+        <translation>Entrez une cible à 3 chiffres (100–999), puis appuyez sur Résoudre.</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="329"/>
         <source>Target must be between 100 and 999.</source>
-        <translation type="unfinished">La cible doit être comprise entre 100 et 999.</translation>
+        <translation>La cible doit être comprise entre 100 et 999.</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="330"/>
         <source>Press Solve to see the best result.</source>
-        <translation type="unfinished">Appuyez sur Résoudre pour voir le meilleur résultat.</translation>
+        <translation>Appuyez sur Résoudre pour voir le meilleur résultat.</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="29"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="35"/>
         <source>Appearance</source>
-        <translation type="unfinished">Apparence</translation>
+        <translation>Apparence</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="38"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="44"/>
         <source>Theme</source>
-        <translation type="unfinished">Thème</translation>
+        <translation>Thème</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="39"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="45"/>
         <source>Applies across the whole window.</source>
-        <translation type="unfinished">S'applique à toute la fenêtre.</translation>
+        <translation>S&apos;applique à toute la fenêtre.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="43"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="51"/>
         <source>Light</source>
-        <translation type="unfinished">Clair</translation>
+        <translation>Clair</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="43"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="51"/>
         <source>Dark</source>
-        <translation type="unfinished">Sombre</translation>
+        <translation>Sombre</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="60"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="51"/>
+        <source>System</source>
+        <translation>Système</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="68"/>
+        <source>Language</source>
+        <translation>Langue</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="77"/>
+        <source>Display language</source>
+        <translation>Langue d&apos;affichage</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="78"/>
+        <source>Changes menus, labels and messages across the app.</source>
+        <translation>Modifie les menus, libellés et messages dans toute l&apos;application.</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="201"/>
         <source>Solver</source>
-        <translation type="unfinished">Solveur</translation>
+        <translation>Solveur</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="70"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="211"/>
         <source>Minimum word length</source>
-        <translation type="unfinished">Longueur minimale des mots</translation>
+        <translation>Longueur minimale des mots</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="71"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="212"/>
         <source>Shortest words shown in the letters game.</source>
-        <translation type="unfinished">Longueur minimale des mots affichés dans le jeu de lettres.</translation>
+        <translation>Longueur minimale des mots affichés dans le jeu de lettres.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="75"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="216"/>
         <source>3+</source>
-        <translation type="unfinished">3+</translation>
+        <translation>3+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="75"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="216"/>
         <source>4+</source>
-        <translation type="unfinished">4+</translation>
+        <translation>4+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="75"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="216"/>
         <source>5+</source>
-        <translation type="unfinished">5+</translation>
+        <translation>5+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="90"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="231"/>
         <source>Flag when no exact answer</source>
-        <translation type="unfinished">Signaler l'absence de solution exacte</translation>
+        <translation>Signaler l&apos;absence de solution exacte</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="91"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="232"/>
         <source>Highlight the closest result in the numbers game.</source>
-        <translation type="unfinished">Mettre en évidence le résultat le plus proche dans le jeu de nombres.</translation>
+        <translation>Mettre en évidence le résultat le plus proche dans le jeu de nombres.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="127"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="279"/>
         <source>Max words shown</source>
-        <translation type="unfinished">Nombre maximal de mots affichés</translation>
+        <translation>Nombre maximal de mots affichés</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="128"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="280"/>
         <source>Cap the letters-game result list.</source>
-        <translation type="unfinished">Limite la liste de résultats du jeu de lettres.</translation>
+        <translation>Limite la liste de résultats du jeu de lettres.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="169"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="333"/>
         <source>Dictionary</source>
-        <translation type="unfinished">Dictionnaire</translation>
+        <translation>Dictionnaire</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="174"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="338"/>
         <source>Word list</source>
-        <translation type="unfinished">Liste de mots</translation>
+        <translation>Liste de mots</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="184"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="357"/>
         <source>Swap the built-in dictionary for your custom words.txt list.</source>
-        <translation type="unfinished">Remplacez le dictionnaire intégré par votre propre liste words.txt.</translation>
+        <translation>Remplacez le dictionnaire intégré par votre propre liste words.txt.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="193"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="366"/>
         <source>Default</source>
-        <translation type="unfinished">Par défaut</translation>
+        <translation>Par défaut</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="193"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="366"/>
         <source>Custom</source>
-        <translation type="unfinished">Personnalisé</translation>
+        <translation>Personnalisé</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="218"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="391"/>
         <source>About</source>
-        <translation type="unfinished">À propos</translation>
+        <translation>À propos</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="243"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="416"/>
         <source>View on GitHub ↗</source>
-        <translation type="unfinished">Voir sur GitHub ↗</translation>
+        <translation>Voir sur GitHub ↗</translation>
     </message>
 </context>
 <context>
     <name>countdown::app::Solver</name>
     <message>
-        <location filename="../solver.cpp" line="390"/>
+        <location filename="../solver.cpp" line="455"/>
         <source>A custom dictionary is available.</source>
-        <translation type="unfinished">Un dictionnaire personnalisé est disponible.</translation>
+        <translation>Un dictionnaire personnalisé est disponible.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="393"/>
+        <location filename="../solver.cpp" line="458"/>
         <source>A words.txt file was found in the config folder, but it contained no usable words.</source>
-        <translation type="unfinished">Un fichier words.txt a été trouvé dans le dossier de configuration, mais il ne contenait aucun mot utilisable.</translation>
+        <translation>Un fichier words.txt a été trouvé dans le dossier de configuration, mais il ne contenait aucun mot utilisable.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="395"/>
+        <location filename="../solver.cpp" line="460"/>
         <source>Add a words.txt file to the config folder to enable a custom dictionary.</source>
-        <translation type="unfinished">Ajoutez un fichier words.txt au dossier de configuration pour activer un dictionnaire personnalisé.</translation>
+        <translation>Ajoutez un fichier words.txt au dossier de configuration pour activer un dictionnaire personnalisé.</translation>
     </message>
 </context>
 </TS>

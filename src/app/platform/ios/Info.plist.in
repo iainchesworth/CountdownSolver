@@ -3,7 +3,7 @@
 <!--
   Based on CMake's own default MacOSXBundleInfo.plist.in template (the
   ${MACOSX_BUNDLE_*} substitutions below are CMake's, filled in from the
-  countdown_app target's MACOSX_BUNDLE_* properties/target properties at
+  countdownsolver target's MACOSX_BUNDLE_* properties/target properties at
   configure time), plus the tablet/landscape-only keys this app needs.
   This has NOT been verified against a real Qt-for-iOS build (no Mac/Xcode
   available here) - reconcile on the first real CI run, in particular

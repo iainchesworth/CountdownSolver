@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     name: ${{ matrix.name }}
@@ -48,6 +51,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
+          persist-credentials: false
 
       # Cache vcpkg build artefacts between runs via a local binary cache
       # directory (the 'files' provider), persisted across runs by
@@ -119,18 +123,73 @@ jobs:
 
       # Builds the library, tests AND the Qt app (COUNTDOWN_BUILD_APP defaults
       # ON); vcpkg supplies only Catch2, Qt comes from the prebuilt install.
+      # Matrix values are routed through env: rather than expanded directly
+      # into the run: script -- the shell sees them as plain variables
+      # instead of literal template-substituted text, which is the
+      # recommended way to avoid a code-injection-shaped script (even though
+      # these particular values come from this workflow's own matrix, not
+      # attacker-controlled event input). shell: bash keeps $VAR syntax
+      # working the same way on the Windows runner too (default there is
+      # pwsh, where plain $VAR means something else).
       - name: Configure
+        shell: bash
+        env:
+          CMAKE_PRESET: ${{ matrix.preset }}
+          EXTRA_CXX_COMPILER: ${{ matrix.cxx && format('-DCMAKE_CXX_COMPILER={0}', matrix.cxx) || '' }}
+          EXTRA_CXX_FLAGS: ${{ matrix.cxxflags && format('-DCMAKE_CXX_FLAGS={0}', matrix.cxxflags) || '' }}
         run: >
-          cmake --preset ${{ matrix.preset }}
-          -DCMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}
-          ${{ matrix.cxx && format('-DCMAKE_CXX_COMPILER={0}', matrix.cxx) || '' }}
-          ${{ matrix.cxxflags && format('-DCMAKE_CXX_FLAGS={0}', matrix.cxxflags) || '' }}
+          cmake --preset "$CMAKE_PRESET"
+          -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
+          $EXTRA_CXX_COMPILER
+          $EXTRA_CXX_FLAGS
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
 
+      # Re-runs lupdate (via the update_translations target qt_add_translations
+      # generates - see src/app/CMakeLists.txt) against the same sources it
+      # scans at release time, then checks the regenerated .ts files for any
+      # <translation type="unfinished"> - lupdate's marker for a <source>
+      # string that's new, changed, or was never actually translated. Only
+      # runs once (this matrix leg) since it doesn't depend on OS/compiler.
+      # Companion to the 'Translations complete' job below, which checks the
+      # same marker on the committed files without rebuilding - this one
+      # additionally catches a UI string that changed/was added but lupdate
+      # was never re-run to reflect it in src/app/translations.
+      - name: Check translations are up to date
+        if: matrix.name == 'Linux (GCC 15)'
+        shell: bash
+        run: |
+          cmake --build --preset ${{ matrix.preset }} --target update_translations
+          if grep -rl 'type="unfinished"' src/app/translations/*.ts; then
+            echo "::error::lupdate found UI text with no finished translation in the file(s) listed above. Translate/review the new or changed <source> entries in src/app/translations and remove type=\"unfinished\" from their <translation> tag." >&2
+            exit 1
+          fi
+
       - name: Test
         run: ctest --preset ${{ matrix.preset }}
+
+  translations:
+    name: Translations complete
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      # Fast, build-free companion to 'Check translations are up to date'
+      # above: every <translation> in src/app/translations/*.ts must be
+      # reviewed and marked finished (no type="unfinished" attribute) before
+      # it ships. Catches a hand-edited .ts file left unreviewed even when
+      # nothing in the QML/C++ sources changed.
+      - name: Check for unreviewed/untranslated strings
+        run: |
+          if grep -rn 'type="unfinished"' src/app/translations/*.ts; then
+            echo "::error::Found translation(s) marked unfinished (listed above). Translate/review them and remove type=\"unfinished\" from the <translation> tag before merging." >&2
+            exit 1
+          fi
+          echo "All translations reviewed and finished."
 
   android-build:
     name: Android (arm64-v8a, build-only)
@@ -140,6 +199,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
+          persist-credentials: false
 
       # androiddeployqt's generated Gradle project needs a JDK.
       - name: Install JDK 17
@@ -210,6 +270,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
+          persist-credentials: false
 
       - name: Install Qt (iOS kit)
         uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
@@ -241,6 +302,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
+          persist-credentials: false
 
       # See the build-and-test job above for why 'files' + actions/cache
       # replaces the removed x-gha binary caching backend, and why this is
@@ -284,7 +346,7 @@ jobs:
       - name: Configure
         run: >
           cmake --preset linux-gcc-coverage
-          -DCMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}
+          -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
           -DCMAKE_CXX_COMPILER=g++-15
 
       - name: Build

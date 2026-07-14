@@ -46,7 +46,7 @@ cmake --preset windows-msvc-debug -DCMAKE_PREFIX_PATH=<qt>/6.8.3/<arch>
 cmake --build --preset windows-msvc-debug
 
 # Run the app.
-./build/windows-msvc-debug/bin/countdown_app
+./build/windows-msvc-debug/bin/countdownsolver
 ```
 
 Just want the solver library and tests, no Qt/GUI?
