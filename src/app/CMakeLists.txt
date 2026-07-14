@@ -263,10 +263,20 @@ endif()
 # time: it inspects the built target and emits an install(SCRIPT) that copies
 # the Qt libraries/plugins the app actually uses next to it (or into the .app
 # bundle on macOS). This is separate from the POST_BUILD windeployqt step
-# above, which targets the build tree, not an install/package tree. Linux has
-# no supported deploy step here, so NO_UNSUPPORTED_PLATFORM_ERROR turns that
-# into a no-op instead of a configure error; Linux packages rely on a system
-# Qt6 install (see the DEB dependency in cmake/Packaging.cmake).
+# above, which targets the build tree, not an install/package tree.
+#
+# Linux gets none of this: it has no supported deploy step, and Linux
+# packages rely on a system Qt6 install instead (see the DEB/RPM Depends in
+# cmake/Packaging.cmake). NO_UNSUPPORTED_PLATFORM_ERROR would turn the
+# unsupported-platform library copy into a no-op rather than a configure
+# error, but it does NOT stop qt_generate_deploy_app_script() from still
+# writing a "Prefix = .." qt.conf next to the installed binary - confirmed
+# empirically: that qt.conf, meant for a self-contained relocatable bundle
+# (Windows/macOS), instead misdirects the system Qt6 library's QML import
+# path lookup on Linux (e.g. to "/usr/qml" instead of the real multiarch
+# "/usr/lib/x86_64-linux-gnu/qt6/qml"), breaking QtQuick.Controls at
+# startup even when a compatible Qt6 is installed. Skip the whole call on
+# Linux, where it has nothing useful left to do anyway.
 # ---------------------------------------------------------------------------
 include(GNUInstallDirs)
 
@@ -274,8 +284,10 @@ install(TARGETS countdown_app
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
     BUNDLE DESTINATION ".")
 
-qt_generate_deploy_app_script(
-    TARGET countdown_app
-    OUTPUT_SCRIPT COUNTDOWN_APP_DEPLOY_SCRIPT
-    NO_UNSUPPORTED_PLATFORM_ERROR)
-install(SCRIPT "${COUNTDOWN_APP_DEPLOY_SCRIPT}")
+if(WIN32 OR APPLE)
+    qt_generate_deploy_app_script(
+        TARGET countdown_app
+        OUTPUT_SCRIPT COUNTDOWN_APP_DEPLOY_SCRIPT
+        NO_UNSUPPORTED_PLATFORM_ERROR)
+    install(SCRIPT "${COUNTDOWN_APP_DEPLOY_SCRIPT}")
+endif()
