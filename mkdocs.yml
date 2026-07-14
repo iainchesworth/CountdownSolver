@@ -41,6 +41,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - How to play: how-to-play.md
   - Getting started: getting-started.md
   - Building & packaging: building.md
   - Testing & coverage: testing.md
