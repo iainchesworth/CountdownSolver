@@ -72,7 +72,14 @@ add_dependencies(countdown_app_core countdown_version)
 qt_add_resources(countdown_app_core "dictionary"
     PREFIX "/dictionary"
     BASE "resources/dictionary"
-    FILES resources/dictionary/words.txt)
+    FILES
+        resources/dictionary/words.txt
+        resources/dictionary/words_fr.txt
+        resources/dictionary/words_de.txt
+        resources/dictionary/words_es.txt
+        resources/dictionary/words_ar.txt
+        resources/dictionary/words_he.txt
+        resources/dictionary/words_yi.txt)
 
 # ---------------------------------------------------------------------------
 # countdown_app_qml - the "Countdown" QML module (Main shell, Theme/AppState

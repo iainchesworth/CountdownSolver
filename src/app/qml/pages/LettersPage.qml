@@ -29,6 +29,14 @@ Item {
         function onMaxResultsChanged()      { if (root.result !== null) root.recalc() }
         function onUseFullDictionaryChanged() { if (root.result !== null) root.recalc() }
     }
+    // The rack's own length constraint (solver.rackSize()) can change on a
+    // language switch (French draws 10, not 9) - a rack built for the old
+    // language may no longer be a valid length, so clear rather than leave
+    // stale state.
+    Connections {
+        target: languageManager
+        function onCurrentLanguageChanged() { root.clearAll() }
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -49,11 +57,14 @@ Item {
                     id: lc
                     anchors.fill: parent; anchors.margins: 18
                     spacing: 12
-                    SectionLabel { text: qsTr("Nine letters") }
+                    SectionLabel {
+                        text: qsTr("%1 letters").arg(
+                            (solver.dictionariesReady, solver.rackSize()))
+                    }
                     RowLayout {
                         Layout.fillWidth: true; spacing: 6
                         Repeater {
-                            model: 9
+                            model: (solver.dictionariesReady, solver.rackSize())
                             delegate: Tile {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 58
@@ -69,6 +80,7 @@ Item {
                 id: rackInput
                 Layout.fillWidth: true
                 active: root.isCurrentPage
+                maxLetters: (solver.dictionariesReady, solver.rackSize())
                 onSolveRequested: root.recalc()
                 onCleared: root.result = null
             }
@@ -195,7 +207,8 @@ Item {
                           ? qsTr("No words %1+ letters long. Try a random rack.").arg(AppState.minLen)
                           : (root.letters.length > 0
                              ? qsTr("Press Solve to find words.")
-                             : qsTr("Type or tap nine letters, then press Solve."))
+                             : qsTr("Type or tap %1 letters, then press Solve.").arg(
+                                 (solver.dictionariesReady, solver.rackSize())))
                     color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
                 }
             }
