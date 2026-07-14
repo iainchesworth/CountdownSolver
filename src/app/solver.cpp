@@ -89,7 +89,7 @@ private:
     if (code == QStringLiteral("ar")) return QStringLiteral(":/dictionary/words_ar.txt");
     if (code == QStringLiteral("he")) return QStringLiteral(":/dictionary/words_he.txt");
     if (code == QStringLiteral("yi")) return QStringLiteral(":/dictionary/words_yi.txt");
-    return QStringLiteral(":/dictionary/words.txt");
+    return QStringLiteral(":/dictionary/words_en.txt");
 }
 
 // Loads the word list bundled into the binary as a Qt resource (see
