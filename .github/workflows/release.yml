@@ -231,9 +231,17 @@ jobs:
         id: notes
         run: |
           version="${GITHUB_REF_NAME#v}"
-          awk -v ver="$version" '
-            $0 ~ "^## \\[" ver "\\]" { found=1; next }
-            found && /^## \[/ { exit }
+          # Plain substring matching (index), not regex: a dynamic regex
+          # built from "\\[" + version + "\\]" silently mismatches under
+          # gawk's regex compilation (backslash-escaped brackets don't
+          # survive being embedded in a runtime string-to-regex, so
+          # "[0.1.0-beta.1]" gets compiled as a *character class* covering
+          # a wide ASCII range instead of a literal bracket) - confirmed by
+          # testing it swallows unrelated lines and fails to stop at the
+          # next version heading. index() sidesteps escaping entirely.
+          awk -v hdr="## [$version]" '
+            index($0, hdr) == 1 { found=1; next }
+            found && index($0, "## [") == 1 { exit }
             found { print }
           ' CHANGELOG.md > /tmp/release-notes.md
           if [ -s /tmp/release-notes.md ]; then
@@ -250,16 +258,19 @@ jobs:
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_REPO: ${{ github.repository }}
+          HAS_NOTES: ${{ steps.notes.outputs.has_notes }}
         run: |
           shopt -s globstar
-          if [ "${{ steps.notes.outputs.has_notes }}" = "true" ]; then
-            gh release create "${{ github.ref_name }}" dist/**/* \
-              --repo "${{ github.repository }}" \
+          if [ "$HAS_NOTES" = "true" ]; then
+            gh release create "$RELEASE_TAG" dist/**/* \
+              --repo "$RELEASE_REPO" \
               --draft \
               --notes-file /tmp/release-notes.md
           else
-            gh release create "${{ github.ref_name }}" dist/**/* \
-              --repo "${{ github.repository }}" \
+            gh release create "$RELEASE_TAG" dist/**/* \
+              --repo "$RELEASE_REPO" \
               --draft \
               --generate-notes
           fi
