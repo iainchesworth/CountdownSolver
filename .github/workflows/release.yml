@@ -3,10 +3,18 @@ name: Release
 # Builds redistributable packages (via CPack) and publishes a GitHub Release
 # whenever a semver tag is pushed. Tags are expected on 'main', at the end of
 # a gitflow release/hotfix finish (see memory: countdown-build-env).
+#
+# workflow_dispatch lets the whole packaging pipeline - including the Qt
+# dependency check below - be run on demand from any branch, so packaging
+# changes can be validated before cutting a real version tag rather than
+# discovering a break only once a tag is pushed. Manual runs stop after the
+# package job (see the publish job's if:); they never create a GitHub
+# Release.
 
 on:
   push:
     tags: ["v*.*.*"]
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -195,6 +203,10 @@ jobs:
   publish:
     name: Publish GitHub Release
     needs: package
+    # Manual (workflow_dispatch) runs are for validating the packaging
+    # pipeline only - e.g. that DEB/RPM still declare a Qt dependency, see
+    # cmake/Packaging.cmake - and must never create a draft GitHub Release.
+    if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     steps:
       - name: Download all packages

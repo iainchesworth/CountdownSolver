@@ -39,6 +39,24 @@ if(COUNTDOWN_BUILD_APP)
             set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR}")
             set(CPACK_DEBIAN_PACKAGE_SECTION "games")
             set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+
+            # SHLIBDEPS alone is not enough: dpkg-shlibdeps resolves a shared
+            # library to a Depends entry by asking dpkg which *installed apt
+            # package* owns that .so file. Qt here comes from a private
+            # prebuilt archive (see docs/ci.md / ci/install-qt.*), not an apt
+            # package, so dpkg-shlibdeps silently drops every libQt6*.so it
+            # finds - confirmed empirically: a real build produced a .deb
+            # whose Depends field had every non-Qt shared library correctly
+            # listed and *zero* Qt entries. Declare the actual Ubuntu runtime
+            # packages explicitly; SHLIBDEPS still appends whatever it can
+            # resolve on its own (glibc, X11, fontconfig, ...) alongside
+            # these. Depending on just these three is enough: apt resolves
+            # libqt6core6t64/libqt6gui6t64/libqt6qml6/etc. transitively via
+            # their own Depends.
+            set(CPACK_DEBIAN_PACKAGE_DEPENDS
+                "libqt6quick6"
+                "libqt6quickcontrols2-6"
+                "libqt6svg6")
         endif()
         find_program(COUNTDOWN_RPMBUILD_EXECUTABLE rpmbuild)
         if(COUNTDOWN_RPMBUILD_EXECUTABLE)
