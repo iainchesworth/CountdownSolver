@@ -170,16 +170,16 @@ TEST_CASE("every alphabet rejects codepoints outside its own script", "[alphabet
     // A Cyrillic letter (Cyrillic Ya, U+042F) and a CJK ideograph
     // (U+4E2D, "middle") belong to no alphabet in this library, Latin or
     // otherwise.
-    for (const Alphabet alphabet : {english_alphabet(), french_alphabet(), german_alphabet(),
-                                     spanish_alphabet(), arabic_alphabet(), hebrew_alphabet(),
-                                     yiddish_alphabet()}) {
+    for (const Alphabet& alphabet : {english_alphabet(), french_alphabet(), german_alphabet(),
+                                      spanish_alphabet(), arabic_alphabet(), hebrew_alphabet(),
+                                      yiddish_alphabet()}) {
         REQUIRE(alphabet.fold(0x42F).count == 0);
         REQUIRE(alphabet.fold(0x4E2D).count == 0);
         REQUIRE(alphabet.fold(U'3').count == 0);
     }
     // The abjad alphabets also reject plain Latin letters - they have no
     // ascii_lower_index() fallback the way french/german/spanish do.
-    for (const Alphabet alphabet : {arabic_alphabet(), hebrew_alphabet(), yiddish_alphabet()}) {
+    for (const Alphabet& alphabet : {arabic_alphabet(), hebrew_alphabet(), yiddish_alphabet()}) {
         REQUIRE(alphabet.fold(U'a').count == 0);
     }
 }
