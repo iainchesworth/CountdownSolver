@@ -44,11 +44,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-15
 
+      # Sanitizers disabled: CodeQL's build tracer sets its own LD_PRELOAD for
+      # the whole build step, which collides with ASan needing to be first in
+      # the preload chain. That breaks catch_discover_tests' build-time test
+      # listing (it runs the freshly-linked binary to enumerate CTest cases).
+      # CodeQL is pure static analysis and gets nothing from ASan/UBSan being
+      # enabled here; see docs/building.md for the flag, and
+      # linux-gcc-coverage in CMakePresets.json for the same tradeoff made
+      # for the same reason (ASan vs. gcov).
       - name: Configure (library + tests only, no Qt app)
         run: >
           cmake --preset linux-gcc-debug
           -DCMAKE_CXX_COMPILER=g++-15
           -DCOUNTDOWN_BUILD_APP=OFF
+          -DCOUNTDOWN_ENABLE_SANITIZERS=OFF
 
       - name: Build
         run: cmake --build --preset linux-gcc-debug
