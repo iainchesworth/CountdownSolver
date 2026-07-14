@@ -25,7 +25,15 @@ target_link_libraries(countdown_unit_tests
 
 countdown_deploy_sanitizer_runtime(countdown_unit_tests)
 
-catch_discover_tests(countdown_unit_tests)
+# DISCOVERY_MODE PRE_TEST: default POST_BUILD discovery runs the freshly
+# linked (ASan-instrumented) binary immediately after build to list its
+# tests. That collides with CodeQL's manual build-mode analysis, which
+# preloads its own trace library (LD_PRELOAD) into every subprocess of
+# `cmake --build` - ASan then aborts because it isn't the first-loaded
+# library. PRE_TEST defers discovery to `ctest` invocation instead, which
+# CodeQL's job never runs, while ci.yml's `ctest --preset ...` step (which
+# does) is unaffected either way.
+catch_discover_tests(countdown_unit_tests DISCOVERY_MODE PRE_TEST)
 
 # --- Integration tests: exercise several components together --------------
 add_executable(countdown_integration_tests
@@ -44,7 +52,9 @@ target_link_libraries(countdown_integration_tests
 
 countdown_deploy_sanitizer_runtime(countdown_integration_tests)
 
-catch_discover_tests(countdown_integration_tests)
+# See the DISCOVERY_MODE comment above countdown_unit_tests's
+# catch_discover_tests call.
+catch_discover_tests(countdown_integration_tests DISCOVERY_MODE PRE_TEST)
 
 # ---------------------------------------------------------------------------
 # Benchmarks: Catch2's own BENCHMARK() macros, timing the library's hot

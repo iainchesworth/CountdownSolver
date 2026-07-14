@@ -44,16 +44,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-15
 
-      # Tests are excluded too (not just the Qt app): CMake's post-build
-      # catch_discover_tests step runs the ASan-instrumented test binary to
-      # enumerate cases, and CodeQL's LD_PRELOAD tracer conflicts with ASan
-      # needing to be the first-loaded library, aborting the build.
-      - name: Configure (library only, no Qt app or tests)
+      - name: Configure (library + tests only, no Qt app)
         run: >
           cmake --preset linux-gcc-debug
           -DCMAKE_CXX_COMPILER=g++-15
           -DCOUNTDOWN_BUILD_APP=OFF
-          -DCOUNTDOWN_BUILD_TESTS=OFF
 
       - name: Build
         run: cmake --build --preset linux-gcc-debug
