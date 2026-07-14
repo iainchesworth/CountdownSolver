@@ -1,6 +1,10 @@
 # CountdownSolver
 
 [![CI](https://github.com/iainchesworth/CountdownSolver/actions/workflows/ci.yml/badge.svg)](https://github.com/iainchesworth/CountdownSolver/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/iainchesworth/CountdownSolver/actions/workflows/codeql.yml/badge.svg)](https://github.com/iainchesworth/CountdownSolver/actions/workflows/codeql.yml)
+[![OSV-Scanner](https://github.com/iainchesworth/CountdownSolver/actions/workflows/osv-scanner.yml/badge.svg)](https://github.com/iainchesworth/CountdownSolver/actions/workflows/osv-scanner.yml)
+[![Zizmor](https://github.com/iainchesworth/CountdownSolver/actions/workflows/zizmor.yml/badge.svg)](https://github.com/iainchesworth/CountdownSolver/actions/workflows/zizmor.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/iainchesworth/CountdownSolver/badge)](https://scorecard.dev/viewer/?uri=github.com/iainchesworth/CountdownSolver)
 [![Docs](https://img.shields.io/badge/docs-published-2f7d7b)](https://iainchesworth.github.io/CountdownSolver/)
 [![C++23](https://img.shields.io/badge/C%2B%2B-23-blue)](docs/architecture.md)
 [![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)

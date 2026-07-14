@@ -9,6 +9,10 @@ on:
     types: [opened, reopened, synchronize, edited]
     branches: [main, develop]
 
+# This job only reads github.head_ref/base_ref from the event context -- no
+# checkout, no API calls -- so it needs no token access at all.
+permissions: {}
+
 jobs:
   check-branch-name:
     name: Validate gitflow branch name
