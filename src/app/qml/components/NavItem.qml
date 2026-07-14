@@ -13,8 +13,12 @@ Button {
     implicitHeight: 44
     topPadding: 0
     bottomPadding: 0
-    leftPadding: 0
-    rightPadding: 0
+    // Leading-edge inset via padding (not an anchor margin on contentItem) so
+    // Control's own padding-driven content geometry is the only thing sizing
+    // contentItem - no competing anchors.fill binding to race against it.
+    // `mirrored` is Control's built-in RTL flag, so this still flips correctly.
+    leftPadding: control.mirrored ? 0 : 12
+    rightPadding: control.mirrored ? 12 : 0
 
     background: Rectangle {
         radius: Theme.radiusControl
@@ -31,12 +35,18 @@ Button {
     }
 
     contentItem: RowLayout {
-        anchors.fill: parent
-        anchors.leftMargin: 12
         spacing: 11
         Rectangle {
+            // Fixed min/max so a long label in a wide script (e.g. Yiddish
+            // "Settings") can never squeeze this badge - RowLayout shrinks
+            // *every* child proportionally once total preferred width
+            // overflows, and preferredWidth alone doesn't stop that.
+            Layout.minimumWidth: 26
             Layout.preferredWidth: 26
+            Layout.maximumWidth: 26
+            Layout.minimumHeight: 26
             Layout.preferredHeight: 26
+            Layout.maximumHeight: 26
             Layout.alignment: Qt.AlignVCenter
             radius: 7
             color: control.active ? Theme.accent : Theme.tile
@@ -53,12 +63,14 @@ Button {
         }
         Text {
             Layout.fillWidth: true
+            Layout.minimumWidth: 0
             Layout.alignment: Qt.AlignVCenter
             text: control.text
             font.family: Theme.sans
             font.pixelSize: 14
             font.weight: control.active ? Font.DemiBold : Font.Medium
             color: control.active ? Theme.accent : Theme.ink
+            elide: Text.ElideRight
         }
     }
 }
