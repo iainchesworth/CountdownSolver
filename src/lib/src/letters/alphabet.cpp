@@ -330,15 +330,31 @@ void apply_weights(std::array<int, kMaxAlphabetSize>& weights,
 }  // namespace
 
 Alphabet english_alphabet() noexcept {
+    // Every field listed explicitly via designated initializers, even ones
+    // immediately overwritten below: GCC/Clang under -Werror both warn on
+    // an aggregate init that doesn't cover every member (GCC's
+    // -Wmissing-field-initializers fires on positional init that omits
+    // trailing members; Clang's stricter -Wmissing-designated-field-
+    // initializers fires even on designated init that skips some).
+    // MSVC has no equivalent warning either way. The real values for
+    // display_letters/letter_weights/is_vowel/vowel_consonant_splits/
+    // rack_size are set right after via apply_weights()/direct assignment.
     Alphabet alphabet{
-        AlphabetId::english, 26,
-        +[](char32_t cp) noexcept -> FoldedLetters {
+        .id = AlphabetId::english,
+        .size = 26,
+        .fold = +[](char32_t cp) noexcept -> FoldedLetters {
             if (cp > 0x7F) {
                 return none();
             }
             const int index = letter_index(static_cast<char>(cp));
             return index < 0 ? none() : one(index);
-        }};
+        },
+        .display_letters = {},
+        .letter_weights = {},
+        .is_vowel = {},
+        .vowel_consonant_splits = {},
+        .rack_size = 9,
+    };
     alphabet.display_letters = ascii_display_letters();
     alphabet.rack_size = 9;
     // Countdown draws its letter tiles from a Scrabble-weighted pool (the
@@ -380,8 +396,10 @@ Alphabet english_alphabet() noexcept {
 }
 
 Alphabet french_alphabet() noexcept {
-    Alphabet alphabet{AlphabetId::french, 26,
-                      +[](char32_t cp) noexcept { return fold_french(cp); }};
+    Alphabet alphabet{.id = AlphabetId::french, .size = 26,
+                      .fold = +[](char32_t cp) noexcept { return fold_french(cp); },
+                      .display_letters = {}, .letter_weights = {}, .is_vowel = {},
+                      .vowel_consonant_splits = {}, .rack_size = 9};
     alphabet.display_letters = ascii_display_letters();
     alphabet.rack_size = 10;  // Des chiffres et des lettres draws 10, not 9.
     // Sourced from the published French Scrabble tile distribution
@@ -419,8 +437,10 @@ Alphabet french_alphabet() noexcept {
 }
 
 Alphabet german_alphabet() noexcept {
-    Alphabet alphabet{AlphabetId::german, 29,
-                      +[](char32_t cp) noexcept { return fold_german(cp); }};
+    Alphabet alphabet{.id = AlphabetId::german, .size = 29,
+                      .fold = +[](char32_t cp) noexcept { return fold_german(cp); },
+                      .display_letters = {}, .letter_weights = {}, .is_vowel = {},
+                      .vowel_consonant_splits = {}, .rack_size = 9};
     alphabet.display_letters = ascii_display_letters();
     alphabet.display_letters.insert(alphabet.display_letters.end(),
                                      {"ä", "ö", "ü"});  // ä, ö, ü
@@ -465,8 +485,10 @@ Alphabet german_alphabet() noexcept {
 }
 
 Alphabet spanish_alphabet() noexcept {
-    Alphabet alphabet{AlphabetId::spanish, 27,
-                      +[](char32_t cp) noexcept { return fold_spanish(cp); }};
+    Alphabet alphabet{.id = AlphabetId::spanish, .size = 27,
+                      .fold = +[](char32_t cp) noexcept { return fold_spanish(cp); },
+                      .display_letters = {}, .letter_weights = {}, .is_vowel = {},
+                      .vowel_consonant_splits = {}, .rack_size = 9};
     alphabet.display_letters = ascii_display_letters();
     alphabet.display_letters.push_back("ñ");  // ñ
     alphabet.rack_size = 9;  // Cifras y letras plays 9, same as English.
@@ -508,8 +530,10 @@ Alphabet spanish_alphabet() noexcept {
 }
 
 Alphabet arabic_alphabet() noexcept {
-    Alphabet alphabet{AlphabetId::arabic, 29,
-                      +[](char32_t cp) noexcept { return fold_arabic(cp); }};
+    Alphabet alphabet{.id = AlphabetId::arabic, .size = 29,
+                      .fold = +[](char32_t cp) noexcept { return fold_arabic(cp); },
+                      .display_letters = {}, .letter_weights = {}, .is_vowel = {},
+                      .vowel_consonant_splits = {}, .rack_size = 9};
     // alif, baa, taa, thaa, jiim, Haa, khaa, daal, dhaal, raa, zaay, siin,
     // shiin, Saad, Daad, Taa, Zaa, ain, ghain, faa, qaaf, kaaf, laam, miim,
     // nuun, haa, waaw, yaa, taa marbuta.
@@ -577,8 +601,10 @@ Alphabet arabic_alphabet() noexcept {
 }
 
 Alphabet hebrew_alphabet() noexcept {
-    Alphabet alphabet{AlphabetId::hebrew, 22,
-                      +[](char32_t cp) noexcept { return fold_hebrew(cp); }};
+    Alphabet alphabet{.id = AlphabetId::hebrew, .size = 22,
+                      .fold = +[](char32_t cp) noexcept { return fold_hebrew(cp); },
+                      .display_letters = {}, .letter_weights = {}, .is_vowel = {},
+                      .vowel_consonant_splits = {}, .rack_size = 9};
     // alef, bet, gimel, dalet, he, vav, zayin, het, tet, yod, kaf, lamed,
     // mem, nun, samekh, ayin, pe, tsadi, qof, resh, shin, tav.
     alphabet.display_letters = {
@@ -620,8 +646,10 @@ Alphabet hebrew_alphabet() noexcept {
 }
 
 Alphabet yiddish_alphabet() noexcept {
-    Alphabet alphabet{AlphabetId::yiddish, 22,
-                      +[](char32_t cp) noexcept { return fold_yiddish(cp); }};
+    Alphabet alphabet{.id = AlphabetId::yiddish, .size = 22,
+                      .fold = +[](char32_t cp) noexcept { return fold_yiddish(cp); },
+                      .display_letters = {}, .letter_weights = {}, .is_vowel = {},
+                      .vowel_consonant_splits = {}, .rack_size = 9};
     // Same 22-letter Hebrew-script base and display glyphs as
     // hebrew_alphabet() - Yiddish's three extra digraph letters decompose
     // to two of these existing slots rather than needing dedicated ones
