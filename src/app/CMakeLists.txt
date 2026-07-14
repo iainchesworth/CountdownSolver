@@ -12,8 +12,14 @@ qt_standard_project_setup(REQUIRES 6.5)
 qt_policy(SET QTP0004 NEW)
 
 # Select the single platform implementation for the target OS. No #ifdefs: CMake
-# decides which translation unit is compiled.
-if(WIN32)
+# decides which translation unit is compiled. ANDROID/IOS must be checked
+# before WIN32/APPLE/UNIX: CMake sets ANDROID alongside UNIX, and IOS alongside
+# APPLE, when cross-compiling for those targets.
+if(ANDROID)
+    set(COUNTDOWN_PLATFORM_SOURCE platform/android/platform_android.cpp)
+elseif(IOS)
+    set(COUNTDOWN_PLATFORM_SOURCE platform/ios/platform_ios.cpp)
+elseif(WIN32)
     set(COUNTDOWN_PLATFORM_SOURCE platform/windows/platform_windows.cpp)
 elseif(APPLE)
     set(COUNTDOWN_PLATFORM_SOURCE platform/macos/platform_macos.cpp)
@@ -191,6 +197,45 @@ qt_add_executable(countdownsolver
     language_manager.hpp
     ${COUNTDOWN_SOLVER_ICON_SOURCE})
 
+# KNOWN FAILURE (iOS/Xcode only, not yet resolved - see docs/ci.md): Xcode's
+# "new build system" refuses to generate the project because two targets -
+# CountdownSolver_lrelease (from qt_add_translations() above) and
+# countdownsolver_qml_countdownsolver_qml_translations (created internally
+# by qt_add_executable()'s app-bundle finalizer when it embeds
+# countdownsolver_qml's translations) - both independently produce
+# build/<preset>/src/app/countdown_<lang>.qm, with neither a dependency of
+# the other. Ninja (every other platform here) tolerates a shared output
+# across targets; Xcode's new build system does not.
+#
+# The obvious fix - add_dependencies() between the two targets once both
+# exist - does not work: countdownsolver_qml_countdownsolver_qml_translations
+# never becomes visible to CMake script code, even via a self-rescheduling
+# cmake_language(DEFER CALL) retried 10 times past qt_add_executable(). It's
+# most likely synthesized by the Xcode generator itself while emitting the
+# .xcodeproj, after all configure-time scripting (including DEFER CALL) has
+# already run - which would make it fundamentally unreachable from script,
+# not just awkward to reach. Needs a real Xcode/Apple Developer environment
+# to investigate further (e.g. whether renaming the QML module's I18N
+# handling avoids the second target being created at all); none is
+# available in this project's day-to-day dev environment - see docs/ci.md.
+
+# QT_ANDROID_PACKAGE_SOURCE_DIR points Qt's CMake integration at the directory
+# holding AndroidManifest.xml (and androiddeployqt's other package inputs);
+# MACOSX_BUNDLE_INFO_PLIST is CMake's own bundle-Info.plist mechanism, which
+# also drives iOS bundles under the Xcode generator (MACOSX_BUNDLE ON below
+# already triggers bundle output there). TARGETED_DEVICE_FAMILY "2" restricts
+# the iOS build to iPad only, matching the tablet-only scope of this app.
+if(ANDROID)
+    set_target_properties(countdownsolver PROPERTIES
+        QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/platform/android")
+endif()
+
+if(IOS)
+    set_target_properties(countdownsolver PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/platform/ios/Info.plist.in"
+        XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2")
+endif()
+
 # Noto Sans Arabic/Hebrew (SIL Open Font License - see the accompanying
 # *-OFL.txt files), bundled so Arabic/Hebrew/Yiddish text renders with proper
 # glyph coverage regardless of what's installed on the host; IBM Plex Sans
@@ -277,17 +322,27 @@ endif()
 # "/usr/lib/x86_64-linux-gnu/qt6/qml"), breaking QtQuick.Controls at
 # startup even when a compatible Qt6 is installed. Skip the whole call on
 # Linux, where it has nothing useful left to do anyway.
+#
+# Mobile (ANDROID/IOS) skips this entire block, same rationale as the CPack
+# early-return in cmake/Packaging.cmake: real mobile packaging is
+# androiddeployqt's generated APK/AAB and Xcode's archive+export, neither of
+# which goes through `cmake --install`. Worse, on Android qt_add_executable()
+# produces a MODULE (shared library) target rather than a true executable,
+# so install(TARGETS ... RUNTIME DESTINATION ...) with no LIBRARY DESTINATION
+# is a hard configure-time error there.
 # ---------------------------------------------------------------------------
-include(GNUInstallDirs)
+if(NOT (ANDROID OR IOS))
+    include(GNUInstallDirs)
 
-install(TARGETS countdownsolver
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-    BUNDLE DESTINATION ".")
+    install(TARGETS countdownsolver
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        BUNDLE DESTINATION ".")
 
-if(WIN32 OR APPLE)
-    qt_generate_deploy_app_script(
-        TARGET countdownsolver
-        OUTPUT_SCRIPT COUNTDOWN_SOLVER_DEPLOY_SCRIPT
-        NO_UNSUPPORTED_PLATFORM_ERROR)
-    install(SCRIPT "${COUNTDOWN_SOLVER_DEPLOY_SCRIPT}")
+    if(WIN32 OR APPLE)
+        qt_generate_deploy_app_script(
+            TARGET countdownsolver
+            OUTPUT_SCRIPT COUNTDOWN_SOLVER_DEPLOY_SCRIPT
+            NO_UNSUPPORTED_PLATFORM_ERROR)
+        install(SCRIPT "${COUNTDOWN_SOLVER_DEPLOY_SCRIPT}")
+    endif()
 endif()

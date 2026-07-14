@@ -191,6 +191,109 @@ jobs:
           fi
           echo "All translations reviewed and finished."
 
+  android-build:
+    name: Android (arm64-v8a, build-only)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      # androiddeployqt's generated Gradle project needs a JDK.
+      - name: Install JDK 17
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Installs the Android SDK cmdline-tools/platform-tools and sets
+      # ANDROID_HOME/ANDROID_SDK_ROOT; the NDK itself is a separate
+      # sdkmanager install below (version pinned once confirmed against Qt
+      # 6.8.3's documented compatibility - see docs/ci.md).
+      - name: Install Android SDK
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+
+      - name: Install Android NDK
+        run: sdkmanager --install "ndk;26.1.10909125"
+
+      # Two Qt kits: a desktop one for QT_HOST_PATH (cross-build host tools -
+      # moc, qmlcachegen, ...) and the Android one actually targeted.
+      # Both installs set the same QT_ROOT_DIR env var, so each is captured
+      # into its own name immediately - the second install() would otherwise
+      # silently clobber the first before both are needed below (host Qt for
+      # QT_HOST_PATH/cross-build tools, Android Qt for QT_ANDROID_ROOT).
+      - name: Install Qt (desktop host kit)
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: "6.8.3"
+          dir: ${{ runner.temp }}/qt-host
+          cache: true
+
+      - name: Capture host Qt path
+        run: echo "COUNTDOWN_QT_HOST_ROOT=$QT_ROOT_DIR" >> "$GITHUB_ENV"
+
+      - name: Install Qt (Android kit)
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: "6.8.3"
+          target: android
+          arch: android_arm64_v8a
+          dir: ${{ runner.temp }}/qt-android
+          cache: true
+
+      - name: Capture Android Qt path
+        run: echo "COUNTDOWN_QT_ANDROID_ROOT=$QT_ROOT_DIR" >> "$GITHUB_ENV"
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
+        with:
+          cmakeVersion: "latest"
+
+      - name: Configure
+        env:
+          QT_HOST_PATH: ${{ env.COUNTDOWN_QT_HOST_ROOT }}
+          QT_ANDROID_ROOT: ${{ env.COUNTDOWN_QT_ANDROID_ROOT }}
+        run: >
+          cmake --preset android-arm64-v8a-debug
+          -DCMAKE_PREFIX_PATH=$QT_ANDROID_ROOT
+
+      - name: Build
+        run: cmake --build --preset android-arm64-v8a-debug
+
+  ios-build:
+    name: iOS (device, build-only, unsigned)
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Install Qt (iOS kit)
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: "6.8.3"
+          target: ios
+          cache: true
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
+        with:
+          cmakeVersion: "latest"
+
+      - name: Configure
+        run: >
+          cmake --preset ios-debug
+          -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR
+
+      # Unsigned build only (see the ios-debug preset's CODE_SIGNING_ALLOWED=NO
+      # cache vars) - no Apple Developer certificate is available in this job.
+      - name: Build
+        run: cmake --build --preset ios-debug
+
   coverage:
     name: Coverage (Linux, GCC)
     runs-on: ubuntu-24.04

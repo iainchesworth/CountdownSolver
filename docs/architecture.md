@@ -15,7 +15,7 @@ for the colour tokens, type scale, and layout rules the QML follows.
 ```
 src/lib/     countdown::solver — all game logic (no GUI, no platform code)
 src/app/     Qt 6 Quick (QML) GUI: solver.* backend + qml/ design
-src/app/platform/{windows,macos,linux}/   one impl each, chosen by CMake
+src/app/platform/{windows,macos,linux,android,ios}/   one impl each, chosen by CMake
 tests/unit/          unit tests
 tests/integration/   integration tests
 cmake/               shared CMake modules (strict warnings-as-errors)

@@ -31,6 +31,13 @@ namespace {
 }  // namespace
 
 int main(int argc, char* argv[]) {
+    // Set before logging::install() below: on Android/iOS, platform::current()
+    // resolves the config directory via QStandardPaths::AppConfigLocation,
+    // which is built from these names. Both are static setters safely callable
+    // before QGuiApplication is constructed.
+    QGuiApplication::setApplicationName(QStringLiteral("Countdown Solver"));
+    QGuiApplication::setOrganizationName(QStringLiteral("CountdownSolver"));
+
     // Installed before anything else so every subsequent qCDebug/qCWarning/...
     // call (including ones triggered by Qt/QML internals during startup) is
     // captured, not just those after QGuiApplication is constructed.
@@ -58,8 +65,6 @@ int main(int argc, char* argv[]) {
     }
 
     QGuiApplication app(argc, argv);
-    QGuiApplication::setApplicationName(QStringLiteral("Countdown Solver"));
-    QGuiApplication::setOrganizationName(QStringLiteral("CountdownSolver"));
     QGuiApplication::setApplicationVersion(version_qstring());
 
     // Arabic/Hebrew/Yiddish glyph coverage - IBM Plex Sans (Theme.qml's

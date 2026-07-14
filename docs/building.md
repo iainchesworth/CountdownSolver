@@ -29,13 +29,43 @@ The `.rpm` resolves its own Qt version requirement automatically via
 Every preset states its build type explicitly:
 `<toolchain>-debug` or `<toolchain>-release`, e.g. `windows-msvc-debug`,
 `linux-gcc-release`, `linux-clang-debug`, `macos-clang-release`,
-`windows-clang-debug`.
+`windows-clang-debug`, `android-arm64-v8a-debug`,
+`android-arm64-v8a-release`, `ios-debug`, `ios-release`.
 
 ```sh
 cmake --preset windows-msvc-debug
 cmake --build --preset windows-msvc-debug
 ctest --preset windows-msvc-debug
 ```
+
+### Mobile builds (Android/iOS)
+
+Tablet + landscape-only for now (see [Architecture](architecture.md)) —
+build-only, no responsive/portrait/phone layout work yet. These presets set
+`COUNTDOWN_BUILD_TESTS=OFF`: there's no way to run a CTest-launched native
+test executable on Android/iOS without an emulator/simulator/on-device
+runner, so `ctest` isn't part of the mobile flow.
+
+```sh
+# Android (arm64-v8a) - needs a Qt-for-Android kit (QT_ANDROID_ROOT below)
+# and a desktop Qt kit for cross-build host tools (QT_HOST_PATH).
+QT_HOST_PATH=<desktop-qt-root> QT_ANDROID_ROOT=<qt-android-root> \
+  cmake --preset android-arm64-v8a-debug -DCMAKE_PREFIX_PATH=<qt-android-root>
+cmake --build --preset android-arm64-v8a-debug
+
+# iOS (device) - macOS + Xcode + a Qt-for-iOS kit only; unsigned by default.
+cmake --preset ios-debug -DCMAKE_PREFIX_PATH=<qt-ios-root>
+cmake --build --preset ios-debug
+```
+
+`cpack` doesn't apply to either target — `cmake/Packaging.cmake` skips CPack
+entirely for `ANDROID`/`IOS` configures. Real packaging is
+[Qt's `androiddeployqt`](https://doc.qt.io/qt-6/androiddeployqt.html)
+(APK/AAB) and Xcode archive + `xcodebuild -exportArchive` (IPA),
+respectively — see the `android-release`/`ios-release` jobs in the
+[release workflow](https://github.com/iainchesworth/CountdownSolver/blob/develop/.github/workflows/release.yml)
+for the full signed pipeline, and [CI & dependencies](ci.md) for the
+required signing secrets.
 
 Library + tests only, no Qt:
 
