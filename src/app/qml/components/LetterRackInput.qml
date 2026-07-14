@@ -54,7 +54,9 @@ Item {
         // English takes two keystrokes. Reuses the Hebrew rows as-is.
         "yi": ["אבגדהוזח", "טיכלמנסע", "פצקרשת"],
     })
-    readonly property var keyRows: keyRowsByLanguage[languageManager.currentLanguage]
+    // Guarded against a null languageManager for the same reason as
+    // Theme.qml's `sans` - falls back to QWERTY until the next re-evaluation.
+    readonly property var keyRows: (languageManager && keyRowsByLanguage[languageManager.currentLanguage])
                                     || ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"]
 
     signal solveRequested()

@@ -267,7 +267,7 @@ if(COUNTDOWN_BUILD_APP)
     # needed); Qt Quick Test's "-input dir/file" option accepts a single QML
     # file as well as a directory, so each entry just restricts that shared
     # binary to its own tst_*.qml file.
-    set(COUNTDOWN_QML_TEST_PAGES ConundrumPage LettersPage NumbersPage SettingsPage Theme LanguageManager)
+    set(COUNTDOWN_QML_TEST_PAGES ConundrumPage LettersPage NumbersPage SettingsPage Theme LanguageManager LanguageSwitching)
 
     foreach(page IN LISTS COUNTDOWN_QML_TEST_PAGES)
         add_test(NAME countdown_qml_tests_${page}

@@ -79,6 +79,9 @@ Item {
                             }
                             ComboBox {
                                 id: langCombo
+                                // For tests/qml/tst_LanguageSwitching.qml,
+                                // same pattern as themeSeg/dictSeg below.
+                                objectName: "langCombo"
                                 // Fixed min/max, not just preferredWidth: this
                                 // Control's own implicit-size calculation
                                 // (from its heavily-customized background/
@@ -93,8 +96,12 @@ Item {
                                 Layout.maximumWidth: 160
                                 textRole: "name"
                                 valueRole: "code"
-                                model: languageManager.availableLanguages()
-                                onActivated: languageManager.setLanguage(currentValue)
+                                // Guarded against a null languageManager -
+                                // see Theme.qml's `sans` for why.
+                                model: languageManager ? languageManager.availableLanguages() : []
+                                onActivated: {
+                                    if (languageManager) languageManager.setLanguage(currentValue)
+                                }
 
                                 // Set once the model above is guaranteed to be
                                 // populated, rather than as a property binding:
@@ -103,11 +110,14 @@ Item {
                                 // `currentIndex: indexOfValue(...)` binding can
                                 // evaluate to -1 if it runs before `model` is
                                 // applied, leaving the box permanently blank.
-                                Component.onCompleted: currentIndex = indexOfValue(languageManager.currentLanguage)
+                                Component.onCompleted: {
+                                    currentIndex = languageManager ? indexOfValue(languageManager.currentLanguage) : -1
+                                }
                                 Connections {
                                     target: languageManager
                                     function onCurrentLanguageChanged() {
-                                        langCombo.currentIndex = langCombo.indexOfValue(languageManager.currentLanguage)
+                                        if (languageManager)
+                                            langCombo.currentIndex = langCombo.indexOfValue(languageManager.currentLanguage)
                                     }
                                 }
 
@@ -353,9 +363,11 @@ Item {
                                 // invokable - without this read, the status
                                 // text would keep showing whatever language
                                 // was active when this binding last ran.
+                                // Guarded against a null languageManager -
+                                // see Theme.qml's `sans` for why.
                                 text: (solver.dictionariesReady && solver.fullDictionaryAvailable())
                                       ? qsTr("Swap the built-in dictionary for your custom words.txt list.")
-                                      : (languageManager.currentLanguage, solver.fullDictionaryStatus())
+                                      : (languageManager && languageManager.currentLanguage, solver.fullDictionaryStatus())
                                 color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13
                             }
                         }
