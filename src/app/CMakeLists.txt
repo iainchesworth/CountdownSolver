@@ -205,14 +205,30 @@ qt_add_executable(countdownsolver
 # names, confirmed against a real Qt 6.8.3 kit on CI). Ninja tolerates two
 # targets sharing an output; Xcode's "new build system" hard-errors unless
 # one explicitly depends on the other. The QML-module translations target
-# only exists once qt_add_executable() above finishes finalizing the app
-# bundle, itself done via that call's own cmake_language(DEFER CALL) - so
-# ours must be deferred too, and registered after it (DEFER runs callbacks
-# in registration order) to see the target once it actually exists.
+# is created by qt_add_executable()'s own app-bundle finalizer, itself
+# invoked via cmake_language(DEFER CALL) - and that finalizer schedules a
+# further nested DEFER CALL of its own to actually create the target, so a
+# single "run after qt_add_executable()" defer still fires too early
+# (confirmed against a real Qt 6.8.3/Xcode 16.4 CI run: the target didn't
+# exist yet even inside our own deferred call). Keep re-deferring until the
+# target is visible, bounded so a future Qt CMake API change degrades to a
+# warning instead of an infinite configure loop.
 if(IOS)
-    cmake_language(DEFER CALL add_dependencies
-        countdownsolver_qml_countdownsolver_qml_translations
-        CountdownSolver_lrelease)
+    function(_countdown_link_ios_translation_targets retries_left)
+        if(TARGET countdownsolver_qml_countdownsolver_qml_translations AND TARGET CountdownSolver_lrelease)
+            add_dependencies(countdownsolver_qml_countdownsolver_qml_translations CountdownSolver_lrelease)
+        elseif(retries_left GREATER 0)
+            math(EXPR retries_left "${retries_left} - 1")
+            cmake_language(DEFER CALL _countdown_link_ios_translation_targets "${retries_left}")
+        else()
+            message(WARNING
+                "iOS: countdownsolver_qml_countdownsolver_qml_translations never "
+                "appeared to link against CountdownSolver_lrelease; the Xcode "
+                "'new build system' generate step will likely fail with a "
+                "duplicate-output error for countdown_<lang>.qm.")
+        endif()
+    endfunction()
+    cmake_language(DEFER CALL _countdown_link_ios_translation_targets 10)
 endif()
 
 # QT_ANDROID_PACKAGE_SOURCE_DIR points Qt's CMake integration at the directory
