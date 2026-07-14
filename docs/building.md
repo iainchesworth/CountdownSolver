@@ -1,5 +1,29 @@
 # Building & packaging
 
+## Supported platforms
+
+What's actually built and tested by CI — see
+[CI & dependencies](ci.md) for the exact matrix:
+
+| Platform | Architecture | Build | Run (packaged build) |
+| --- | --- | --- | --- |
+| Windows | x64 | MSVC 19.40+ (VS 2022 17.10+ / VS 18), tested on Windows Server 2025 | `.zip` or NSIS installer; Qt runtime is bundled, nothing extra to install |
+| macOS | arm64 (Apple Silicon) | AppleClang, tested on macOS 15 (Sequoia) | `.zip` or `.dmg`; Qt runtime is bundled. Intel Macs aren't covered by CI |
+| Linux | x64 | GCC 15 or Clang 21, tested on Ubuntu 24.04 | See below — unlike Windows/macOS, Linux packages don't bundle Qt |
+
+`countdown::solver` itself (`-DCOUNTDOWN_BUILD_APP=OFF`) has no GUI or
+platform-specific code — see [Architecture](architecture.md) — so it isn't
+restricted to this table; any C++23 compiler with CMake 4+ and Ninja
+should work even where the full GUI app isn't verified.
+
+**Running Linux packages**: the `.zip`/`.tar.gz` expect a system Qt 6.8+
+already installed, since Qt's CMake deploy step doesn't support Linux (see
+[Packaging](#packaging) below). The `.deb` declares that dependency
+explicitly, so `apt install` refuses on a system that can't satisfy it —
+in practice **Debian 13 (trixie) or newer, and Ubuntu 25.04 or newer**.
+The `.rpm` resolves its own Qt version requirement automatically via
+`rpmbuild`'s auto-requires.
+
 ## Presets
 
 Every preset states its build type explicitly:
