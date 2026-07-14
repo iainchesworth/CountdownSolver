@@ -11,14 +11,20 @@ Button {
     flat: true
     hoverEnabled: true
     implicitHeight: 44
+    topPadding: 0
+    bottomPadding: 0
+    leftPadding: 0
+    rightPadding: 0
 
     background: Rectangle {
         radius: Theme.radiusControl
         color: control.active ? Theme.accentSoft
                               : (control.hovered ? Qt.rgba(0, 0, 0, 0.03) : "transparent")
-        Rectangle {   // left accent bar
+        Rectangle {   // leading accent bar; anchors (not x) so it mirrors under RTL
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
             width: 3
-            height: parent.height
             radius: 2
             color: control.active ? Theme.accent : "transparent"
         }
@@ -31,6 +37,7 @@ Button {
         Rectangle {
             Layout.preferredWidth: 26
             Layout.preferredHeight: 26
+            Layout.alignment: Qt.AlignVCenter
             radius: 7
             color: control.active ? Theme.accent : Theme.tile
             border.width: control.active ? 0 : 1
@@ -46,6 +53,7 @@ Button {
         }
         Text {
             Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter
             text: control.text
             font.family: Theme.sans
             font.pixelSize: 14
