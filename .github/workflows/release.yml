@@ -216,17 +216,50 @@ jobs:
         with:
           path: dist
 
+      # Only needed to read CHANGELOG.md below - the package job already
+      # checked out the tagged commit for the actual build.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      # Release notes should be curated, not a raw PR/commit dump - pull the
+      # section matching this tag out of CHANGELOG.md (Keep a Changelog
+      # format: "## [x.y.z] - date" headings). Falls back to --generate-notes
+      # if the tag has no changelog entry yet, so a release is never blocked
+      # on this.
+      - name: Extract changelog section for this tag
+        id: notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v ver="$version" '
+            $0 ~ "^## \\[" ver "\\]" { found=1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > /tmp/release-notes.md
+          if [ -s /tmp/release-notes.md ]; then
+            echo "has_notes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::No CHANGELOG.md section found for [${version}] - falling back to --generate-notes. Add one before tagging next time so the release gets curated notes instead of a PR dump."
+            echo "has_notes=false" >> "$GITHUB_OUTPUT"
+          fi
+
       # gh is preinstalled on GitHub-hosted runners, so a dedicated release
       # action buys nothing here but another third-party dependency (flagged
-      # by zizmor's superfluous-actions check) - no checkout in this job, so
-      # --repo is explicit since there's no local git context to infer it
-      # from.
+      # by zizmor's superfluous-actions check) - checkout above makes --repo
+      # inferrable, but it's passed explicitly anyway for clarity.
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           shopt -s globstar
-          gh release create "${{ github.ref_name }}" dist/**/* \
-            --repo "${{ github.repository }}" \
-            --draft \
-            --generate-notes
+          if [ "${{ steps.notes.outputs.has_notes }}" = "true" ]; then
+            gh release create "${{ github.ref_name }}" dist/**/* \
+              --repo "${{ github.repository }}" \
+              --draft \
+              --notes-file /tmp/release-notes.md
+          else
+            gh release create "${{ github.ref_name }}" dist/**/* \
+              --repo "${{ github.repository }}" \
+              --draft \
+              --generate-notes
+          fi
