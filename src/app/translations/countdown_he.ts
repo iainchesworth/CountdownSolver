@@ -4,136 +4,136 @@
 <context>
     <name>ConundrumPage</name>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="50"/>
-        <source>Scrambled nine</source>
-        <translation type="unfinished">תשע אותיות מעורבבות</translation>
+        <location filename="../qml/pages/ConundrumPage.qml" line="57"/>
+        <source>Scrambled %1</source>
+        <translation>%1 מעורבבות</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="76"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="86"/>
         <source>Random conundrum</source>
-        <translation type="unfinished">חידה אקראית</translation>
+        <translation>חידה אקראית</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="78"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="88"/>
         <source>Clear</source>
-        <translation type="unfinished">נקה</translation>
+        <translation>נקה</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="83"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="93"/>
         <source>Solve</source>
-        <translation type="unfinished">פתור</translation>
+        <translation>פתור</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="99"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="109"/>
         <source>Solution</source>
-        <translation type="unfinished">פתרון</translation>
+        <translation>פתרון</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="114"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="124"/>
         <source>Also valid: %1</source>
-        <translation type="unfinished">תקין גם: %1</translation>
+        <translation>תקין גם: %1</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="136"/>
-        <source>Enter all nine letters, then press Solve.</source>
-        <translation type="unfinished">הזן את תשע האותיות ולאחר מכן לחץ על פתור.</translation>
+        <location filename="../qml/pages/ConundrumPage.qml" line="146"/>
+        <source>Enter all %1 letters, then press Solve.</source>
+        <translation>הזן את %1 האותיות, ולאחר מכן לחץ על פתור.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="138"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="148"/>
         <source>Press Solve to reveal the solution.</source>
-        <translation type="unfinished">לחץ על פתור כדי לחשוף את הפתרון.</translation>
+        <translation>לחץ על פתור כדי לחשוף את הפתרון.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/ConundrumPage.qml" line="139"/>
+        <location filename="../qml/pages/ConundrumPage.qml" line="149"/>
         <source>No single word in the list uses these letters.</source>
-        <translation type="unfinished">אף מילה ברשימה אינה משתמשת באותיות אלה.</translation>
+        <translation>אף מילה ברשימה אינה משתמשת באותיות אלה.</translation>
     </message>
 </context>
 <context>
     <name>LettersPage</name>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="52"/>
-        <source>Nine letters</source>
-        <translation type="unfinished">תשע אותיות</translation>
+        <location filename="../qml/pages/LettersPage.qml" line="61"/>
+        <source>%1 letters</source>
+        <translation>%1 אותיות</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="78"/>
+        <location filename="../qml/pages/LettersPage.qml" line="90"/>
         <source>Random rack</source>
-        <translation type="unfinished">אותיות אקראיות</translation>
+        <translation>אותיות אקראיות</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="80"/>
+        <location filename="../qml/pages/LettersPage.qml" line="92"/>
         <source>Clear</source>
-        <translation type="unfinished">נקה</translation>
+        <translation>נקה</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="85"/>
+        <location filename="../qml/pages/LettersPage.qml" line="97"/>
         <source>Solve</source>
-        <translation type="unfinished">פתור</translation>
+        <translation>פתור</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="112"/>
+        <location filename="../qml/pages/LettersPage.qml" line="124"/>
         <source>Longest words</source>
-        <translation type="unfinished">המילים הארוכות ביותר</translation>
+        <translation>המילים הארוכות ביותר</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="113"/>
+        <location filename="../qml/pages/LettersPage.qml" line="125"/>
         <source>Longest word</source>
-        <translation type="unfinished">המילה הארוכה ביותר</translation>
+        <translation>המילה הארוכה ביותר</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/pages/LettersPage.qml" line="114"/>
+        <location filename="../qml/pages/LettersPage.qml" line="126"/>
         <source>%n letter(s)</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>אות אחת</numerusform>
             <numerusform>%n אותיות</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="136"/>
+        <location filename="../qml/pages/LettersPage.qml" line="148"/>
         <source>All valid words</source>
-        <translation type="unfinished">כל המילים התקינות</translation>
+        <translation>כל המילים התקינות</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="139"/>
+        <location filename="../qml/pages/LettersPage.qml" line="151"/>
         <source>showing %1 of %2</source>
-        <translation type="unfinished">מוצגות %1 מתוך %2</translation>
+        <translation>מוצגות %1 מתוך %2</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/pages/LettersPage.qml" line="140"/>
+        <location filename="../qml/pages/LettersPage.qml" line="152"/>
         <source>%n found</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>נמצאה אחת</numerusform>
             <numerusform>נמצאו %n</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/pages/LettersPage.qml" line="153"/>
+        <location filename="../qml/pages/LettersPage.qml" line="165"/>
         <source>%n letter(s) (%1)</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>אות אחת (%1)</numerusform>
             <numerusform>%n אותיות (%1)</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="154"/>
+        <location filename="../qml/pages/LettersPage.qml" line="166"/>
         <source>showing %1</source>
-        <translation type="unfinished">מוצגות %1</translation>
+        <translation>מוצגות %1</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="195"/>
+        <location filename="../qml/pages/LettersPage.qml" line="207"/>
         <source>No words %1+ letters long. Try a random rack.</source>
-        <translation type="unfinished">אין מילים באורך %1 אותיות או יותר. נסה אותיות אקראיות.</translation>
+        <translation>אין מילים באורך %1 אותיות או יותר. נסה אותיות אקראיות.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="197"/>
+        <location filename="../qml/pages/LettersPage.qml" line="209"/>
         <source>Press Solve to find words.</source>
-        <translation type="unfinished">לחץ על פתור כדי למצוא מילים.</translation>
+        <translation>לחץ על פתור כדי למצוא מילים.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/LettersPage.qml" line="198"/>
-        <source>Type or tap nine letters, then press Solve.</source>
-        <translation type="unfinished">הקלד או הקש תשע אותיות, ולאחר מכן לחץ על פתור.</translation>
+        <location filename="../qml/pages/LettersPage.qml" line="210"/>
+        <source>Type or tap %1 letters, then press Solve.</source>
+        <translation>הקלד או הקש %1 אותיות, ולאחר מכן לחץ על פתור.</translation>
     </message>
 </context>
 <context>
@@ -141,76 +141,76 @@
     <message>
         <location filename="../qml/Main.qml" line="16"/>
         <source>Countdown Solver</source>
-        <translation type="unfinished">פותר Countdown</translation>
+        <translation>פותר Countdown</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="29"/>
         <location filename="../qml/Main.qml" line="72"/>
         <source>Numbers</source>
-        <translation type="unfinished">מספרים</translation>
+        <translation>מספרים</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="29"/>
         <source>Reach the target using each number at most once.</source>
-        <translation type="unfinished">הגע ליעד תוך שימוש בכל מספר לכל היותר פעם אחת.</translation>
+        <translation>הגע ליעד תוך שימוש בכל מספר לכל היותר פעם אחת.</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="30"/>
         <location filename="../qml/Main.qml" line="72"/>
         <source>Letters</source>
-        <translation type="unfinished">אותיות</translation>
+        <translation>אותיות</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="30"/>
         <source>Find every word hiding in your nine letters.</source>
-        <translation type="unfinished">מצא כל מילה המסתתרת בתשע האותיות שלך.</translation>
+        <translation>מצא כל מילה המסתתרת בתשע האותיות שלך.</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="31"/>
         <location filename="../qml/Main.qml" line="72"/>
         <source>Conundrum</source>
-        <translation type="unfinished">חידה</translation>
+        <translation>חידה</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="31"/>
         <source>Unscramble the nine letters into one word.</source>
-        <translation type="unfinished">סדר מחדש את תשע האותיות למילה אחת.</translation>
+        <translation>סדר מחדש את תשע האותיות למילה אחת.</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="32"/>
         <location filename="../qml/Main.qml" line="72"/>
         <source>Settings</source>
-        <translation type="unfinished">הגדרות</translation>
+        <translation>הגדרות</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="32"/>
         <source>Tune the solver and how results are shown.</source>
-        <translation type="unfinished">כוונן את הפותר ואת אופן הצגת התוצאות.</translation>
+        <translation>כוונן את הפותר ואת אופן הצגת התוצאות.</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="66"/>
         <source>Countdown</source>
-        <translation type="unfinished">Countdown</translation>
+        <translation>Countdown</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="67"/>
         <source>SOLVER</source>
-        <translation type="unfinished">פותר</translation>
+        <translation>פותר</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="91"/>
         <source>%1 words loaded</source>
-        <translation type="unfinished">%1 מילים נטענו</translation>
+        <translation>%1 מילים נטענו</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="92"/>
         <source>Loading…</source>
-        <translation type="unfinished">טוען…</translation>
+        <translation>טוען…</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="111"/>
         <source>dirty</source>
-        <translation type="unfinished">לא מחויב</translation>
+        <translation>לא מחויב</translation>
     </message>
 </context>
 <context>
@@ -218,58 +218,58 @@
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="136"/>
         <source>Your six numbers</source>
-        <translation type="unfinished">ששת המספרים שלך</translation>
+        <translation>ששת המספרים שלך</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="187"/>
         <source>Target</source>
-        <translation type="unfinished">יעד</translation>
+        <translation>יעד</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="215"/>
         <source>Random game</source>
-        <translation type="unfinished">משחק אקראי</translation>
+        <translation>משחק אקראי</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="217"/>
         <source>Clear</source>
-        <translation type="unfinished">נקה</translation>
+        <translation>נקה</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="222"/>
         <location filename="../qml/pages/NumbersPage.qml" line="303"/>
         <source>Solving…</source>
-        <translation type="unfinished">פותר…</translation>
+        <translation>פותר…</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="222"/>
         <source>Solve</source>
-        <translation type="unfinished">פתור</translation>
+        <translation>פתור</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="243"/>
         <source>Best result</source>
-        <translation type="unfinished">התוצאה הטובה ביותר</translation>
+        <translation>התוצאה הטובה ביותר</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="262"/>
         <source>Exact</source>
-        <translation type="unfinished">מדויק</translation>
+        <translation>מדויק</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="262"/>
         <source>%1 away</source>
-        <translation type="unfinished">במרחק %1</translation>
+        <translation>במרחק %1</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="272"/>
         <source>Working</source>
-        <translation type="unfinished">מהלך הפתרון</translation>
+        <translation>מהלך הפתרון</translation>
     </message>
     <message numerus="yes">
         <location filename="../qml/pages/NumbersPage.qml" line="325"/>
         <source>Choose %n more number(s), then set a target.</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>בחר עוד מספר אחד, ולאחר מכן קבע יעד.</numerusform>
             <numerusform>בחר עוד %n מספרים, ולאחר מכן קבע יעד.</numerusform>
         </translation>
@@ -277,17 +277,17 @@
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="327"/>
         <source>Enter a 3-digit target (100–999), then press Solve.</source>
-        <translation type="unfinished">הזן יעד בן 3 ספרות (100–999), ולאחר מכן לחץ על פתור.</translation>
+        <translation>הזן יעד בן 3 ספרות (100–999), ולאחר מכן לחץ על פתור.</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="329"/>
         <source>Target must be between 100 and 999.</source>
-        <translation type="unfinished">היעד חייב להיות בין 100 ל-999.</translation>
+        <translation>היעד חייב להיות בין 100 ל-999.</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="330"/>
         <source>Press Solve to see the best result.</source>
-        <translation type="unfinished">לחץ על פתור כדי לראות את התוצאה הטובה ביותר.</translation>
+        <translation>לחץ על פתור כדי לראות את התוצאה הטובה ביותר.</translation>
     </message>
 </context>
 <context>
@@ -295,150 +295,150 @@
     <message>
         <location filename="../qml/pages/SettingsPage.qml" line="35"/>
         <source>Appearance</source>
-        <translation type="unfinished">מראה</translation>
+        <translation>מראה</translation>
     </message>
     <message>
         <location filename="../qml/pages/SettingsPage.qml" line="44"/>
         <source>Theme</source>
-        <translation type="unfinished">ערכת נושא</translation>
+        <translation>ערכת נושא</translation>
     </message>
     <message>
         <location filename="../qml/pages/SettingsPage.qml" line="45"/>
         <source>Applies across the whole window.</source>
-        <translation type="unfinished">חל על כל החלון.</translation>
+        <translation>חל על כל החלון.</translation>
     </message>
     <message>
         <location filename="../qml/pages/SettingsPage.qml" line="51"/>
         <source>Light</source>
-        <translation type="unfinished">בהיר</translation>
+        <translation>בהיר</translation>
     </message>
     <message>
         <location filename="../qml/pages/SettingsPage.qml" line="51"/>
         <source>Dark</source>
-        <translation type="unfinished">כהה</translation>
+        <translation>כהה</translation>
     </message>
     <message>
         <location filename="../qml/pages/SettingsPage.qml" line="51"/>
         <source>System</source>
-        <translation type="unfinished">מערכת</translation>
+        <translation>מערכת</translation>
     </message>
     <message>
         <location filename="../qml/pages/SettingsPage.qml" line="68"/>
         <source>Language</source>
-        <translation type="unfinished">שפה</translation>
+        <translation>שפה</translation>
     </message>
     <message>
         <location filename="../qml/pages/SettingsPage.qml" line="77"/>
         <source>Display language</source>
-        <translation type="unfinished">שפת התצוגה</translation>
+        <translation>שפת התצוגה</translation>
     </message>
     <message>
         <location filename="../qml/pages/SettingsPage.qml" line="78"/>
         <source>Changes menus, labels and messages across the app.</source>
-        <translation type="unfinished">משנה תפריטים, תוויות והודעות בכל האפליקציה.</translation>
+        <translation>משנה תפריטים, תוויות והודעות בכל האפליקציה.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="103"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="201"/>
         <source>Solver</source>
-        <translation type="unfinished">פותר</translation>
+        <translation>פותר</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="113"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="211"/>
         <source>Minimum word length</source>
-        <translation type="unfinished">אורך מילה מינימלי</translation>
+        <translation>אורך מילה מינימלי</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="114"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="212"/>
         <source>Shortest words shown in the letters game.</source>
-        <translation type="unfinished">המילים הקצרות ביותר המוצגות במשחק האותיות.</translation>
+        <translation>המילים הקצרות ביותר המוצגות במשחק האותיות.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="118"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="216"/>
         <source>3+</source>
-        <translation type="unfinished">3+</translation>
+        <translation>3+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="118"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="216"/>
         <source>4+</source>
-        <translation type="unfinished">4+</translation>
+        <translation>4+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="118"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="216"/>
         <source>5+</source>
-        <translation type="unfinished">5+</translation>
+        <translation>5+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="133"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="231"/>
         <source>Flag when no exact answer</source>
-        <translation type="unfinished">סמן כאשר אין פתרון מדויק</translation>
+        <translation>סמן כאשר אין פתרון מדויק</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="134"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="232"/>
         <source>Highlight the closest result in the numbers game.</source>
-        <translation type="unfinished">הדגש את התוצאה הקרובה ביותר במשחק המספרים.</translation>
+        <translation>הדגש את התוצאה הקרובה ביותר במשחק המספרים.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="181"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="279"/>
         <source>Max words shown</source>
-        <translation type="unfinished">מספר מילים מרבי להצגה</translation>
+        <translation>מספר מילים מרבי להצגה</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="182"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="280"/>
         <source>Cap the letters-game result list.</source>
-        <translation type="unfinished">הגבל את רשימת התוצאות של משחק האותיות.</translation>
+        <translation>הגבל את רשימת התוצאות של משחק האותיות.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="235"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="333"/>
         <source>Dictionary</source>
-        <translation type="unfinished">מילון</translation>
+        <translation>מילון</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="240"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="338"/>
         <source>Word list</source>
-        <translation type="unfinished">רשימת מילים</translation>
+        <translation>רשימת מילים</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="250"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="357"/>
         <source>Swap the built-in dictionary for your custom words.txt list.</source>
-        <translation type="unfinished">החלף את המילון המובנה ברשימת words.txt מותאמת אישית.</translation>
+        <translation>החלף את המילון המובנה ברשימת words.txt מותאמת אישית.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="259"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="366"/>
         <source>Default</source>
-        <translation type="unfinished">ברירת מחדל</translation>
+        <translation>ברירת מחדל</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="259"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="366"/>
         <source>Custom</source>
-        <translation type="unfinished">מותאם אישית</translation>
+        <translation>מותאם אישית</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="284"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="391"/>
         <source>About</source>
-        <translation type="unfinished">אודות</translation>
+        <translation>אודות</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="309"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="416"/>
         <source>View on GitHub ↗</source>
-        <translation type="unfinished">צפה ב-GitHub ↗</translation>
+        <translation>צפה ב-GitHub ↗</translation>
     </message>
 </context>
 <context>
     <name>countdown::app::Solver</name>
     <message>
-        <location filename="../solver.cpp" line="394"/>
+        <location filename="../solver.cpp" line="455"/>
         <source>A custom dictionary is available.</source>
-        <translation type="unfinished">מילון מותאם אישית זמין.</translation>
+        <translation>מילון מותאם אישית זמין.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="397"/>
+        <location filename="../solver.cpp" line="458"/>
         <source>A words.txt file was found in the config folder, but it contained no usable words.</source>
-        <translation type="unfinished">נמצא קובץ words.txt בתיקיית התצורה, אך הוא לא הכיל מילים שמישות.</translation>
+        <translation>נמצא קובץ words.txt בתיקיית התצורה, אך הוא לא הכיל מילים שמישות.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="399"/>
+        <location filename="../solver.cpp" line="460"/>
         <source>Add a words.txt file to the config folder to enable a custom dictionary.</source>
-        <translation type="unfinished">הוסף קובץ words.txt לתיקיית התצורה כדי להפעיל מילון מותאם אישית.</translation>
+        <translation>הוסף קובץ words.txt לתיקיית התצורה כדי להפעיל מילון מותאם אישית.</translation>
     </message>
 </context>
 </TS>
