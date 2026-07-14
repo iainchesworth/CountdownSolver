@@ -285,14 +285,20 @@ jobs:
           RELEASE_REPO: ${{ github.repository }}
           HAS_NOTES: ${{ steps.notes.outputs.has_notes }}
         run: |
-          shopt -s globstar
+          # A dist/**/* glob (even with globstar) also matches the
+          # artifact directories themselves, not just their contents -
+          # `gh release create` then tries to upload e.g. dist/countdown-
+          # Linux/ as a file and fails with "is a directory". find -type f
+          # only ever lists actual files, at any depth, with no such
+          # ambiguity.
+          mapfile -t files < <(find dist -type f)
           if [ "$HAS_NOTES" = "true" ]; then
-            gh release create "$RELEASE_TAG" dist/**/* \
+            gh release create "$RELEASE_TAG" "${files[@]}" \
               --repo "$RELEASE_REPO" \
               --draft \
               --notes-file /tmp/release-notes.md
           else
-            gh release create "$RELEASE_TAG" dist/**/* \
+            gh release create "$RELEASE_TAG" "${files[@]}" \
               --repo "$RELEASE_REPO" \
               --draft \
               --generate-notes
