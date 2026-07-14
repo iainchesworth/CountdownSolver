@@ -62,7 +62,7 @@ add_executable(countdown_benchmark_tests
     benchmark/dictionary_benchmark.cpp)
 
 target_compile_definitions(countdown_benchmark_tests PRIVATE
-    "COUNTDOWN_DICTIONARY_PATH=\"${CMAKE_SOURCE_DIR}/src/app/resources/dictionary/words.txt\"")
+    "COUNTDOWN_DICTIONARY_PATH=\"${CMAKE_SOURCE_DIR}/src/app/resources/dictionary/words_en.txt\"")
 
 target_link_libraries(countdown_benchmark_tests
     PRIVATE

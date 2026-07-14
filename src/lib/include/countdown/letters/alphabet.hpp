@@ -4,7 +4,9 @@
 
 #include <array>
 #include <cstddef>
+#include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace countdown::letters {
@@ -13,7 +15,7 @@ namespace countdown::letters {
 // ConundrumGame - kept as a plain enum (not a polymorphic interface) so the
 // whole pipeline stays value-typed and trivially copyable, matching the
 // rest of this library's style.
-enum class AlphabetId { english, french, german, spanish };
+enum class AlphabetId { english, french, german, spanish, arabic, hebrew, yiddish };
 
 // The result of folding one decoded Unicode codepoint down to this
 // alphabet's letter slots. `count` is:
@@ -35,12 +37,38 @@ struct FoldedLetters {
 using FoldFn = FoldedLetters (*)(char32_t) noexcept;
 
 // One language's letter set for the Letters/Conundrum games: how many
-// distinct letter slots it uses (<= kMaxAlphabetSize) and how to fold a
-// decoded Unicode codepoint down to one of those slots.
+// distinct letter slots it uses (<= kMaxAlphabetSize), how to fold a
+// decoded Unicode codepoint down to one of those slots, and the game-rules
+// data Solver::randomRack()/randomConundrum() need to draw a rack in that
+// language instead of a hardcoded English one.
 struct Alphabet {
     AlphabetId id;
     std::size_t size;
     FoldFn fold;
+
+    // slot index -> canonical UTF-8 glyph for that slot (e.g. index 26 is
+    // "ä" for German, "ñ" for Spanish) - a rack needs the real glyph, not a
+    // bare `char` cast, once slots go past the ASCII a-z range.
+    std::vector<std::string> display_letters;
+
+    // Scrabble-style tile frequency per slot (0 for an unused slot).
+    std::array<int, kMaxAlphabetSize> letter_weights{};
+    // true for a vowel slot; only consulted where vowel_consonant_splits is
+    // non-empty (see below).
+    std::array<bool, kMaxAlphabetSize> is_vowel{};
+
+    // Valid {vowelCount, consonantCount} pairs, each summing to rack_size.
+    // Empty means "no split enforced" - randomRack() falls back to a flat
+    // weighted draw of rack_size letters from every slot in letter_weights
+    // regardless of is_vowel. Abjad scripts (Arabic/Hebrew/Yiddish, added in
+    // a later phase) leave this empty since they don't normally write short
+    // vowels, so an English-style vowel/consonant split doesn't apply.
+    std::vector<std::pair<int, int>> vowel_consonant_splits;
+
+    // Letters drawn for a Letters-game rack or a Conundrum round. 9 for
+    // every language except French, whose real-world adaptation (Des
+    // chiffres et des lettres) draws 10.
+    std::size_t rack_size = 9;
 };
 
 // English: the original 26 a-z/A-Z slots, ASCII-only. Delegates to the
@@ -67,10 +95,56 @@ struct Alphabet {
 // vowel - Spanish Scrabble has no separate tiles for these.
 [[nodiscard]] Alphabet spanish_alphabet() noexcept;
 
+// Arabic: 29 slots (28 base letters alif..ya, plus taa marbuta as its own
+// distinct slot 28). No reference game exists for this adaptation - these
+// rules are original design, not copied from a real show (unlike French/
+// German/Spanish, which Phase 2 sourced from real broadcast/Scrabble
+// precedent). Hamza-bearing alif variants (hamza-above, hamza-below, madda)
+// and the standalone hamza fold to bare alif; hamza-on-waw folds to waw;
+// hamza-on-yaa and alif maksura fold to yaa - all treated as the same base
+// letter for word-game purposes. No vowel/consonant split: short vowels
+// aren't normally written in Arabic, so `vowel_consonant_splits` is empty
+// and randomRack() draws a flat weighted sample instead (see Alphabet's
+// vowel_consonant_splits comment).
+[[nodiscard]] Alphabet arabic_alphabet() noexcept;
+
+// Hebrew: 22 slots (alef..tav). Final letter forms (kaf/mem/nun/pe/tsadi
+// sofit) fold to their base letter - purely positional/orthographic
+// variants of the same letter, not phonetically distinct, same precedent as
+// French dropping accents; Dictionary keeps the original spelling separate
+// from the folded Frequencies used for matching, so nothing is lost
+// displaying the correct final form. Same abjad caveat as Arabic: no
+// vowel/consonant split, no reference game, original design.
+[[nodiscard]] Alphabet hebrew_alphabet() noexcept;
+
+// Yiddish: built on Hebrew's same 22-letter base (same final-form folding).
+// Unlike Hebrew, Yiddish writes vowels explicitly using vowel-marking
+// diacritic combinations (e.g. pasekh-alef, komets-alef) - these fold away
+// via decode_utf8()'s combining-mark skip, leaving just the base alef, same
+// mechanism Arabic's tashkeel relies on. Yiddish's three extra digraph
+// letters (tsvey-vovn, vov-yod, tsvey-yudn) expand to their two-letter
+// decomposition via the existing ligature (count==2) mechanism, the same
+// one French's oe/ae and German's Eszett already use, rather than adding
+// dedicated slots for them.
+[[nodiscard]] Alphabet yiddish_alphabet() noexcept;
+
 // Decodes UTF-8 `text` into Unicode codepoints. Permissive: a malformed or
 // truncated byte sequence is skipped one byte at a time rather than
 // aborting, mirroring frequencies_of()'s existing "skip invalid input"
-// runtime behaviour rather than introducing a new failure mode.
+// runtime behaviour rather than introducing a new failure mode. Also skips
+// combining-mark codepoints entirely (never emitted in the result): Arabic
+// tashkeel (U+064B-U+065F, U+0670), Hebrew points/cantillation
+// (U+0591-U+05C7), and the general Unicode combining-diacriticals block
+// (U+0300-U+036F, a safety net for NFD-normalized text e.g. from a
+// clipboard) are meant to be silently ignored during folding, not rejected
+// as "invalid" (which would reject the whole word) and not counted as a
+// letter of their own. This is a deliberate behavior change from when this
+// function was Latin-script-only: previously any codepoint outside an
+// alphabet's fold table was rejected; combining marks are now the one
+// exception, dropped rather than rejected, uniformly for every consumer
+// (Dictionary::normalise(), frequencies_of(), and both
+// LettersGame::validate()/ConundrumGame::validate(), which call this
+// function directly on rack input) since they all decode through here.
 [[nodiscard]] std::vector<char32_t> decode_utf8(std::string_view text);
 
 // Decodes `utf8_text` and folds every codepoint through `alphabet`,

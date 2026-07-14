@@ -67,12 +67,19 @@ add_dependencies(countdown_app_core countdown_version)
 # $<LINK_LIBRARY:WHOLE_ARCHIVE,countdown_app_core> (see below): like
 # countdown_app_qml, nothing calls into the generated resource-registration
 # object file directly, so a plain link would let the archive-member-elision
-# linker default drop it and QFile(":/dictionary/words.txt") would silently
+# linker default drop it and QFile(":/dictionary/words_en.txt") would silently
 # open nothing.
 qt_add_resources(countdown_app_core "dictionary"
     PREFIX "/dictionary"
     BASE "resources/dictionary"
-    FILES resources/dictionary/words.txt)
+    FILES
+        resources/dictionary/words_en.txt
+        resources/dictionary/words_fr.txt
+        resources/dictionary/words_de.txt
+        resources/dictionary/words_es.txt
+        resources/dictionary/words_ar.txt
+        resources/dictionary/words_he.txt
+        resources/dictionary/words_yi.txt)
 
 # ---------------------------------------------------------------------------
 # countdown_app_qml - the "Countdown" QML module (Main shell, Theme/AppState

@@ -27,6 +27,12 @@ Item {
         target: AppState
         function onUseFullDictionaryChanged() { if (root.result !== null) root.recalc() }
     }
+    // See LettersPage.qml's identical Connections - the rack's length
+    // constraint can change on a language switch (French draws 10, not 9).
+    Connections {
+        target: languageManager
+        function onCurrentLanguageChanged() { root.clearAll() }
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -47,11 +53,14 @@ Item {
                     id: cc
                     anchors.fill: parent; anchors.margins: 18
                     spacing: 12
-                    SectionLabel { text: qsTr("Scrambled nine") }
+                    SectionLabel {
+                        text: qsTr("Scrambled %1").arg(
+                            (solver.dictionariesReady, solver.rackSize()))
+                    }
                     RowLayout {
                         Layout.fillWidth: true; spacing: 6
                         Repeater {
-                            model: 9
+                            model: (solver.dictionariesReady, solver.rackSize())
                             delegate: Tile {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 58
@@ -67,6 +76,7 @@ Item {
                 id: rackInput
                 Layout.fillWidth: true
                 active: root.isCurrentPage
+                maxLetters: (solver.dictionariesReady, solver.rackSize())
                 onSolveRequested: root.recalc()
                 onCleared: root.result = null
             }
@@ -81,7 +91,7 @@ Item {
                 Layout.fillWidth: true
                 primary: true
                 text: qsTr("Solve")
-                enabled: rackInput.letters.length === 9
+                enabled: rackInput.letters.length === (solver.dictionariesReady, solver.rackSize())
                 onClicked: root.recalc()
             }
             Item { Layout.fillHeight: true }
@@ -132,8 +142,8 @@ Item {
                     Layout.preferredWidth: 260
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
-                    text: (root.letters.length < 9)
-                          ? qsTr("Enter all nine letters, then press Solve.")
+                    text: (root.letters.length < (solver.dictionariesReady, solver.rackSize()))
+                          ? qsTr("Enter all %1 letters, then press Solve.").arg(solver.rackSize())
                           : (root.result === null
                              ? qsTr("Press Solve to reveal the solution.")
                              : qsTr("No single word in the list uses these letters."))
