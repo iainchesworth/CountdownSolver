@@ -3,9 +3,14 @@
   Base structure follows Qt6's default androiddeployqt template. Confirmed
   against a real Qt 6.8.3-for-Android kit via CI: the activity class name
   (org.qtproject.qt.android.bindings.QtActivity/QtApplication) is correct
-  as-is for this Qt version - the only additions on top of Qt's own
-  template are screenOrientation and supports-screens below, specific to
-  this app's tablet/landscape scope.
+  as-is for this Qt version.
+
+  No screenOrientation lock and no supports-screens size exclusion (both
+  removed - see git history for the original tablet/landscape-only values):
+  the QML side now has real phone-portrait/phone-landscape/tablet-portrait
+  layouts (Main.qml's `formFactor`), so the OS needs to actually deliver
+  rotation events and phone-sized configurations to the app instead of
+  forcing landscape and refusing to install on phones.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.iainchesworth.countdownsolver"
@@ -23,7 +28,6 @@
             android:label="Countdown Solver"
             android:launchMode="singleTop"
             android:exported="true"
-            android:screenOrientation="landscape"
             android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -37,18 +41,4 @@
          API 28 ("Invalid minSdkVersion version, minSdkVersion must be >= 28"),
          confirmed against a real Qt 6.8.3 Android kit on CI - see docs/ci.md. -->
     <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="34" />
-
-    <!--
-      Tablet-only: this is a legacy/weak signal that some tooling still
-      reads, but it does NOT by itself stop the Play Store from showing/
-      installing the app on phones - real phone exclusion for a Play
-      Store listing happens in Play Console's device catalog config, not
-      here. Kept anyway since it's cheap and harmless.
-    -->
-    <supports-screens
-        android:smallScreens="false"
-        android:normalScreens="false"
-        android:largeScreens="true"
-        android:xlargeScreens="true"
-        android:requiresSmallestWidthDp="600" />
 </manifest>
