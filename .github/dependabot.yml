@@ -20,3 +20,4 @@ updates:
       github-actions:
         patterns:
           - "*"
+# test: throwaway change verifying dependabot/* branches pass branch-name-check (see PR #71/#72) -- not meant to merge
