@@ -2,9 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
   Based on CMake's own default MacOSXBundleInfo.plist.in template (the
-  ${MACOSX_BUNDLE_*} substitutions below are CMake's, filled in from the
-  countdownsolver target's MACOSX_BUNDLE_* properties/target properties at
-  configure time), plus the tablet/landscape-only keys this app needs.
+  MACOSX_BUNDLE_-prefixed substitutions below are CMake's, filled in from
+  the countdownsolver target's matching properties at configure time).
+  configure_file() does a dumb text-substitution pass over the whole
+  file, comments included - do not wrap a variable-name wildcard in this
+  comment in a dollar-brace pair, or configure fails outright ("Invalid
+  character" in a variable name), confirmed on a real CI run - plus the
+  tablet/landscape-only keys this app needs.
   This has NOT been verified against a real Qt-for-iOS build (no Mac/Xcode
   available here) - reconcile on the first real CI run, in particular
   whether any additional Qt-Quick-for-iOS-specific keys are required
