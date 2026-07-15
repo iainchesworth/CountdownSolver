@@ -19,10 +19,14 @@ Item {
         clip: true
         boundsBehavior: Flickable.StopAtBounds
 
-        ColumnLayout {
+        // GridLayout degrades to the original single-column card stack at
+        // columns:1 (every form factor except phone-landscape, where the
+        // cards arrange into a 2-column grid instead - see Metrics.qml).
+        GridLayout {
             id: col
             width: parent.width
-            spacing: 16
+            columns: Metrics.formFactor === FormFactor.phoneLandscape ? 2 : 1
+            columnSpacing: 16; rowSpacing: 16
 
             // ---- Appearance ----
             Card {
@@ -36,9 +40,15 @@ Item {
                     Item {
                         Layout.fillWidth: true
                         implicitHeight: themeRow.implicitHeight
-                        RowLayout {
+                        // GridLayout degrades to the original label-left/
+                        // control-right RowLayout at columns:2 (every form
+                        // factor except phone-portrait, where it stacks the
+                        // control below the label instead - see Metrics.qml).
+                        GridLayout {
                             id: themeRow
                             anchors.fill: parent
+                            columns: Metrics.formFactor === FormFactor.phonePortrait ? 1 : 2
+                            rowSpacing: 8; columnSpacing: 16
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
                                 Text { Layout.fillWidth: true; text: qsTr("Theme"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
@@ -47,7 +57,7 @@ Item {
                             SegControl {
                                 id: themeSeg
                                 objectName: "themeSeg"
-                                Layout.fillWidth: false
+                                Layout.fillWidth: Metrics.formFactor === FormFactor.phonePortrait
                                 options: [qsTr("Light"), qsTr("Dark"), qsTr("System")]
                                 currentIndex: Theme.mode === "dark" ? 1 : (Theme.mode === "system" ? 2 : 0)
                                 onActivated: Theme.mode = index === 0 ? "light" : (index === 1 ? "dark" : "system")
@@ -69,9 +79,11 @@ Item {
                     Item {
                         Layout.fillWidth: true
                         implicitHeight: langRow.implicitHeight
-                        RowLayout {
+                        GridLayout {
                             id: langRow
                             anchors.fill: parent
+                            columns: Metrics.formFactor === FormFactor.phonePortrait ? 1 : 2
+                            rowSpacing: 8; columnSpacing: 16
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
                                 Text { Layout.fillWidth: true; text: qsTr("Display language"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
@@ -203,6 +215,7 @@ Item {
             // ---- Solver ----
             Card {
                 Layout.fillWidth: true
+                Layout.columnSpan: Metrics.formFactor === FormFactor.phoneLandscape ? 2 : 1
                 implicitHeight: so.implicitHeight + 40
                 ColumnLayout {
                     id: so
@@ -213,16 +226,18 @@ Item {
                     Item {
                         Layout.fillWidth: true
                         implicitHeight: minLenRow.implicitHeight
-                        RowLayout {
+                        GridLayout {
                             id: minLenRow
                             anchors.fill: parent
+                            columns: Metrics.formFactor === FormFactor.phonePortrait ? 1 : 2
+                            rowSpacing: 8; columnSpacing: 16
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
                                 Text { Layout.fillWidth: true; text: qsTr("Minimum word length"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
                                 Text { Layout.fillWidth: true; text: qsTr("Shortest words shown in the letters game."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             SegControl {
-                                Layout.fillWidth: false
+                                Layout.fillWidth: Metrics.formFactor === FormFactor.phonePortrait
                                 options: [qsTr("3+"), qsTr("4+"), qsTr("5+")]
                                 currentIndex: AppState.minLen - 3
                                 onActivated: AppState.minLen = index + 3
@@ -233,9 +248,11 @@ Item {
                     Item {
                         Layout.fillWidth: true
                         implicitHeight: flagRow.implicitHeight
-                        RowLayout {
+                        GridLayout {
                             id: flagRow
                             anchors.fill: parent
+                            columns: Metrics.formFactor === FormFactor.phonePortrait ? 1 : 2
+                            rowSpacing: 8; columnSpacing: 16
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
                                 Text { Layout.fillWidth: true; text: qsTr("Flag when no exact answer"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
@@ -281,9 +298,11 @@ Item {
                         Item {
                             Layout.fillWidth: true
                             implicitHeight: maxWordsRow.implicitHeight
-                            RowLayout {
+                            GridLayout {
                                 id: maxWordsRow
                                 anchors.fill: parent
+                                columns: Metrics.formFactor === FormFactor.phonePortrait ? 1 : 2
+                                rowSpacing: 8; columnSpacing: 16
                                 ColumnLayout {
                                     Layout.fillWidth: true; spacing: 2
                                     Text { Layout.fillWidth: true; text: qsTr("Max words shown"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
@@ -341,8 +360,10 @@ Item {
                     anchors.fill: parent; anchors.margins: 20
                     spacing: 16
                     SectionLabel { text: qsTr("Dictionary") }
-                    RowLayout {
+                    GridLayout {
                         Layout.fillWidth: true
+                        columns: Metrics.formFactor === FormFactor.phonePortrait ? 1 : 2
+                        rowSpacing: 8; columnSpacing: 16
                         ColumnLayout {
                             Layout.fillWidth: true; spacing: 2
                             Text { Layout.fillWidth: true; text: qsTr("Word list"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
@@ -374,7 +395,7 @@ Item {
                         SegControl {
                             id: dictSeg
                             objectName: "dictSeg"
-                            Layout.fillWidth: false
+                            Layout.fillWidth: Metrics.formFactor === FormFactor.phonePortrait
                             options: [qsTr("Default"), qsTr("Custom")]
                             enabled: solver.dictionariesReady && solver.fullDictionaryAvailable()
                             opacity: enabled ? 1 : 0.5
@@ -422,6 +443,42 @@ Item {
                             wrapMode: Text.WordWrap
                         }
                     }
+                    // Word count/version/dirty badge - the sidebar footer
+                    // (Main.qml) that shows this on desktop/tablet-landscape
+                    // has no home in a bottom-tab shell, so mobile form
+                    // factors get it here instead.
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 4
+                        spacing: 6
+                        visible: Metrics.formFactor !== FormFactor.desktop && Metrics.formFactor !== FormFactor.tabletLandscape
+                        Text {
+                            text: solver.dictionariesReady
+                                  ? qsTr("%1 words loaded").arg(Number(solver.dictionaryWordCount()).toLocaleString(Qt.locale(), "f", 0))
+                                  : qsTr("Loading…")
+                            color: Theme.faint; font.family: Theme.mono; font.pixelSize: 11
+                        }
+                        RowLayout {
+                            spacing: 6
+                            Text {
+                                text: "v" + solver.shortVersion()
+                                color: Theme.faint; font.family: Theme.mono; font.pixelSize: 11
+                            }
+                            Rectangle {
+                                visible: solver.isDirty()
+                                radius: 7
+                                implicitHeight: 15; implicitWidth: dirtyLabel.implicitWidth + 12
+                                color: Theme.warnBg
+                                Text {
+                                    id: dirtyLabel
+                                    anchors.centerIn: parent
+                                    text: qsTr("dirty")
+                                    color: Theme.warnInk; font.family: Theme.mono
+                                    font.pixelSize: 9; font.weight: Font.DemiBold
+                                }
+                            }
+                        }
+                    }
                     Text {
                         id: repoLink
                         Layout.topMargin: 4
@@ -455,7 +512,7 @@ Item {
 
             LicensesDialog { id: licensesDialogInstance }
 
-            Item { Layout.preferredHeight: 4 }
+            Item { Layout.preferredHeight: 4; Layout.columnSpan: Metrics.formFactor === FormFactor.phoneLandscape ? 2 : 1 }
         }
     }
 }
