@@ -11,7 +11,8 @@ Rectangle {
     property int currentIndex: 0
     signal tabActivated(int index)
 
-    implicitHeight: Metrics.tabBar.h[Metrics.compactIndex]
+    // safeIndex, not compactIndex - see BottomTabButton.qml's comment.
+    implicitHeight: Metrics.tabBar.h[Metrics.safeIndex]
     color: Theme.sidebar
 
     Rectangle { anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; height: 1; color: Theme.border }

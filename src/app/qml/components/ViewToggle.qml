@@ -11,7 +11,10 @@ SegControl {
     property bool hasResult: false
     signal viewActivated(string view)
 
-    readonly property int idx: Metrics.compactIndex
+    // safeIndex, not compactIndex - this component is instantiated (just
+    // invisible) on desktop/tablet-landscape too, so an unclamped -1 would
+    // index Metrics arrays out of bounds. See Metrics.qml's safeIndex doc.
+    readonly property int idx: Metrics.safeIndex
     readonly property bool compact: Metrics.formFactor === FormFactor.phoneLandscape
 
     options: [qsTr("Input"), hasResult ? qsTr("Results") + " •" : qsTr("Results")]

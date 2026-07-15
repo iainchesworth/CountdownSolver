@@ -29,7 +29,7 @@ Item {
                 Layout.fillWidth: true
                 text: header.title
                 color: Theme.ink; font.family: Theme.sans
-                font.pixelSize: Metrics.headerTitle.font[Metrics.compactIndex]
+                font.pixelSize: Metrics.headerTitle.font[Metrics.safeIndex]
                 font.weight: Font.Bold
                 elide: Text.ElideRight
             }
@@ -37,7 +37,7 @@ Item {
                 Layout.fillWidth: true
                 text: header.subtitle
                 color: Theme.muted; font.family: Theme.sans
-                font.pixelSize: Metrics.headerSubtitle.font[Metrics.compactIndex]
+                font.pixelSize: Metrics.headerSubtitle.font[Metrics.safeIndex]
                 elide: Text.ElideRight
             }
         }

@@ -13,7 +13,8 @@ Button {
     property bool   active: false
     property bool   horizontal: false
 
-    readonly property int idx: Metrics.compactIndex
+    // safeIndex, not compactIndex - see ViewToggle.qml's identical comment.
+    readonly property int idx: Metrics.safeIndex
 
     flat: true
     hoverEnabled: true
