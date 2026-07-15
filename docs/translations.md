@@ -97,21 +97,12 @@ things wired up before it's selectable at all:
    Sans fonts — add it to `Theme.qml`'s `rtlFonts` map and register it in
    `main.cpp`.
 
-That covers UI chrome only. **Actual gameplay in that language is a
-separate, bigger step**, and today only English is wired up end-to-end
-(see the "Known limitations" note in
-[How to play](how-to-play.md#languages)) — it needs a
+That covers UI chrome. **Gameplay is a separate, bigger step** if you're
+adding a *new* language beyond the six already wired up (French, German,
+Spanish, Arabic, Hebrew, Yiddish — see
+[How to play → Languages](how-to-play.md#languages)): it needs a
 `letters::Alphabet` mapping in `alphabet_for_language()` and a bundled
 dictionary resource in `dictionary_resource_for_language()` (both in
 `src/app/solver.cpp`), registered as a Qt resource in `CMakeLists.txt`.
-Several `.ts` files already exist for languages whose gameplay isn't
-wired up yet (Arabic, Hebrew, Yiddish currently fall back to the English
-alphabet) — don't assume a translated UI implies a playable round in that
-language.
-
-## iOS build currently broken
-
-`ios-build` fails at the CMake Generate step due to an Xcode "new build
-system" limitation with duplicate translation-file outputs — unrelated to
-translation *content*, so it isn't something a translation PR can fix.
-See [CI & dependencies](ci.md#mobile-ci-jobs) for the full cause.
+Don't assume a translated UI alone implies a playable round in that
+language — check whether both of those are wired up too.

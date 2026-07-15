@@ -60,8 +60,7 @@ private:
 
 // Maps a LanguageManager language code to the Alphabet Solver's game logic
 // should use. Kept here (app layer), not in the library - the library has
-// no business knowing about ISO-ish language codes. Arabic/Hebrew/Yiddish
-// fall back to English until a later phase adds their alphabets.
+// no business knowing about ISO-ish language codes.
 [[nodiscard]] const letters::Alphabet& alphabet_for_language(const QString& code) {
     static const letters::Alphabet english = letters::english_alphabet();
     static const letters::Alphabet french = letters::french_alphabet();
