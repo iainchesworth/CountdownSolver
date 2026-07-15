@@ -2,11 +2,12 @@
 
 Quick answers, linking out to the full detail rather than repeating it.
 
-**I switched the language in Settings, but the Numbers/Letters/Conundrum
-rounds are still in English — is that a bug?**
-No — see [How to play → Languages](how-to-play.md#languages). The
-language picker currently translates the UI chrome only; gameplay and
-the dictionary are English-only for now.
+**I switched the language in Settings — does that change gameplay too, or
+just the menus?**
+Both. Letters and Conundrum solve against that language's own dictionary
+and alphabet rules, not just translated labels — see
+[How to play → Languages](how-to-play.md#languages). Numbers is
+language-independent (it's arithmetic).
 
 **I unzipped the Linux build and the app won't start / complains about
 missing Qt libraries.**
@@ -28,13 +29,15 @@ at startup. See
 [Getting started → Using your own word list](getting-started.md#using-your-own-word-list).
 
 **Is there an Android or iOS download?**
-Not on the [releases page](https://github.com/iainchesworth/CountdownSolver/releases)
-yet as a polished listing, but the release pipeline does produce signed
-packages — an Android APK/AAB and an ad-hoc-signed iOS IPA (installable
-only on pre-registered devices, not a public App Store build). See
+Android, yes — every [release](https://github.com/iainchesworth/CountdownSolver/releases)
+from `v0.2.0-beta.1` on ships a signed APK/AAB, covering tablet and phone
+in both portrait and landscape. iOS builds successfully in CI but isn't
+signed for release yet (needs a maintainer with an Apple Developer account
+to configure signing secrets — see
+[CI & dependencies → Signed mobile release packaging](ci.md#signed-mobile-release-packaging)),
+and stays tablet-only/landscape-only until someone can verify phone and
+portrait layouts on real hardware. See
 [Building & packaging → Supported platforms](building.md#supported-platforms).
-iOS CI is currently broken independent of this — see
-[Translations → iOS build currently broken](translations.md#ios-build-currently-broken).
 
 **My PR is failing the "Translations complete" / "Check translations are
 up to date" CI check.**
