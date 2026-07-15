@@ -80,7 +80,7 @@ jobs:
       # require CMake 4. get-cmake installs a matching CMake 4 and Ninja on
       # every OS.
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
+        uses: lukka/get-cmake@f5b8fbb4d77cec1acc5a5f9f0df4beffaf5d98d9 # v4.3.4
         with:
           cmakeVersion: "latest"
 
@@ -320,7 +320,7 @@ jobs:
             vcpkg-binary-cache-linux-gcc-coverage-
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
+        uses: lukka/get-cmake@f5b8fbb4d77cec1acc5a5f9f0df4beffaf5d98d9 # v4.3.4
         with:
           cmakeVersion: "latest"
 
