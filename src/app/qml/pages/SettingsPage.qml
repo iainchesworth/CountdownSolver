@@ -149,14 +149,41 @@ Item {
                                     verticalAlignment: Text.AlignVCenter
                                     elide: Text.ElideRight
                                 }
-                                indicator: Text {
+                                // Drawn as two rotated bars rather than a
+                                // Unicode chevron glyph ("⌄") - the bundled
+                                // IBM Plex Sans doesn't carry that glyph, and
+                                // unlike desktop Qt, Android's font engine
+                                // doesn't fall back to a system font for it,
+                                // so it rendered as a tofu box on Android.
+                                indicator: Item {
+                                    width: 10; height: 6
                                     anchors.right: parent.right
                                     anchors.rightMargin: 12
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: "⌄"
-                                    font.family: Theme.sans
-                                    font.pixelSize: 16
-                                    color: Theme.muted
+
+                                    // Fixed x/y (not anchors) for the bars
+                                    // themselves: LayoutMirroring flips
+                                    // anchors.left/right under RTL but leaves
+                                    // `rotation` untouched, which turned this
+                                    // V into an X. The chevron is left-right
+                                    // symmetric anyway, so only the indicator
+                                    // Item's own anchors.right above - which
+                                    // moves the whole indicator to the
+                                    // correct visual side - needs to mirror.
+                                    Rectangle {
+                                        width: 7; height: 2; radius: 1
+                                        color: Theme.muted
+                                        x: 0; y: 0
+                                        transformOrigin: Item.TopLeft
+                                        rotation: 45
+                                    }
+                                    Rectangle {
+                                        width: 7; height: 2; radius: 1
+                                        color: Theme.muted
+                                        x: 3; y: 0
+                                        transformOrigin: Item.TopRight
+                                        rotation: -45
+                                    }
                                 }
                                 popup: Popup {
                                     y: langCombo.height + 4
