@@ -4,6 +4,87 @@
 # ---------------------------------------------------------------------------
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Concurrent Quick Gui QuickControls2 LinguistTools)
 
+# CI-confirmed Qt 6.8.3-for-iOS-kit packaging gap: ~30 plugin targets (image
+# format plugins, platform integration plugins, qmltooling debug/profiler
+# plugins, and the Apple-specific permission/TLS/reachability plugins) don't
+# export QT_DEFAULT_PLUGIN at all. Qt6/QtPublicPluginHelpers.cmake's plugin
+# auto-linkage genex reads that property directly, unwrapped, as one operand
+# of a $<AND:...>; an unset property is an empty string, and CMake's Generate
+# phase hard-errors ("Parameters to $<AND> must resolve to either '0' or
+# '1'") rather than treating empty as falsy - confirmed identical on both
+# CMake 4.3.3 and 4.0.3, ruling out a CMake-version-specific cause. No
+# matching upstream Qt bug report found for this exact error. The desktop Qt
+# 6.8.3 kit exports this property correctly on every one of these plugins
+# that exists there too (verified directly against that kit's own
+# Targets.cmake files); restore the same values it uses. The genex is
+# evaluated lazily at Generate time, so setting the property here - any
+# point after find_package(Qt6) creates these IMPORTED targets - is visible
+# by the time it's read, regardless of directory/scope. iOS-only: none of
+# these targets exist on other platforms, so the if(TARGET ...) guards make
+# this an inert no-op everywhere else.
+if(IOS)
+    # Matches the desktop Qt 6.8.3 kit's own QT_DEFAULT_PLUGIN value for each
+    # (image format plugins, qmltooling debug/profiler plugins), plus a
+    # reasoned default for the six Apple-only plugins that have no desktop
+    # equivalent to compare against: "1" for the platform-integration plugin
+    # (QIOSIntegrationPlugin, the iOS analogue of QWindowsIntegrationPlugin/
+    # QCocoaIntegrationPlugin - required for the app to run at all), the TLS
+    # backend (QSecureTransportBackendPlugin, the Apple analogue of
+    # QSchannelBackendPlugin/QTlsBackendOpenSSLPlugin - needed for HTTPS to
+    # work out of the box), and network reachability monitoring
+    # (QSCNetworkReachabilityNetworkInformationPlugin, base infrastructure,
+    # not an opt-in feature).
+    foreach(_countdown_ios_plugin IN ITEMS
+            QDebugMessageServiceFactoryPlugin
+            QGifPlugin
+            QICOPlugin
+            QIOSIntegrationPlugin
+            QJpegPlugin
+            QLocalClientConnectionFactoryPlugin
+            QQmlDebugServerFactoryPlugin
+            QQmlDebuggerServiceFactoryPlugin
+            QQmlInspectorServiceFactoryPlugin
+            QQmlNativeDebugConnectorFactoryPlugin
+            QQmlNativeDebugServiceFactoryPlugin
+            QQmlPreviewServiceFactoryPlugin
+            QQmlProfilerServiceFactoryPlugin
+            QQuickProfilerAdapterFactoryPlugin
+            QSCNetworkReachabilityNetworkInformationPlugin
+            QSecureTransportBackendPlugin
+            QSvgIconPlugin
+            QSvgPlugin
+            QTcpServerConnectionFactoryPlugin)
+        if(TARGET Qt6::${_countdown_ios_plugin})
+            set_target_properties(Qt6::${_countdown_ios_plugin} PROPERTIES QT_DEFAULT_PLUGIN "1")
+        endif()
+    endforeach()
+
+    # "0" (opt-in only, not auto-linked): matches the desktop kit's own value
+    # for the platform-integration alternates and TUIO touch plugin; for the
+    # six Darwin permission plugins and the optional photo-library picker,
+    # this app requests none of the matching Info.plist usage-description
+    # keys (NSCameraUsageDescription etc.), so auto-linking them would risk a
+    # runtime crash the first time Qt's permission-check code path is hit
+    # without one present - "0" here isn't just a safe guess, it matches
+    # this app's actual Info.plist.in content.
+    foreach(_countdown_ios_plugin IN ITEMS
+            QDarwinBluetoothPermissionPlugin
+            QDarwinCalendarPermissionPlugin
+            QDarwinCameraPermissionPlugin
+            QDarwinContactsPermissionPlugin
+            QDarwinLocationPermissionPlugin
+            QDarwinMicrophonePermissionPlugin
+            QIosOptionalPlugin_NSPhotoLibraryPlugin
+            QMinimalIntegrationPlugin
+            QOffscreenIntegrationPlugin
+            QTlsBackendCertOnlyPlugin
+            QTuioTouchPlugin)
+        if(TARGET Qt6::${_countdown_ios_plugin})
+            set_target_properties(Qt6::${_countdown_ios_plugin} PROPERTIES QT_DEFAULT_PLUGIN "0")
+        endif()
+    endforeach()
+endif()
+
 qt_standard_project_setup(REQUIRES 6.5)
 
 # QML files live under qml/components/ and qml/pages/ as well as qml/ itself;
