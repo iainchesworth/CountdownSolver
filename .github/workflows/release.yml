@@ -320,8 +320,15 @@ jobs:
       # androiddeployqt's own --sign flag is its documented signing mechanism
       # (keystore + alias + store/key passwords), so no custom Gradle
       # signingConfig override is needed.
+      # CMake mirrors the source tree under the build dir, and
+      # qt_add_executable(countdownsolver ...) is called from
+      # src/app/CMakeLists.txt, so the deployment-settings JSON (and the
+      # unsigned android-build/ androiddeployqt already produced once,
+      # automatically, as part of the plain "Build" step above) both land
+      # under src/app/, not the build root - confirmed on a real CI run
+      # ("Cannot read from input file" without the src/app/ prefix).
       - name: Sign and package APK + AAB
-        working-directory: build/android-arm64-v8a-release
+        working-directory: build/android-arm64-v8a-release/src/app
         run: |
           "$COUNTDOWN_QT_HOST_ROOT/bin/androiddeployqt" \
             --input android-countdownsolver-deployment-settings.json \
@@ -337,9 +344,9 @@ jobs:
             --sign "${{ runner.temp }}/release.keystore" "${{ secrets.ANDROID_KEY_ALIAS }}" \
             --storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
             --keypass "${{ secrets.ANDROID_KEY_PASSWORD }}"
-          mkdir -p ../../dist-android
-          find android-build -name "*.apk" -exec cp {} ../../dist-android/CountdownSolver-android-arm64-v8a.apk \;
-          find android-build -name "*.aab" -exec cp {} ../../dist-android/CountdownSolver-android-arm64-v8a.aab \;
+          mkdir -p ../../../../dist-android
+          find android-build -name "*.apk" -exec cp {} ../../../../dist-android/CountdownSolver-android-arm64-v8a.apk \;
+          find android-build -name "*.aab" -exec cp {} ../../../../dist-android/CountdownSolver-android-arm64-v8a.aab \;
 
       - name: Remove decoded keystore
         if: always()
