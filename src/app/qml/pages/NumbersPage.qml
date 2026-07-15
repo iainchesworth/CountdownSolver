@@ -279,7 +279,7 @@ Item {
                             implicitHeight: 44
                             radius: 9; color: Theme.bg; border.width: 1; border.color: Theme.border
                             RowLayout {
-                                anchors.fill: parent; anchors.leftMargin: 14; spacing: 12
+                                anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
                                 Rectangle {
                                     width: 22; height: 22; radius: 6; color: Theme.accentSoft
                                     Text { anchors.centerIn: parent; text: index + 1; color: Theme.accent; font.family: Theme.mono; font.pixelSize: 12; font.weight: Font.DemiBold }
