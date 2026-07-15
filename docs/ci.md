@@ -99,11 +99,24 @@ or an Apple Developer Enterprise account) is a separate, later decision.
 available in this project's day-to-day dev environment — everything below
 was confirmed via real CI runs, not locally):
 
-- **Android is fully verified end-to-end**: `android-release` produces a
-  real signed APK/AAB, and that APK has been installed and run on a real
-  tablet emulator (Pixel Tablet profile, API 34) — including confirming
-  the fonts, backspace icon, and RTL layout fixes render correctly on the
-  actual device, not just "the build succeeded."
+- **Android is verified end-to-end, including a real intermittent signing
+  bug caught and fixed**: `android-release` produces a real signed
+  APK/AAB, installed and run on a real tablet emulator (Pixel Tablet
+  profile, API 34) — confirming fonts, backspace icon, and RTL layout
+  fixes render correctly on the actual device, not just "the build
+  succeeded." That same verification also caught a real defect CI's
+  file-existence/checksum checks had been silently missing: `android-build/`
+  contains both Qt's own automatic unsigned APK (produced during the plain
+  "Build" step) and this job's explicitly-signed one side by side, and a
+  bare `find ... -name "*.apk"` glob matched both — since `-exec cp` has no
+  defined match order, it could silently overwrite the signed APK with the
+  unsigned one depending on filesystem traversal order. One real release
+  run produced a genuinely unsigned artifact this way (`apksigner verify`:
+  "Missing META-INF/MANIFEST.MF") while every existing CI check reported
+  success. Fixed by matching only `*-signed.apk`, plus an explicit
+  `apksigner verify` step that now fails the job outright if the final
+  artifact isn't actually signed - so this class of bug can't silently
+  ship again.
 - **`ios-build` (unsigned compile) is verified**: it's passed real Xcode
   CI runs repeatedly since the fixes below landed.
 - **`ios-release` (signed, ad-hoc) has never run for real** — blocked on

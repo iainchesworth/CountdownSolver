@@ -344,9 +344,35 @@ jobs:
             --sign "${{ runner.temp }}/release.keystore" "${{ secrets.ANDROID_KEY_ALIAS }}" \
             --storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
             --keypass "${{ secrets.ANDROID_KEY_PASSWORD }}"
+          # android-build/ contains BOTH android-build-release-unsigned.apk
+          # (Qt's own automatic unsigned build, produced during the plain
+          # "Build" step above, before this step even runs) and
+          # android-build-release-signed.apk (this step's own --sign output)
+          # side by side in the same output directory - a bare "*.apk" glob
+          # matches both, and since -exec cp runs once per match with no
+          # defined match order, it can silently overwrite the signed APK
+          # with the unsigned one depending on filesystem traversal order.
+          # Confirmed on a real release run: the final artifact was
+          # genuinely unsigned (apksigner: "Missing META-INF/MANIFEST.MF")
+          # despite CI reporting success, because file-existence/checksum
+          # checks alone don't catch this. Match only the signed file by
+          # name to fix the root cause, and verify it explicitly below so
+          # this class of bug can't silently ship again undetected.
           mkdir -p ../../../../dist-android
-          find android-build -name "*.apk" -exec cp {} ../../../../dist-android/CountdownSolver-android-arm64-v8a.apk \;
+          find android-build -name "*-signed.apk" -exec cp {} ../../../../dist-android/CountdownSolver-android-arm64-v8a.apk \;
           find android-build -name "*.aab" -exec cp {} ../../../../dist-android/CountdownSolver-android-arm64-v8a.aab \;
+
+      - name: Verify the APK is actually signed
+        run: |
+          apksigner=$(find "$ANDROID_HOME/build-tools" -name "apksigner" -type f | sort -V | tail -1)
+          if [ -z "$apksigner" ]; then
+            echo "::error::apksigner not found under \$ANDROID_HOME/build-tools" >&2
+            exit 1
+          fi
+          if ! "$apksigner" verify --verbose dist-android/CountdownSolver-android-arm64-v8a.apk; then
+            echo "::error::Signed APK failed apksigner verification - see docs/ci.md for the known unsigned/signed glob-collision root cause this guards against" >&2
+            exit 1
+          fi
 
       - name: Remove decoded keystore
         if: always()
