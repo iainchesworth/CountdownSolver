@@ -10,8 +10,8 @@ What's actually built and tested by CI — see
 | Windows | x64 | MSVC 19.40+ (VS 2022 17.10+ / VS 18), tested on Windows Server 2025 | `.zip` or NSIS installer; Qt runtime is bundled, nothing extra to install |
 | macOS | arm64 (Apple Silicon) | AppleClang, tested on macOS 15 (Sequoia) | `.zip` or `.dmg`; Qt runtime is bundled. Intel Macs aren't covered by CI |
 | Linux | x64 | GCC 15 or Clang 21, tested on Ubuntu 24.04 | See below — unlike Windows/macOS, Linux packages don't bundle Qt |
-| Android | arm64-v8a | CI-verified via the `android-arm64-v8a-debug` preset (Qt's Android kit) | Not currently distributed — CI builds an unsigned debug APK to catch build breaks, nothing signed or packaged |
-| iOS | device (arm64) | CI-verified via the `ios-debug` preset (Qt's iOS kit), unsigned | Not currently distributed — same as Android, build-only for now |
+| Android | arm64-v8a | CI-verified via the `android-arm64-v8a-debug` preset (Qt's Android kit) | Signed APK/AAB via `release.yml`'s `android-release` job (needs maintainer-supplied keystore secrets — see [CI & dependencies](ci.md#signed-mobile-release-packaging)); not yet proven against a real tagged release |
+| iOS | device (arm64) | CI-verified via the `ios-debug` preset (Qt's iOS kit), unsigned | Ad-hoc signed IPA via `release.yml`'s `ios-release` job — installable only on devices pre-registered in the provisioning profile, not a public App Store build. Also currently broken: see the note below |
 
 `countdown::solver` itself (`-DCOUNTDOWN_BUILD_APP=OFF`) has no GUI or
 platform-specific code — see [Architecture](architecture.md) — so it isn't
@@ -29,9 +29,14 @@ The `.rpm` resolves its own Qt version requirement automatically via
 **Android/iOS**: CPack packaging is skipped entirely for these targets
 ([`Packaging.cmake`](https://github.com/iainchesworth/CountdownSolver/blob/develop/cmake/Packaging.cmake)) —
 mobile distribution goes through `androiddeployqt` and an Xcode
-archive+export instead, and neither is wired up yet. CI builds both on
-every push purely to catch build breaks early, not to produce anything
-installable.
+archive+export instead ([CI & dependencies](ci.md#signed-mobile-release-packaging)
+has the full signing setup). The debug builds CI runs on every push are
+build-only and unsigned, purely to catch breaks early; a real signed
+package only comes out of a tagged release. **`ios-build` currently fails**
+at the CMake Generate step — a known Xcode "new build system" limitation
+around duplicate translation-file outputs, not yet resolved (see
+[CI & dependencies](ci.md#mobile-ci-jobs) for the detailed cause) — so iOS
+is CI-broken right now, not just unsigned.
 
 ## Presets
 
@@ -66,6 +71,13 @@ cmake --build --preset android-arm64-v8a-debug
 cmake --preset ios-debug -DCMAKE_PREFIX_PATH=<qt-ios-root>
 cmake --build --preset ios-debug
 ```
+
+!!! warning "iOS configure currently fails"
+    The iOS preset hits a CMake Generate error from a duplicate
+    translation-file output that Xcode's "new build system" won't
+    tolerate — not something you did wrong. See
+    [CI & dependencies](ci.md#mobile-ci-jobs) for the full cause; not yet
+    resolved.
 
 `cpack` doesn't apply to either target — `cmake/Packaging.cmake` skips CPack
 entirely for `ANDROID`/`IOS` configures. Real packaging is
