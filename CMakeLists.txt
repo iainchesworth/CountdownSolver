@@ -44,7 +44,7 @@ if(NOT DEFINED COUNTDOWN_BUILD_TESTS OR COUNTDOWN_BUILD_TESTS)
 endif()
 
 project(CountdownSolver
-    VERSION 0.1.0
+    VERSION 0.2.0
     DESCRIPTION "A solver for the Countdown TV show numbers and letters games"
     HOMEPAGE_URL "https://github.com/iainchesworth/CountdownSolver"
     LANGUAGES CXX)
