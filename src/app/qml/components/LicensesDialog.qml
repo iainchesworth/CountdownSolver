@@ -23,6 +23,20 @@ Dialog {
             licenseUrl: "https://www.gnu.org/licenses/lgpl-3.0.html"
         },
         {
+            name: "IBM Plex Sans",
+            version: "",
+            summary: "Bundled font used for the app's default (Latin-script) UI typeface.",
+            licenseName: "SIL Open Font License, Version 1.1",
+            licenseUrl: "https://scripts.sil.org/OFL"
+        },
+        {
+            name: "IBM Plex Mono",
+            version: "",
+            summary: "Bundled font used for numbers, code-style text, and version/meta labels.",
+            licenseName: "SIL Open Font License, Version 1.1",
+            licenseUrl: "https://scripts.sil.org/OFL"
+        },
+        {
             name: "Noto Sans Arabic",
             version: "",
             summary: "Bundled font providing Arabic script coverage for the Arabic display language.",

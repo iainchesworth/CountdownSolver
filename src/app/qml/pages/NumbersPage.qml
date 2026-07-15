@@ -213,7 +213,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true; spacing: 9
                 FlatButton { Layout.fillWidth: true; text: "\u21bb " + qsTr("Random game"); onClicked: root.randomGame() }
-                FlatButton { text: "\u232b"; onClicked: root.backspaceKey() }
+                FlatButton { text: "\u2190"; onClicked: root.backspaceKey() }
                 FlatButton { text: qsTr("Clear"); onClicked: root.clearAll() }
             }
             FlatButton {

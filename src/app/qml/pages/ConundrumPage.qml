@@ -84,7 +84,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true; spacing: 9
                 FlatButton { Layout.fillWidth: true; text: "\u21bb " + qsTr("Random conundrum"); onClicked: root.randomConundrum() }
-                FlatButton { text: "\u232b"; onClicked: rackInput.backspace() }
+                FlatButton { text: "\u2190"; onClicked: rackInput.backspace() }
                 FlatButton { text: qsTr("Clear"); onClicked: rackInput.clearAll() }
             }
             FlatButton {
