@@ -334,17 +334,37 @@ if(IOS)
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2")
 endif()
 
-# Noto Sans Arabic/Hebrew (SIL Open Font License - see the accompanying
-# *-OFL.txt files), bundled so Arabic/Hebrew/Yiddish text renders with proper
-# glyph coverage regardless of what's installed on the host; IBM Plex Sans
-# (Theme.qml's default) has no Arabic or Hebrew coverage. Only countdownsolver
-# needs these - no test target renders text - so unlike the dictionary
-# resource above, this lives directly on the final executable with no
-# WHOLE_ARCHIVE dance required.
+# IBM Plex Sans/Mono (Theme.qml's Theme.sans/Theme.mono) plus Noto Sans
+# Arabic/Hebrew (all SIL Open Font License - see the accompanying *-OFL.txt
+# files), bundled so text renders with the intended typeface and glyph
+# coverage regardless of what's installed on the host, rather than silently
+# depending on IBM Plex happening to already be present system-wide (it
+# isn't, on Android or most other machines - confirmed the missing bundle
+# was the root cause of washed-out/inconsistent-weight text and a missing
+# backspace glyph on Android, none of which reproduced on a dev machine that
+# happened to have IBM Plex installed already). IBM Plex Sans has no Arabic
+# or Hebrew coverage, hence the separate Noto fallbacks. Both Sans and Mono
+# are bundled as four static weights (Regular/Medium/SemiBold/Bold - the
+# only ones Theme.sans/Theme.mono are actually used at), not variable fonts:
+# IBM Plex Mono ships no variable build at all, and IBM Plex Sans's variable
+# build registers under the family name "IBM Plex Sans Var" rather than
+# "IBM Plex Sans" - confirmed by inspecting its name table - which wouldn't
+# match Theme.qml's Theme.sans string at all. Only countdownsolver needs
+# these - no test target renders text - so unlike the dictionary resource
+# above, this lives directly on the final executable with no WHOLE_ARCHIVE
+# dance required.
 qt_add_resources(countdownsolver "fonts"
     PREFIX "/fonts"
     BASE "resources/fonts"
     FILES
+        resources/fonts/IBMPlexSans-Regular.ttf
+        resources/fonts/IBMPlexSans-Medium.ttf
+        resources/fonts/IBMPlexSans-SemiBold.ttf
+        resources/fonts/IBMPlexSans-Bold.ttf
+        resources/fonts/IBMPlexMono-Regular.ttf
+        resources/fonts/IBMPlexMono-Medium.ttf
+        resources/fonts/IBMPlexMono-SemiBold.ttf
+        resources/fonts/IBMPlexMono-Bold.ttf
         resources/fonts/NotoSansArabic.ttf
         resources/fonts/NotoSansHebrew.ttf)
 
