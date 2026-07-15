@@ -312,24 +312,25 @@ jobs:
       - name: Build
         run: cmake --build --preset android-arm64-v8a-release
 
+      # androiddeployqt is a host build tool (it drives Gradle on the CI
+      # runner) shipped in the desktop Qt kit's bin/, not the Android target
+      # kit - confirmed against a real Qt 6.8.3 install ("No such file or
+      # directory" against COUNTDOWN_QT_ANDROID_ROOT on a real CI run; it
+      # exists at COUNTDOWN_QT_HOST_ROOT/bin/androiddeployqt(6) instead).
       # androiddeployqt's own --sign flag is its documented signing mechanism
       # (keystore + alias + store/key passwords), so no custom Gradle
-      # signingConfig override is needed. The deployment-settings JSON path
-      # and androiddeployqt's exact CLI surface here are unverified against a
-      # real Qt 6.8.3 Android kit (none is installed on this machine) - see
-      # docs/ci.md's "genuine unknowns" list; treat a first-run failure here
-      # as an expected thing to fix, not a sign the overall approach is wrong.
+      # signingConfig override is needed.
       - name: Sign and package APK + AAB
         working-directory: build/android-arm64-v8a-release
         run: |
-          "$COUNTDOWN_QT_ANDROID_ROOT/bin/androiddeployqt" \
+          "$COUNTDOWN_QT_HOST_ROOT/bin/androiddeployqt" \
             --input android-countdownsolver-deployment-settings.json \
             --output android-build \
             --release --gradle \
             --sign "${{ runner.temp }}/release.keystore" "${{ secrets.ANDROID_KEY_ALIAS }}" \
             --storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
             --keypass "${{ secrets.ANDROID_KEY_PASSWORD }}"
-          "$COUNTDOWN_QT_ANDROID_ROOT/bin/androiddeployqt" \
+          "$COUNTDOWN_QT_HOST_ROOT/bin/androiddeployqt" \
             --input android-countdownsolver-deployment-settings.json \
             --output android-build \
             --release --gradle --aab \
