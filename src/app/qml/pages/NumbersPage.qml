@@ -34,6 +34,21 @@ Item {
     readonly property var validTargetRegex: /^[1-9][0-9]{2}$/
     function targetIsValid() { return validTargetRegex.test(target) }
 
+    // Input/Results toggle state for tablet-portrait/phone-portrait/
+    // phone-landscape (desktop/tablet-landscape show both panes at once and
+    // never read this). See Metrics.qml for why compactIndex guards it.
+    property string view: "input"
+    readonly property bool hasResult: result !== null
+    // Editing the puzzle after a result exists invalidates it immediately
+    // (the Results toggle's "•" dot disappears) rather than leaving a stale
+    // answer on screen for a rack that no longer matches the input. Desktop/
+    // tablet-landscape's side-by-side layout keeps its existing behaviour
+    // (a stale result stays until Solve/Clear) - this only applies where the
+    // Results toggle exists.
+    function invalidateIfStale() {
+        if (result !== null && Metrics.compactIndex >= 0) result = null
+    }
+
     function recalc() {
         if (typeof solver === "undefined" || !solver) { result = null; return }
         if (root.busy) return
@@ -51,12 +66,25 @@ Item {
             root.busy = false
         }
     }
-    function addNumber(v)   { if (numbers.length < 6 && remainingOf(v) > 0) { numbers = numbers.concat([v]) } }
-    function targetDigit(d) { if (target.length < 3) { target = target + d } }
+    function addNumber(v) {
+        if (numbers.length < 6 && remainingOf(v) > 0) {
+            numbers = numbers.concat([v])
+            invalidateIfStale()
+        }
+    }
+    function targetDigit(d) {
+        if (target.length < 3) {
+            target = target + d
+            invalidateIfStale()
+        }
+    }
     function commitBuffer() {
         if (numberBuffer.length === 0 || numbers.length >= 6) return
         const v = parseInt(numberBuffer)
-        if (legalNumbers.indexOf(v) !== -1 && remainingOf(v) > 0) numbers = numbers.concat([v])
+        if (legalNumbers.indexOf(v) !== -1 && remainingOf(v) > 0) {
+            numbers = numbers.concat([v])
+            invalidateIfStale()
+        }
         numberBuffer = ""
     }
     // Routes a typed digit to the number buffer while numbers are still being
@@ -71,11 +99,13 @@ Item {
     function backspaceKey() {
         if (numbers.length < 6) {
             if (numberBuffer.length > 0) numberBuffer = numberBuffer.slice(0, -1)
-            else numbers = numbers.slice(0, -1)
+            else { numbers = numbers.slice(0, -1); invalidateIfStale() }
         } else if (target.length > 0) {
             target = target.slice(0, -1)
+            invalidateIfStale()
         } else {
             numbers = numbers.slice(0, -1)
+            invalidateIfStale()
         }
     }
     function clearAll()     { numbers = []; target = ""; numberBuffer = ""; result = null }
@@ -92,6 +122,7 @@ Item {
         target = String(101 + Math.floor(Math.random() * 899))
         numberBuffer = ""
         recalc()
+        root.view = "results"
     }
 
     Keys.onPressed: function (event) {
@@ -105,8 +136,12 @@ Item {
             root.commitBuffer()
             event.accepted = true
         } else if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
-            if (numbers.length < 6) root.commitBuffer()
-            else root.recalc()
+            if (numbers.length < 6) {
+                root.commitBuffer()
+            } else {
+                root.recalc()
+                root.view = "results"
+            }
             event.accepted = true
         } else if (event.key === Qt.Key_Escape) {
             root.clearAll()
@@ -114,222 +149,408 @@ Item {
         }
     }
 
-    RowLayout {
-        anchors.fill: parent
-        anchors.leftMargin: 24; anchors.rightMargin: 24; anchors.bottomMargin: 24
-        spacing: 18
+    // ---- shared building blocks (used across all form-factor layouts) ----
 
-        // ---- left: input ----
+    component NumbersTileCard: Card {
+        Layout.fillWidth: true
+        cornerRadius: Metrics.compactIndex < 0 ? Theme.radiusCard : Metrics.cardRadius.value[Metrics.compactIndex]
+        implicitHeight: selCol.implicitHeight + (Metrics.compactIndex < 0 ? 18 : Metrics.cardPadding.value[Metrics.compactIndex]) * 2
         ColumnLayout {
-            Layout.preferredWidth: 456
-            Layout.fillWidth: false
-            Layout.fillHeight: true
-            spacing: 16
-
-            Card {
-                Layout.fillWidth: true
-                implicitHeight: selCol.implicitHeight + 36
-                ColumnLayout {
-                    id: selCol
-                    anchors.fill: parent; anchors.margins: 18
-                    spacing: 12
-                    SectionLabel { text: qsTr("Your six numbers") }
-                    RowLayout {
-                        Layout.fillWidth: true; spacing: 8
-                        Repeater {
-                            model: 6
-                            delegate: Tile {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 62
-                                label: index < root.numbers.length ? String(root.numbers[index])
-                                       : (index === root.numbers.length ? root.numberBuffer : "")
-                                pending: index === root.numbers.length && root.numberBuffer.length > 0
-                            }
-                        }
-                    }
-                    RowLayout {
-                        Layout.fillWidth: true; spacing: 8
-                        Repeater {
-                            model: [25, 50, 75, 100]
-                            delegate: PadButton {
-                                Layout.fillWidth: true; implicitHeight: 46; fontSize: 17
-                                accent: true; text: String(modelData)
-                                enabled: root.remainingOf(modelData) > 0 && root.numbers.length < 6
-                                onClicked: root.addNumber(modelData)
-                            }
-                        }
-                    }
-                    GridLayout {
-                        Layout.fillWidth: true
-                        columns: 5; rowSpacing: 8; columnSpacing: 8
-                        Repeater {
-                            model: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-                            delegate: PadButton {
-                                Layout.fillWidth: true; implicitHeight: 42
-                                text: String(modelData)
-                                enabled: root.remainingOf(modelData) > 0 && root.numbers.length < 6
-                                onClicked: root.addNumber(modelData)
-                            }
-                        }
-                    }
-                }
-            }
-
-            Card {
-                Layout.fillWidth: true
-                implicitHeight: tgtCol.implicitHeight + 36
-                ColumnLayout {
-                    id: tgtCol
-                    anchors.fill: parent; anchors.margins: 18
-                    spacing: 14
-                    RowLayout {
-                        Layout.fillWidth: true; spacing: 16
-                        SectionLabel { text: qsTr("Target") }
-                        Rectangle {
-                            Layout.fillWidth: true; Layout.preferredHeight: 52
-                            radius: 10; color: Theme.accent
-                            Text {
-                                anchors.centerIn: parent; text: root.target
-                                color: Theme.accentInk; font.family: Theme.mono
-                                font.pixelSize: 28; font.weight: Font.DemiBold; font.letterSpacing: 3
-                            }
-                        }
-                    }
-                    GridLayout {
-                        Layout.fillWidth: true
-                        columns: 10; columnSpacing: 6; rowSpacing: 6
-                        Repeater {
-                            model: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
-                            delegate: PadButton {
-                                Layout.fillWidth: true; implicitHeight: 38; fontSize: 14
-                                text: String(modelData)
-                                onClicked: root.targetDigit(String(modelData))
-                            }
-                        }
-                    }
-                }
-            }
-
+            id: selCol
+            anchors.fill: parent
+            anchors.margins: Metrics.compactIndex < 0 ? 18 : Metrics.cardPadding.value[Metrics.compactIndex]
+            spacing: 12
+            SectionLabel { text: qsTr("Your six numbers") }
             RowLayout {
-                Layout.fillWidth: true; spacing: 9
-                FlatButton { Layout.fillWidth: true; text: "\u21bb " + qsTr("Random game"); onClicked: root.randomGame() }
-                FlatButton { text: "\u232b"; onClicked: root.backspaceKey() }
-                FlatButton { text: qsTr("Clear"); onClicked: root.clearAll() }
+                Layout.fillWidth: true; spacing: 8
+                Repeater {
+                    model: 6
+                    delegate: Tile {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: Metrics.pick(Metrics.numberTile.size, 62)
+                        fontSize: Metrics.pick(Metrics.numberTile.font, 24)
+                        label: index < root.numbers.length ? String(root.numbers[index])
+                               : (index === root.numbers.length ? root.numberBuffer : "")
+                        pending: index === root.numbers.length && root.numberBuffer.length > 0
+                    }
+                }
             }
+            RowLayout {
+                Layout.fillWidth: true; spacing: 8
+                Repeater {
+                    model: [25, 50, 75, 100]
+                    delegate: PadButton {
+                        Layout.fillWidth: true
+                        implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.largePad.size, 46))
+                        fontSize: Metrics.pick(Metrics.largePad.font, 17)
+                        accent: true; text: String(modelData)
+                        enabled: root.remainingOf(modelData) > 0 && root.numbers.length < 6
+                        onClicked: root.addNumber(modelData)
+                    }
+                }
+            }
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 5; rowSpacing: 8; columnSpacing: 8
+                Repeater {
+                    model: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    delegate: PadButton {
+                        Layout.fillWidth: true
+                        implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.smallPad.size, 42))
+                        fontSize: Metrics.pick(Metrics.smallPad.font, 16)
+                        text: String(modelData)
+                        enabled: root.remainingOf(modelData) > 0 && root.numbers.length < 6
+                        onClicked: root.addNumber(modelData)
+                    }
+                }
+            }
+        }
+    }
+
+    component TargetCard: Card {
+        Layout.fillWidth: true
+        cornerRadius: Metrics.compactIndex < 0 ? Theme.radiusCard : Metrics.cardRadius.value[Metrics.compactIndex]
+        implicitHeight: tgtCol.implicitHeight + (Metrics.compactIndex < 0 ? 18 : Metrics.cardPadding.value[Metrics.compactIndex]) * 2
+        ColumnLayout {
+            id: tgtCol
+            anchors.fill: parent
+            anchors.margins: Metrics.compactIndex < 0 ? 18 : Metrics.cardPadding.value[Metrics.compactIndex]
+            spacing: 14
+            RowLayout {
+                Layout.fillWidth: true; spacing: 16
+                SectionLabel { text: qsTr("Target") }
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Metrics.pick(Metrics.targetDisplay.size, 52)
+                    radius: 10; color: Theme.accent
+                    Text {
+                        anchors.centerIn: parent; text: root.target
+                        color: Theme.accentInk; font.family: Theme.mono
+                        font.pixelSize: Metrics.pick(Metrics.targetDisplay.font, 28)
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: Metrics.pick(Metrics.targetDisplay.letterSpacing, 3)
+                    }
+                }
+            }
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 10; columnSpacing: 6; rowSpacing: 6
+                Repeater {
+                    model: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+                    delegate: PadButton {
+                        Layout.fillWidth: true
+                        implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.targetKey.size, 38))
+                        fontSize: Metrics.pick(Metrics.targetKey.font, 14)
+                        text: String(modelData)
+                        onClicked: root.targetDigit(String(modelData))
+                    }
+                }
+            }
+        }
+    }
+
+    component ActionButtons: ColumnLayout {
+        spacing: 9
+        RowLayout {
+            Layout.fillWidth: true; spacing: 9
             FlatButton {
                 Layout.fillWidth: true
-                primary: true
-                text: root.busy ? qsTr("Solving…") : qsTr("Solve")
-                enabled: root.numbers.length === 6 && root.targetIsValid() && !root.busy
-                onClicked: root.recalc()
+                implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
+                text: "↻ " + qsTr("Random game"); onClicked: root.randomGame()
             }
-            Item { Layout.fillHeight: true }
+            FlatButton {
+                implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
+                text: "←"; onClicked: root.backspaceKey()
+            }
+            FlatButton {
+                implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
+                text: qsTr("Clear"); onClicked: root.clearAll()
+            }
         }
-
-        // ---- right: result ----
-        Card {
+        FlatButton {
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.solveButton.size, 42))
+            primary: true
+            text: root.busy ? qsTr("Solving…") : qsTr("Solve")
+            enabled: root.numbers.length === 6 && root.targetIsValid() && !root.busy
+            onClicked: { root.recalc(); root.view = "results" }
+        }
+    }
+
+    component ResultSummary: ColumnLayout {
+        spacing: 8
+        SectionLabel { text: qsTr("Best result") }
+        RowLayout {
+            Layout.fillWidth: true
+            Text {
+                Layout.fillWidth: true
+                text: root.result ? String(root.result.value) : ""
+                color: Theme.ink; font.family: Theme.mono
+                font.pixelSize: 46; font.weight: Font.DemiBold
+            }
+            Rectangle {
+                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                radius: 20
+                implicitHeight: 30; implicitWidth: badge.implicitWidth + 28
+                color: (root.result && root.result.exact) ? Theme.accent
+                       : (AppState.flagInexact ? Theme.warnBg : Theme.bg)
+                border.width: (root.result && root.result.exact) ? 0 : 1
+                border.color: Theme.border
+                Text {
+                    id: badge
+                    anchors.centerIn: parent
+                    text: root.result
+                          ? (root.result.exact ? qsTr("Exact") : qsTr("%1 away").arg(root.result.diff))
+                          : ""
+                    font.family: Theme.sans; font.pixelSize: 13; font.weight: Font.DemiBold
+                    color: (root.result && root.result.exact) ? Theme.accentInk
+                           : (AppState.flagInexact ? Theme.warnInk : Theme.muted)
+                }
+            }
+        }
+    }
+
+    component WorkingSteps: ColumnLayout {
+        spacing: 10
+        SectionLabel { text: qsTr("Working") }
+        ColumnLayout {
+            Layout.fillWidth: true; Layout.topMargin: 10; spacing: 7
+            Repeater {
+                model: root.result ? root.result.steps : []
+                delegate: Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 44
+                    radius: 9; color: Theme.bg; border.width: 1; border.color: Theme.border
+                    RowLayout {
+                        anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
+                        Rectangle {
+                            width: 22; height: 22; radius: 6; color: Theme.accentSoft
+                            Text { anchors.centerIn: parent; text: index + 1; color: Theme.accent; font.family: Theme.mono; font.pixelSize: 12; font.weight: Font.DemiBold }
+                        }
+                        Text { Layout.fillWidth: true; text: modelData; color: Theme.ink; font.family: Theme.mono; font.pixelSize: 18; font.weight: Font.Medium }
+                    }
+                }
+            }
+        }
+    }
+
+    component ResultsBusyState: ColumnLayout {
+        spacing: 10
+        BusyIndicator { Layout.alignment: Qt.AlignHCenter; running: root.busy }
+        Text {
+            Layout.alignment: Qt.AlignHCenter
+            text: qsTr("Solving…")
+            color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
+        }
+    }
+
+    component ResultsEmptyState: ColumnLayout {
+        spacing: 10
+        Rectangle {
+            Layout.alignment: Qt.AlignHCenter
+            width: 52; height: 52; radius: 12; color: "transparent"
+            border.width: 2; border.color: Theme.tileBorder
+            Text { anchors.centerIn: parent; text: "="; color: Theme.faint; font.family: Theme.mono; font.pixelSize: 20; font.weight: Font.DemiBold }
+        }
+        Text {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.preferredWidth: 230
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            text: root.numbers.length < 6
+                  ? qsTr("Choose %n more number(s), then set a target.", "", 6 - root.numbers.length)
+                  : (root.target.length < 3
+                     ? qsTr("Enter a 3-digit target (100–999), then press Solve.")
+                     : (!root.targetIsValid()
+                        ? qsTr("Target must be between 100 and 999.")
+                        : qsTr("Press Solve to see the best result.")))
+            color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
+        }
+    }
+
+    // ---- per-form-factor layout ----
+
+    Loader {
+        anchors.fill: parent
+        sourceComponent: Metrics.formFactor === FormFactor.phoneLandscape ? phoneLandscapeLayout
+                        : (Metrics.formFactor === FormFactor.tabletPortrait
+                           || Metrics.formFactor === FormFactor.phonePortrait) ? portraitLayout
+                        : desktopLayout
+    }
+
+    // Desktop/tablet-landscape - byte-for-byte the original side-by-side layout.
+    Component {
+        id: desktopLayout
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 24; anchors.rightMargin: 24; anchors.bottomMargin: 24
+            spacing: 18
 
             ColumnLayout {
-                anchors.fill: parent; anchors.margins: 22
-                spacing: 0
-                visible: root.result !== null && !root.busy
+                Layout.preferredWidth: 456
+                Layout.fillWidth: false
+                Layout.fillHeight: true
+                spacing: 16
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    ColumnLayout {
-                        Layout.fillWidth: true; spacing: 8
-                        SectionLabel { text: qsTr("Best result") }
-                        Text {
-                            text: root.result ? String(root.result.value) : ""
-                            color: Theme.ink; font.family: Theme.mono
-                            font.pixelSize: 46; font.weight: Font.DemiBold
-                        }
-                    }
-                    Rectangle {
-                        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                        radius: 20
-                        implicitHeight: 30; implicitWidth: badge.implicitWidth + 28
-                        color: (root.result && root.result.exact) ? Theme.accent
-                               : (AppState.flagInexact ? Theme.warnBg : Theme.bg)
-                        border.width: (root.result && root.result.exact) ? 0 : 1
-                        border.color: Theme.border
-                        Text {
-                            id: badge
-                            anchors.centerIn: parent
-                            text: root.result
-                                  ? (root.result.exact ? qsTr("Exact") : qsTr("%1 away").arg(root.result.diff))
-                                  : ""
-                            font.family: Theme.sans; font.pixelSize: 13; font.weight: Font.DemiBold
-                            color: (root.result && root.result.exact) ? Theme.accentInk
-                                   : (AppState.flagInexact ? Theme.warnInk : Theme.muted)
-                        }
-                    }
-                }
-
-                Rectangle { Layout.fillWidth: true; Layout.topMargin: 16; Layout.bottomMargin: 16; height: 1; color: Theme.border }
-                SectionLabel { text: qsTr("Working") }
-                ColumnLayout {
-                    Layout.fillWidth: true; Layout.topMargin: 10; spacing: 7
-                    Repeater {
-                        model: root.result ? root.result.steps : []
-                        delegate: Rectangle {
-                            Layout.fillWidth: true
-                            implicitHeight: 44
-                            radius: 9; color: Theme.bg; border.width: 1; border.color: Theme.border
-                            RowLayout {
-                                anchors.fill: parent; anchors.leftMargin: 14; spacing: 12
-                                Rectangle {
-                                    width: 22; height: 22; radius: 6; color: Theme.accentSoft
-                                    Text { anchors.centerIn: parent; text: index + 1; color: Theme.accent; font.family: Theme.mono; font.pixelSize: 12; font.weight: Font.DemiBold }
-                                }
-                                Text { Layout.fillWidth: true; text: modelData; color: Theme.ink; font.family: Theme.mono; font.pixelSize: 18; font.weight: Font.Medium }
-                            }
-                        }
-                    }
-                }
+                NumbersTileCard {}
+                TargetCard {}
+                ActionButtons { Layout.fillWidth: true }
                 Item { Layout.fillHeight: true }
             }
 
-            // busy state - shown while solveNumbersAsync() is running
-            ColumnLayout {
-                anchors.centerIn: parent
-                visible: root.busy
-                spacing: 10
-                BusyIndicator { Layout.alignment: Qt.AlignHCenter; running: root.busy }
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: qsTr("Solving…")
-                    color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
+            Card {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                ColumnLayout {
+                    anchors.fill: parent; anchors.margins: 22
+                    spacing: 0
+                    visible: root.result !== null && !root.busy
+
+                    ResultSummary {}
+                    Rectangle { Layout.fillWidth: true; Layout.topMargin: 16; Layout.bottomMargin: 16; height: 1; color: Theme.border }
+                    WorkingSteps {}
+                    Item { Layout.fillHeight: true }
+                }
+
+                ResultsBusyState { anchors.centerIn: parent; visible: root.busy }
+                ResultsEmptyState { anchors.centerIn: parent; visible: root.result === null && !root.busy }
+            }
+        }
+    }
+
+    // Tablet-portrait/phone-portrait - single column, Input/Results toggled
+    // by `view` (the toggle bar itself is drawn by Main.qml, above this page).
+    Component {
+        id: portraitLayout
+        Item {
+            Flickable {
+                anchors.fill: parent
+                anchors.margins: Metrics.headerPadding.side[Metrics.compactIndex]
+                visible: root.view === "input"
+                clip: true
+                contentHeight: inputCol.implicitHeight
+                boundsBehavior: Flickable.StopAtBounds
+                ColumnLayout {
+                    id: inputCol
+                    width: parent.width
+                    spacing: 16
+                    NumbersTileCard {}
+                    TargetCard {}
+                    ActionButtons { Layout.fillWidth: true }
+                    Item { Layout.preferredHeight: 4 }
                 }
             }
 
-            // empty state
-            ColumnLayout {
-                anchors.centerIn: parent
-                visible: root.result === null && !root.busy
-                spacing: 10
-                Rectangle {
-                    Layout.alignment: Qt.AlignHCenter
-                    width: 52; height: 52; radius: 12; color: "transparent"
-                    border.width: 2; border.color: Theme.tileBorder
-                    Text { anchors.centerIn: parent; text: "="; color: Theme.faint; font.family: Theme.mono; font.pixelSize: 20; font.weight: Font.DemiBold }
+            Card {
+                anchors.fill: parent
+                anchors.margins: Metrics.headerPadding.side[Metrics.compactIndex]
+                cornerRadius: Metrics.cardRadius.value[Metrics.compactIndex]
+                visible: root.view === "results"
+                clip: true
+
+                Flickable {
+                    anchors.fill: parent
+                    anchors.margins: Metrics.cardPadding.value[Metrics.compactIndex]
+                    contentHeight: resCol.implicitHeight
+                    clip: true
+                    visible: root.result !== null && !root.busy
+                    boundsBehavior: Flickable.StopAtBounds
+                    ColumnLayout {
+                        id: resCol
+                        width: parent.width
+                        spacing: 16
+                        ResultSummary {}
+                        Rectangle { Layout.fillWidth: true; height: 1; color: Theme.border }
+                        WorkingSteps {}
+                    }
                 }
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.preferredWidth: 230
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.WordWrap
-                    text: root.numbers.length < 6
-                          ? qsTr("Choose %n more number(s), then set a target.", "", 6 - root.numbers.length)
-                          : (root.target.length < 3
-                             ? qsTr("Enter a 3-digit target (100–999), then press Solve.")
-                             : (!root.targetIsValid()
-                                ? qsTr("Target must be between 100 and 999.")
-                                : qsTr("Press Solve to see the best result.")))
-                    color: Theme.muted; font.family: Theme.sans; font.pixelSize: 15
+                ResultsBusyState { anchors.centerIn: parent; visible: root.busy }
+                ResultsEmptyState { anchors.centerIn: parent; visible: root.result === null && !root.busy }
+            }
+        }
+    }
+
+    // Phone-landscape - two-pane input, results card split into value|steps.
+    Component {
+        id: phoneLandscapeLayout
+        Item {
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: Metrics.headerPadding.side[Metrics.compactIndex]
+                spacing: 12
+                visible: root.view === "input"
+
+                // Both panes are flex:1 (equal split) per spec. Card/Rectangle
+                // has no implicit width of its own, so RowLayout has nothing
+                // to weight fillWidth by unless both sides get the same
+                // explicit Layout.preferredWidth - without it, one pane can
+                // collapse to ~0 width instead of splitting 50/50. Each pane
+                // is wrapped in its own Flickable, since ~390px of window
+                // height in landscape doesn't always fit a pane's content -
+                // it scrolls instead of clipping under the bottom tab bar.
+                Flickable {
+                    Layout.preferredWidth: 1; Layout.fillWidth: true; Layout.fillHeight: true
+                    clip: true
+                    contentHeight: leftCol.implicitHeight
+                    boundsBehavior: Flickable.StopAtBounds
+                    ColumnLayout {
+                        id: leftCol
+                        width: parent.width
+                        NumbersTileCard {}
+                    }
                 }
+                Flickable {
+                    Layout.preferredWidth: 1; Layout.fillWidth: true; Layout.fillHeight: true
+                    clip: true
+                    contentHeight: rightCol.implicitHeight
+                    boundsBehavior: Flickable.StopAtBounds
+                    ColumnLayout {
+                        id: rightCol
+                        width: parent.width
+                        spacing: 12
+                        TargetCard {}
+                        ActionButtons { Layout.fillWidth: true }
+                    }
+                }
+            }
+
+            Card {
+                anchors.fill: parent
+                anchors.margins: Metrics.headerPadding.side[Metrics.compactIndex]
+                cornerRadius: Metrics.cardRadius.value[Metrics.compactIndex]
+                visible: root.view === "results"
+                clip: true
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: Metrics.cardPadding.value[Metrics.compactIndex]
+                    spacing: 18
+                    visible: root.result !== null && !root.busy
+
+                    ColumnLayout {
+                        Layout.preferredWidth: 220
+                        Layout.fillWidth: false
+                        Layout.fillHeight: true
+                        spacing: 8
+                        ResultSummary {}
+                        Item { Layout.fillHeight: true }
+                    }
+                    Rectangle { Layout.fillHeight: true; width: 1; color: Theme.border }
+                    Flickable {
+                        Layout.fillWidth: true; Layout.fillHeight: true
+                        clip: true
+                        contentHeight: stepsCol.implicitHeight
+                        boundsBehavior: Flickable.StopAtBounds
+                        ColumnLayout {
+                            id: stepsCol
+                            width: parent.width
+                            WorkingSteps {}
+                        }
+                    }
+                }
+                ResultsBusyState { anchors.centerIn: parent; visible: root.busy }
+                ResultsEmptyState { anchors.centerIn: parent; visible: root.result === null && !root.busy }
             }
         }
     }

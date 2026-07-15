@@ -7,7 +7,7 @@ import Countdown
 // switching languages in Settings (including LTR<->RTL transitions) while
 // flipping tabs could log QML TypeErrors ("Cannot read property
 // 'currentLanguage' of null" / "Cannot call method 'availableLanguages' of
-// null") from Theme.qml, LetterRackInput.qml and SettingsPage.qml - the
+// null") from Theme.qml, OnScreenKeyboard.qml and SettingsPage.qml - the
 // `languageManager` context property momentarily read as null during/around
 // a language switch. Root cause wasn't conclusively pinned down (extensive
 // repro attempts here never reproduced the exact race), but a real ordering

@@ -10,6 +10,8 @@ What's actually built and tested by CI — see
 | Windows | x64 | MSVC 19.40+ (VS 2022 17.10+ / VS 18), tested on Windows Server 2025 | `.zip` or NSIS installer; Qt runtime is bundled, nothing extra to install |
 | macOS | arm64 (Apple Silicon) | AppleClang, tested on macOS 15 (Sequoia) | `.zip` or `.dmg`; Qt runtime is bundled. Intel Macs aren't covered by CI |
 | Linux | x64 | GCC 15 or Clang 21, tested on Ubuntu 24.04 | See below — unlike Windows/macOS, Linux packages don't bundle Qt |
+| Android | arm64-v8a | CI-verified via the `android-arm64-v8a-debug` preset (Qt's Android kit) | Signed APK/AAB via `release.yml`'s `android-release` job (needs maintainer-supplied keystore secrets — see [CI & dependencies](ci.md#signed-mobile-release-packaging)); not yet proven against a real tagged release |
+| iOS | device (arm64) | CI-verified via the `ios-debug` preset (Qt's iOS kit), unsigned | Ad-hoc signed IPA via `release.yml`'s `ios-release` job — installable only on devices pre-registered in the provisioning profile, not a public App Store build. Also currently broken: see the note below |
 
 `countdown::solver` itself (`-DCOUNTDOWN_BUILD_APP=OFF`) has no GUI or
 platform-specific code — see [Architecture](architecture.md) — so it isn't
@@ -24,18 +26,67 @@ in practice **Debian 13 (trixie) or newer, and Ubuntu 25.04 or newer**.
 The `.rpm` resolves its own Qt version requirement automatically via
 `rpmbuild`'s auto-requires.
 
+**Android/iOS**: CPack packaging is skipped entirely for these targets
+([`Packaging.cmake`](https://github.com/iainchesworth/CountdownSolver/blob/develop/cmake/Packaging.cmake)) —
+mobile distribution goes through `androiddeployqt` and an Xcode
+archive+export instead ([CI & dependencies](ci.md#signed-mobile-release-packaging)
+has the full signing setup). The debug builds CI runs on every push are
+build-only and unsigned, purely to catch breaks early; a real signed
+package only comes out of a tagged release. **`ios-build` currently fails**
+at the CMake Generate step — a known Xcode "new build system" limitation
+around duplicate translation-file outputs, not yet resolved (see
+[CI & dependencies](ci.md#mobile-ci-jobs) for the detailed cause) — so iOS
+is CI-broken right now, not just unsigned.
+
 ## Presets
 
 Every preset states its build type explicitly:
 `<toolchain>-debug` or `<toolchain>-release`, e.g. `windows-msvc-debug`,
 `linux-gcc-release`, `linux-clang-debug`, `macos-clang-release`,
-`windows-clang-debug`.
+`windows-clang-debug`, `android-arm64-v8a-debug`,
+`android-arm64-v8a-release`, `ios-debug`, `ios-release`.
 
 ```sh
 cmake --preset windows-msvc-debug
 cmake --build --preset windows-msvc-debug
 ctest --preset windows-msvc-debug
 ```
+
+### Mobile builds (Android/iOS)
+
+Tablet + landscape-only for now (see [Architecture](architecture.md)) —
+build-only, no responsive/portrait/phone layout work yet. These presets set
+`COUNTDOWN_BUILD_TESTS=OFF`: there's no way to run a CTest-launched native
+test executable on Android/iOS without an emulator/simulator/on-device
+runner, so `ctest` isn't part of the mobile flow.
+
+```sh
+# Android (arm64-v8a) - needs a Qt-for-Android kit (QT_ANDROID_ROOT below)
+# and a desktop Qt kit for cross-build host tools (QT_HOST_PATH).
+QT_HOST_PATH=<desktop-qt-root> QT_ANDROID_ROOT=<qt-android-root> \
+  cmake --preset android-arm64-v8a-debug -DCMAKE_PREFIX_PATH=<qt-android-root>
+cmake --build --preset android-arm64-v8a-debug
+
+# iOS (device) - macOS + Xcode + a Qt-for-iOS kit only; unsigned by default.
+cmake --preset ios-debug -DCMAKE_PREFIX_PATH=<qt-ios-root>
+cmake --build --preset ios-debug
+```
+
+!!! warning "iOS configure currently fails"
+    The iOS preset hits a CMake Generate error from a duplicate
+    translation-file output that Xcode's "new build system" won't
+    tolerate — not something you did wrong. See
+    [CI & dependencies](ci.md#mobile-ci-jobs) for the full cause; not yet
+    resolved.
+
+`cpack` doesn't apply to either target — `cmake/Packaging.cmake` skips CPack
+entirely for `ANDROID`/`IOS` configures. Real packaging is
+[Qt's `androiddeployqt`](https://doc.qt.io/qt-6/androiddeployqt.html)
+(APK/AAB) and Xcode archive + `xcodebuild -exportArchive` (IPA),
+respectively — see the `android-release`/`ios-release` jobs in the
+[release workflow](https://github.com/iainchesworth/CountdownSolver/blob/develop/.github/workflows/release.yml)
+for the full signed pipeline, and [CI & dependencies](ci.md) for the
+required signing secrets.
 
 Library + tests only, no Qt:
 

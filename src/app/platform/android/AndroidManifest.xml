@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+  Base structure follows Qt6's default androiddeployqt template. Confirmed
+  against a real Qt 6.8.3-for-Android kit via CI: the activity class name
+  (org.qtproject.qt.android.bindings.QtActivity/QtApplication) is correct
+  as-is for this Qt version.
+
+  No screenOrientation lock and no supports-screens size exclusion (both
+  removed - see git history for the original tablet/landscape-only values):
+  the QML side now has real phone-portrait/phone-landscape/tablet-portrait
+  layouts (Main.qml's `formFactor`), so the OS needs to actually deliver
+  rotation events and phone-sized configurations to the app instead of
+  forcing landscape and refusing to install on phones.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.iainchesworth.countdownsolver"
+    android:versionName="-- %%INSERT_VERSION_NAME%% --"
+    android:versionCode="-- %%INSERT_VERSION_CODE%% --"
+    android:installLocation="auto">
+
+    <application
+        android:name="org.qtproject.qt.android.bindings.QtApplication"
+        android:label="Countdown Solver"
+        android:extractNativeLibs="true">
+
+        <activity
+            android:name="org.qtproject.qt.android.bindings.QtActivity"
+            android:label="Countdown Solver"
+            android:launchMode="singleTop"
+            android:exported="true"
+            android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.lib_name" android:value="countdownsolver" />
+        </activity>
+    </application>
+
+    <!-- androiddeployqt for this Qt version refuses to package anything below
+         API 28 ("Invalid minSdkVersion version, minSdkVersion must be >= 28"),
+         confirmed against a real Qt 6.8.3 Android kit on CI - see docs/ci.md. -->
+    <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="34" />
+</manifest>

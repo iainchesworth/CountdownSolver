@@ -31,6 +31,13 @@ namespace {
 }  // namespace
 
 int main(int argc, char* argv[]) {
+    // Set before logging::install() below: on Android/iOS, platform::current()
+    // resolves the config directory via QStandardPaths::AppConfigLocation,
+    // which is built from these names. Both are static setters safely callable
+    // before QGuiApplication is constructed.
+    QGuiApplication::setApplicationName(QStringLiteral("Countdown Solver"));
+    QGuiApplication::setOrganizationName(QStringLiteral("CountdownSolver"));
+
     // Installed before anything else so every subsequent qCDebug/qCWarning/...
     // call (including ones triggered by Qt/QML internals during startup) is
     // captured, not just those after QGuiApplication is constructed.
@@ -58,15 +65,35 @@ int main(int argc, char* argv[]) {
     }
 
     QGuiApplication app(argc, argv);
-    QGuiApplication::setApplicationName(QStringLiteral("Countdown Solver"));
-    QGuiApplication::setOrganizationName(QStringLiteral("CountdownSolver"));
     QGuiApplication::setApplicationVersion(version_qstring());
 
-    // Arabic/Hebrew/Yiddish glyph coverage - IBM Plex Sans (Theme.qml's
-    // default) has none. Theme.qml switches to these by name once a language
-    // needing them is active (see LanguageManager). Both are variable fonts
-    // (a weight axis); Qt registers each under its single family name
-    // ("Noto Sans Arabic"/"Noto Sans Hebrew") regardless.
+    // IBM Plex Sans/Mono are Theme.qml's Theme.sans/Theme.mono - bundled
+    // rather than assumed to be installed system-wide (it isn't, on Android
+    // or most other machines; this was the root cause of washed-out text,
+    // a missing backspace glyph, and mismatched number/letter sizing on the
+    // About card there, none of which reproduced on a dev machine that
+    // happened to already have IBM Plex installed). Both are bundled as
+    // four static weights rather than a variable font: confirmed via each
+    // file's name table that Regular/Bold register directly under the
+    // family name Theme.qml expects ("IBM Plex Sans"/"IBM Plex Mono"), and
+    // Medium/SemiBold register under that same family via the preferred/
+    // typographic name (with weight distinguished via the subfamily) -
+    // IBM Plex Sans's variable build, by contrast, registers under "IBM
+    // Plex Sans Var" instead, which wouldn't match Theme.sans at all.
+    QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/IBMPlexSans-Regular.ttf"));
+    QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/IBMPlexSans-Medium.ttf"));
+    QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/IBMPlexSans-SemiBold.ttf"));
+    QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/IBMPlexSans-Bold.ttf"));
+    QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/IBMPlexMono-Regular.ttf"));
+    QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/IBMPlexMono-Medium.ttf"));
+    QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/IBMPlexMono-SemiBold.ttf"));
+    QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/IBMPlexMono-Bold.ttf"));
+
+    // Arabic/Hebrew/Yiddish glyph coverage - IBM Plex Sans has none.
+    // Theme.qml switches to these by name once a language needing them is
+    // active (see LanguageManager). Both are variable fonts (a weight
+    // axis); Qt registers each under its single family name ("Noto Sans
+    // Arabic"/"Noto Sans Hebrew") regardless.
     QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/NotoSansArabic.ttf"));
     QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/NotoSansHebrew.ttf"));
 
@@ -83,7 +110,7 @@ int main(int argc, char* argv[]) {
     // both as context properties, and Qt nulls out a QML reference the
     // moment the underlying QObject is destroyed. Any binding still being
     // evaluated while the engine itself tears down (Theme.qml's singleton,
-    // SettingsPage.qml, LetterRackInput.qml all read languageManager) would
+    // SettingsPage.qml, OnScreenKeyboard.qml all read languageManager) would
     // then see it as null and throw - reproduced on every close of a real
     // build, not just intermittently. Destroying engine first (see below)
     // ensures the whole QML tree is gone before solver/language_manager are.

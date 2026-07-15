@@ -14,6 +14,64 @@ same way v0.1.0-beta.1's entry below does.
 
 ## [Unreleased]
 
+## [0.2.0-beta.1] - 2026-07-16
+
+Countdown Solver now runs natively on mobile, not just desktop. Tagged as a
+**beta** for one specific reason, called out below — everything else here
+is release-quality.
+
+### Added
+
+- **Android and iOS mobile support.** The same C++ solver and Qt Quick UI
+  that power the desktop app now build and run as native mobile apps.
+  Android covers **tablet and phone, portrait and landscape** — a bottom
+  tab bar replaces the desktop sidebar on those form factors, with
+  layouts purpose-built for each screen size rather than a shrunk-down
+  desktop view. iOS is tablet-only and landscape-only for now (see
+  *Known limitations*).
+- **Bundled IBM Plex Sans/Mono fonts.** The app no longer assumes these
+  are system-installed, so type renders identically across every
+  platform — this matters most on mobile, where the fonts are never
+  preinstalled.
+- **Expanded documentation**: an architecture diagram, an FAQ, a
+  translation guide, and Android/iOS platform docs, plus issue/PR
+  templates and CODEOWNERS for the repo itself.
+
+### Fixed
+
+- RTL solution-step cards (Arabic, Hebrew) no longer sit flush against
+  the left edge.
+- The backspace glyph (U+232B) has been replaced — it isn't present in
+  IBM Plex Sans or Mono at all, so it rendered as a blank box.
+- A round of Android/iOS build and packaging bugs found on the first
+  real CI runs for those platforms: signed-APK packaging, the release
+  workflow's secrets gate, a dropdown indicator rendering as a tofu box
+  on Android, and several Xcode/CMake issues specific to cross-compiling
+  for iOS.
+
+### Known limitations
+
+- **iOS has not been verified on a real device or simulator.** CI builds
+  it (and signs it for release when certificates are configured), but no
+  Mac has been available during development to actually run it. iOS also
+  stays tablet-only and landscape-only in this release — extending it to
+  phone and portrait, the way Android now works, needs someone who can
+  verify it on real hardware first.
+- One new UI string (the mobile Input/Results toggle) has a Yiddish
+  translation that hasn't had a native-speaker review yet.
+
+## Artifacts
+
+Checksummed, with build-provenance attestations:
+
+| Platform | Files |
+|---|---|
+| Windows | `CountdownSolver-0.2.0-win64.zip` |
+| macOS | `CountdownSolver-0.2.0-Darwin.dmg` · `CountdownSolver-0.2.0-Darwin.zip` |
+| Linux | `CountdownSolver-0.2.0-Linux.deb` · `.rpm` · `.tar.gz` · `.zip` |
+| Android | `CountdownSolver-android-arm64-v8a.apk` · `.aab` |
+| Provenance | `sha256sum -c SHA256SUMS`; `gh attestation verify <file> --repo iainchesworth/CountdownSolver` |
+
 ## [0.1.0-beta.1] - 2026-07-14
 
 The first tagged release of CountdownSolver, a native Countdown (Letters,

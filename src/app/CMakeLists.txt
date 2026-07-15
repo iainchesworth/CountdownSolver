@@ -4,6 +4,87 @@
 # ---------------------------------------------------------------------------
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Concurrent Quick Gui QuickControls2 LinguistTools)
 
+# CI-confirmed Qt 6.8.3-for-iOS-kit packaging gap: ~30 plugin targets (image
+# format plugins, platform integration plugins, qmltooling debug/profiler
+# plugins, and the Apple-specific permission/TLS/reachability plugins) don't
+# export QT_DEFAULT_PLUGIN at all. Qt6/QtPublicPluginHelpers.cmake's plugin
+# auto-linkage genex reads that property directly, unwrapped, as one operand
+# of a $<AND:...>; an unset property is an empty string, and CMake's Generate
+# phase hard-errors ("Parameters to $<AND> must resolve to either '0' or
+# '1'") rather than treating empty as falsy - confirmed identical on both
+# CMake 4.3.3 and 4.0.3, ruling out a CMake-version-specific cause. No
+# matching upstream Qt bug report found for this exact error. The desktop Qt
+# 6.8.3 kit exports this property correctly on every one of these plugins
+# that exists there too (verified directly against that kit's own
+# Targets.cmake files); restore the same values it uses. The genex is
+# evaluated lazily at Generate time, so setting the property here - any
+# point after find_package(Qt6) creates these IMPORTED targets - is visible
+# by the time it's read, regardless of directory/scope. iOS-only: none of
+# these targets exist on other platforms, so the if(TARGET ...) guards make
+# this an inert no-op everywhere else.
+if(IOS)
+    # Matches the desktop Qt 6.8.3 kit's own QT_DEFAULT_PLUGIN value for each
+    # (image format plugins, qmltooling debug/profiler plugins), plus a
+    # reasoned default for the six Apple-only plugins that have no desktop
+    # equivalent to compare against: "1" for the platform-integration plugin
+    # (QIOSIntegrationPlugin, the iOS analogue of QWindowsIntegrationPlugin/
+    # QCocoaIntegrationPlugin - required for the app to run at all), the TLS
+    # backend (QSecureTransportBackendPlugin, the Apple analogue of
+    # QSchannelBackendPlugin/QTlsBackendOpenSSLPlugin - needed for HTTPS to
+    # work out of the box), and network reachability monitoring
+    # (QSCNetworkReachabilityNetworkInformationPlugin, base infrastructure,
+    # not an opt-in feature).
+    foreach(_countdown_ios_plugin IN ITEMS
+            QDebugMessageServiceFactoryPlugin
+            QGifPlugin
+            QICOPlugin
+            QIOSIntegrationPlugin
+            QJpegPlugin
+            QLocalClientConnectionFactoryPlugin
+            QQmlDebugServerFactoryPlugin
+            QQmlDebuggerServiceFactoryPlugin
+            QQmlInspectorServiceFactoryPlugin
+            QQmlNativeDebugConnectorFactoryPlugin
+            QQmlNativeDebugServiceFactoryPlugin
+            QQmlPreviewServiceFactoryPlugin
+            QQmlProfilerServiceFactoryPlugin
+            QQuickProfilerAdapterFactoryPlugin
+            QSCNetworkReachabilityNetworkInformationPlugin
+            QSecureTransportBackendPlugin
+            QSvgIconPlugin
+            QSvgPlugin
+            QTcpServerConnectionFactoryPlugin)
+        if(TARGET Qt6::${_countdown_ios_plugin})
+            set_target_properties(Qt6::${_countdown_ios_plugin} PROPERTIES QT_DEFAULT_PLUGIN "1")
+        endif()
+    endforeach()
+
+    # "0" (opt-in only, not auto-linked): matches the desktop kit's own value
+    # for the platform-integration alternates and TUIO touch plugin; for the
+    # six Darwin permission plugins and the optional photo-library picker,
+    # this app requests none of the matching Info.plist usage-description
+    # keys (NSCameraUsageDescription etc.), so auto-linking them would risk a
+    # runtime crash the first time Qt's permission-check code path is hit
+    # without one present - "0" here isn't just a safe guess, it matches
+    # this app's actual Info.plist.in content.
+    foreach(_countdown_ios_plugin IN ITEMS
+            QDarwinBluetoothPermissionPlugin
+            QDarwinCalendarPermissionPlugin
+            QDarwinCameraPermissionPlugin
+            QDarwinContactsPermissionPlugin
+            QDarwinLocationPermissionPlugin
+            QDarwinMicrophonePermissionPlugin
+            QIosOptionalPlugin_NSPhotoLibraryPlugin
+            QMinimalIntegrationPlugin
+            QOffscreenIntegrationPlugin
+            QTlsBackendCertOnlyPlugin
+            QTuioTouchPlugin)
+        if(TARGET Qt6::${_countdown_ios_plugin})
+            set_target_properties(Qt6::${_countdown_ios_plugin} PROPERTIES QT_DEFAULT_PLUGIN "0")
+        endif()
+    endforeach()
+endif()
+
 qt_standard_project_setup(REQUIRES 6.5)
 
 # QML files live under qml/components/ and qml/pages/ as well as qml/ itself;
@@ -12,8 +93,14 @@ qt_standard_project_setup(REQUIRES 6.5)
 qt_policy(SET QTP0004 NEW)
 
 # Select the single platform implementation for the target OS. No #ifdefs: CMake
-# decides which translation unit is compiled.
-if(WIN32)
+# decides which translation unit is compiled. ANDROID/IOS must be checked
+# before WIN32/APPLE/UNIX: CMake sets ANDROID alongside UNIX, and IOS alongside
+# APPLE, when cross-compiling for those targets.
+if(ANDROID)
+    set(COUNTDOWN_PLATFORM_SOURCE platform/android/platform_android.cpp)
+elseif(IOS)
+    set(COUNTDOWN_PLATFORM_SOURCE platform/ios/platform_ios.cpp)
+elseif(WIN32)
     set(COUNTDOWN_PLATFORM_SOURCE platform/windows/platform_windows.cpp)
 elseif(APPLE)
     set(COUNTDOWN_PLATFORM_SOURCE platform/macos/platform_macos.cpp)
@@ -115,7 +202,7 @@ qt_add_library(countdownsolver_qml STATIC)
 # setting it afterwards silently registers both as plain (non-singleton)
 # types and every Theme.*/AppState.* binding in the app resolves to
 # undefined at runtime.
-set_source_files_properties(qml/Theme.qml qml/AppState.qml
+set_source_files_properties(qml/Theme.qml qml/AppState.qml qml/FormFactor.qml qml/Metrics.qml
     PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 qt_add_qml_module(countdownsolver_qml
@@ -125,6 +212,8 @@ qt_add_qml_module(countdownsolver_qml
         qml/Main.qml
         qml/Theme.qml
         qml/AppState.qml
+        qml/FormFactor.qml
+        qml/Metrics.qml
         qml/components/Card.qml
         qml/components/SectionLabel.qml
         qml/components/Tile.qml
@@ -132,38 +221,18 @@ qt_add_qml_module(countdownsolver_qml
         qml/components/FlatButton.qml
         qml/components/NavItem.qml
         qml/components/SegControl.qml
-        qml/components/LetterRackInput.qml
+        qml/components/SegChip.qml
+        qml/components/AccentChip.qml
+        qml/components/OnScreenKeyboard.qml
         qml/components/LicensesDialog.qml
+        qml/components/BottomTabButton.qml
+        qml/components/BottomTabBar.qml
+        qml/components/ViewToggle.qml
+        qml/components/PageHeader.qml
         qml/pages/NumbersPage.qml
         qml/pages/LettersPage.qml
         qml/pages/ConundrumPage.qml
         qml/pages/SettingsPage.qml)
-
-# ---------------------------------------------------------------------------
-# Translations: French, German, Spanish, Arabic, Hebrew and Yiddish UI text.
-# qt_add_translations() drives lupdate (scan for tr()/qsTr() calls, update the
-# .ts files) and lrelease (compile them to .qm) at build time, and registers
-# the .qm files as Qt resources so they're embedded in the binary. SOURCES is
-# listed explicitly - the QML files already belong to countdownsolver_qml's
-# sources so lupdate would find them either way, but solver.cpp's tr() calls
-# live in the separate countdownsolver_core target and wouldn't be scanned
-# without naming it here.
-# ---------------------------------------------------------------------------
-qt_add_translations(countdownsolver_qml
-    TS_FILES
-        translations/countdown_fr.ts
-        translations/countdown_de.ts
-        translations/countdown_es.ts
-        translations/countdown_ar.ts
-        translations/countdown_he.ts
-        translations/countdown_yi.ts
-    SOURCES
-        qml/Main.qml
-        qml/pages/NumbersPage.qml
-        qml/pages/LettersPage.qml
-        qml/pages/ConundrumPage.qml
-        qml/pages/SettingsPage.qml
-        solver.cpp)
 
 # The window icon (taskbar/titlebar chrome at runtime, all platforms) is
 # bundled as a Qt resource so main.cpp can load it as ":/icon/app_256.png"
@@ -191,17 +260,120 @@ qt_add_executable(countdownsolver
     language_manager.hpp
     ${COUNTDOWN_SOLVER_ICON_SOURCE})
 
-# Noto Sans Arabic/Hebrew (SIL Open Font License - see the accompanying
-# *-OFL.txt files), bundled so Arabic/Hebrew/Yiddish text renders with proper
-# glyph coverage regardless of what's installed on the host; IBM Plex Sans
-# (Theme.qml's default) has no Arabic or Hebrew coverage. Only countdownsolver
-# needs these - no test target renders text - so unlike the dictionary
-# resource above, this lives directly on the final executable with no
-# WHOLE_ARCHIVE dance required.
+# ---------------------------------------------------------------------------
+# Translations: French, German, Spanish, Arabic, Hebrew and Yiddish UI text.
+# qt_add_translations() drives lupdate (scan for tr()/qsTr() calls, update the
+# .ts files) and lrelease (compile them to .qm) at build time, and registers
+# the .qm files as Qt resources so they're embedded in the binary. SOURCES is
+# listed explicitly - the QML files already belong to countdownsolver_qml's
+# sources so lupdate would find them either way, but solver.cpp's tr() calls
+# live in the separate countdownsolver_core target and wouldn't be scanned
+# without naming it here.
+#
+# Placed after qt_add_executable() above, WITH IMMEDIATE_CALL - both matter.
+# Without IMMEDIATE_CALL, qt_add_translations() defers itself to run at the
+# end of PROJECT_SOURCE_DIR's scope (the repo root), rather than running here
+# in src/app's scope. That, in turn, made Qt6CoreMacros.cmake's
+# _qt_internal_process_resource() (called internally to embed the .qm files
+# as a resource on countdownsolver_qml) see CMAKE_CURRENT_SOURCE_DIR as the
+# repo root while countdownsolver_qml's own SOURCE_DIR is src/app - a
+# mismatch that macro treats as "the resource is being attached from a
+# different directory than the target lives in", so it defensively wraps the
+# embedding in a brand new target (named countdownsolver_qml_<resourcename>,
+# i.e. countdownsolver_qml_countdownsolver_qml_translations) rather than
+# attaching the generated file to countdownsolver_qml directly. That wrapper
+# target and CountdownSolver_lrelease (the plain custom target
+# qt_add_translations() also creates, to actually run lrelease) then both
+# independently reference the same countdown_<lang>.qm output with no
+# dependency edge between them - which Ninja tolerates (a file may be a
+# dependency of more than one target) but Xcode's "new build system" rejects
+# outright ("is attached to multiple targets ... not allowed by the Xcode
+# 'new build system'"), confirmed against a real Qt 6.8.3/Xcode 16.4 CI run.
+# IMMEDIATE_CALL runs this synchronously right here in src/app's own scope,
+# matching countdownsolver_qml's SOURCE_DIR exactly, so that mismatch (and
+# the wrapper target it produces) never arises in the first place - fixing
+# the root cause rather than reactively wiring a dependency onto a target
+# that isn't reliably visible to CMake script code by the time it exists
+# (the failure mode of every previous attempt here, per git history).
+# SOURCE_TARGETS isn't passed explicitly since IMMEDIATE_CALL's own
+# auto-collection (qt6_collect_translation_source_targets) already walks
+# every BUILDSYSTEM_TARGETS entry under CMAKE_CURRENT_SOURCE_DIR at the
+# point it runs - src/app - which is why this must come after
+# qt_add_executable() above, so countdownsolver itself (and its main.cpp/
+# language_manager.cpp sources) is included in that scan too, not just
+# countdownsolver_core and countdownsolver_qml.
+#
+# Behaviorally a no-op for every other platform here (Windows/Linux/macOS/
+# Android): none of them care whether the .qm embedding goes through the
+# extra wrapper target or attaches directly, so this isn't scoped to
+# if(IOS) - it's just a strictly better outcome everywhere.
+# ---------------------------------------------------------------------------
+qt_add_translations(countdownsolver_qml
+    IMMEDIATE_CALL
+    TS_FILES
+        translations/countdown_fr.ts
+        translations/countdown_de.ts
+        translations/countdown_es.ts
+        translations/countdown_ar.ts
+        translations/countdown_he.ts
+        translations/countdown_yi.ts
+    SOURCES
+        qml/Main.qml
+        qml/pages/NumbersPage.qml
+        qml/pages/LettersPage.qml
+        qml/pages/ConundrumPage.qml
+        qml/pages/SettingsPage.qml
+        solver.cpp)
+
+# QT_ANDROID_PACKAGE_SOURCE_DIR points Qt's CMake integration at the directory
+# holding AndroidManifest.xml (and androiddeployqt's other package inputs);
+# MACOSX_BUNDLE_INFO_PLIST is CMake's own bundle-Info.plist mechanism, which
+# also drives iOS bundles under the Xcode generator (MACOSX_BUNDLE ON below
+# already triggers bundle output there). TARGETED_DEVICE_FAMILY "2" restricts
+# the iOS build to iPad only, matching the tablet-only scope of this app.
+if(ANDROID)
+    set_target_properties(countdownsolver PROPERTIES
+        QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/platform/android")
+endif()
+
+if(IOS)
+    set_target_properties(countdownsolver PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/platform/ios/Info.plist.in"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "org.iainchesworth.countdownsolver"
+        XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2")
+endif()
+
+# IBM Plex Sans/Mono (Theme.qml's Theme.sans/Theme.mono) plus Noto Sans
+# Arabic/Hebrew (all SIL Open Font License - see the accompanying *-OFL.txt
+# files), bundled so text renders with the intended typeface and glyph
+# coverage regardless of what's installed on the host, rather than silently
+# depending on IBM Plex happening to already be present system-wide (it
+# isn't, on Android or most other machines - confirmed the missing bundle
+# was the root cause of washed-out/inconsistent-weight text and a missing
+# backspace glyph on Android, none of which reproduced on a dev machine that
+# happened to have IBM Plex installed already). IBM Plex Sans has no Arabic
+# or Hebrew coverage, hence the separate Noto fallbacks. Both Sans and Mono
+# are bundled as four static weights (Regular/Medium/SemiBold/Bold - the
+# only ones Theme.sans/Theme.mono are actually used at), not variable fonts:
+# IBM Plex Mono ships no variable build at all, and IBM Plex Sans's variable
+# build registers under the family name "IBM Plex Sans Var" rather than
+# "IBM Plex Sans" - confirmed by inspecting its name table - which wouldn't
+# match Theme.qml's Theme.sans string at all. Only countdownsolver needs
+# these - no test target renders text - so unlike the dictionary resource
+# above, this lives directly on the final executable with no WHOLE_ARCHIVE
+# dance required.
 qt_add_resources(countdownsolver "fonts"
     PREFIX "/fonts"
     BASE "resources/fonts"
     FILES
+        resources/fonts/IBMPlexSans-Regular.ttf
+        resources/fonts/IBMPlexSans-Medium.ttf
+        resources/fonts/IBMPlexSans-SemiBold.ttf
+        resources/fonts/IBMPlexSans-Bold.ttf
+        resources/fonts/IBMPlexMono-Regular.ttf
+        resources/fonts/IBMPlexMono-Medium.ttf
+        resources/fonts/IBMPlexMono-SemiBold.ttf
+        resources/fonts/IBMPlexMono-Bold.ttf
         resources/fonts/NotoSansArabic.ttf
         resources/fonts/NotoSansHebrew.ttf)
 
@@ -277,17 +449,27 @@ endif()
 # "/usr/lib/x86_64-linux-gnu/qt6/qml"), breaking QtQuick.Controls at
 # startup even when a compatible Qt6 is installed. Skip the whole call on
 # Linux, where it has nothing useful left to do anyway.
+#
+# Mobile (ANDROID/IOS) skips this entire block, same rationale as the CPack
+# early-return in cmake/Packaging.cmake: real mobile packaging is
+# androiddeployqt's generated APK/AAB and Xcode's archive+export, neither of
+# which goes through `cmake --install`. Worse, on Android qt_add_executable()
+# produces a MODULE (shared library) target rather than a true executable,
+# so install(TARGETS ... RUNTIME DESTINATION ...) with no LIBRARY DESTINATION
+# is a hard configure-time error there.
 # ---------------------------------------------------------------------------
-include(GNUInstallDirs)
+if(NOT (ANDROID OR IOS))
+    include(GNUInstallDirs)
 
-install(TARGETS countdownsolver
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-    BUNDLE DESTINATION ".")
+    install(TARGETS countdownsolver
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        BUNDLE DESTINATION ".")
 
-if(WIN32 OR APPLE)
-    qt_generate_deploy_app_script(
-        TARGET countdownsolver
-        OUTPUT_SCRIPT COUNTDOWN_SOLVER_DEPLOY_SCRIPT
-        NO_UNSUPPORTED_PLATFORM_ERROR)
-    install(SCRIPT "${COUNTDOWN_SOLVER_DEPLOY_SCRIPT}")
+    if(WIN32 OR APPLE)
+        qt_generate_deploy_app_script(
+            TARGET countdownsolver
+            OUTPUT_SCRIPT COUNTDOWN_SOLVER_DEPLOY_SCRIPT
+            NO_UNSUPPORTED_PLATFORM_ERROR)
+        install(SCRIPT "${COUNTDOWN_SOLVER_DEPLOY_SCRIPT}")
+    endif()
 endif()
