@@ -84,6 +84,7 @@ lifetime of a single job run:
 | `IOS_DIST_CERTIFICATE_PASSWORD` | The `.p12`'s export password |
 | `IOS_PROVISIONING_PROFILE_BASE64` | An **ad-hoc** provisioning profile (`.mobileprovision`), base64-encoded |
 | `APPLE_TEAM_ID` | Your Apple Developer Team ID |
+| `APPLE_PROVISIONING_PROFILE_NAME` | The provisioning profile's own display name in Apple's system, exactly as named there (passed to Xcode as `PROVISIONING_PROFILE_SPECIFIER`) — a secret rather than a repo constant, since it has to match whatever you actually name the profile, not a name this repo can predict |
 
 If any of these are unset, the corresponding release job fails fast with an
 explicit error rather than silently producing an unsigned package.
@@ -94,15 +95,28 @@ are pre-registered in the provisioning profile above, not on arbitrary iOS
 devices the way a sideloaded Android APK is. Wider distribution (TestFlight
 or an Apple Developer Enterprise account) is a separate, later decision.
 
-**Android/iOS signing mechanics are unverified locally** (no Android
-SDK/NDK, no Mac/Xcode available in this project's day-to-day dev
-environment) — treat a first real release run's failures in these two
-jobs as expected things to fix (exact NDK version, `androiddeployqt`'s CLI
-surface, the generated Xcode project/scheme names), not as a sign the
-overall approach is wrong.
+**Current verification status** (no Android SDK/NDK, no Mac/Xcode
+available in this project's day-to-day dev environment — everything below
+was confirmed via real CI runs, not locally):
 
-**`ios-build` previously failed at the CMake Generate step** with Xcode's
-"new build system" refusing to generate the project because two targets —
+- **Android is fully verified end-to-end**: `android-release` produces a
+  real signed APK/AAB, and that APK has been installed and run on a real
+  tablet emulator (Pixel Tablet profile, API 34) — including confirming
+  the fonts, backspace icon, and RTL layout fixes render correctly on the
+  actual device, not just "the build succeeded."
+- **`ios-build` (unsigned compile) is verified**: it's passed real Xcode
+  CI runs repeatedly since the fixes below landed.
+- **`ios-release` (signed, ad-hoc) has never run for real** — blocked on
+  you creating the five `APPLE_*`/`IOS_*` secrets above (pending Apple
+  Developer Program enrollment). Treat the first real run's failures as
+  expected things to fix (exact Xcode archive/export mechanics, whether
+  the provisioning-profile-specifier matches), not as a sign the approach
+  is wrong.
+
+### iOS build fixes (all confirmed via real Xcode CI runs)
+
+**Duplicate-translations-output at the CMake Generate step.** Xcode's "new
+build system" refused to generate the project because two targets —
 `CountdownSolver_lrelease` and an internally-created
 `countdownsolver_qml_countdownsolver_qml_translations` — both independently
 referenced the same `countdown_<lang>.qm` output with no dependency between
@@ -115,16 +129,27 @@ match `countdownsolver_qml`'s own `SOURCE_DIR` — a mismatch that macro
 treats as "attaching this resource from a different directory than the
 target lives in," causing it to defensively wrap the embedding in that
 extra target instead of attaching directly. Ninja tolerates the resulting
-shared output; Xcode's new build system doesn't.
+shared output; Xcode's new build system doesn't. Fixed in
+`src/app/CMakeLists.txt` by moving the `qt_add_translations()` call to
+after `qt_add_executable()` and passing `IMMEDIATE_CALL`, so it runs
+synchronously in `src/app`'s own scope instead of deferring to the root.
 
-Fixed in `src/app/CMakeLists.txt` by moving the `qt_add_translations()` call
-to after `qt_add_executable()` and passing `IMMEDIATE_CALL`, so it runs
-synchronously in `src/app`'s own scope instead of deferring to the root —
-matching `countdownsolver_qml`'s `SOURCE_DIR` and avoiding the wrapper
-target entirely. Confirmed empirically on this machine: the wrapper target
-appeared 42 times in a Windows/Ninja `build.ninja` before this fix and 0
-times after, with all 70 tests still passing (this doesn't need Xcode to
-verify, since the underlying CMake target graph is generator-independent).
-Still **unverified against a real Xcode Generate step** — no Mac available
-in this project's day-to-day dev environment — so treat the first real
-`ios-build` CI run against this fix as the actual test.
+**`find_package(Qt6)` itself failing** with `Parameters to $<AND> must
+resolve to either '0' or '1'`. Around 30 plugin targets (image format
+plugins, platform integration plugins, qmltooling debug/profiler plugins,
+and the Apple-only permission/TLS/reachability plugins) don't export
+`QT_DEFAULT_PLUGIN` at all on the Qt 6.8.3-for-iOS kit — Qt's own
+plugin-linkage genex reads that property unwrapped as a `$<AND>` operand,
+and an unset property is an empty string, not `0`/`1`. Confirmed identical
+on both CMake 4.3.3 and 4.0.3, ruling out a CMake-version-specific cause;
+no matching upstream Qt bug report found. Worked around in
+`src/app/CMakeLists.txt` (`if(IOS)` block right after `find_package`) by
+explicitly setting the property on each affected plugin target, using the
+desktop Qt 6.8.3 kit's own correct values as the reference.
+
+**Compilation failing** with `'to_chars' is unavailable: introduced in iOS
+16.3`. `std::format` (used by libc++) pulls in `std::to_chars`, gated by
+iOS SDK availability annotations against whatever deployment target is
+set — none was set at all before. Fixed by adding
+`CMAKE_OSX_DEPLOYMENT_TARGET=16.3` to the `ios-base` preset in
+`CMakePresets.json`.

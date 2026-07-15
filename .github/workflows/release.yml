@@ -40,7 +40,7 @@ jobs:
         id: check
         env:
           ANDROID_SECRETS_OK: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' }}
-          IOS_SECRETS_OK: ${{ secrets.IOS_DIST_CERTIFICATE_BASE64 != '' && secrets.IOS_DIST_CERTIFICATE_PASSWORD != '' && secrets.IOS_PROVISIONING_PROFILE_BASE64 != '' && secrets.APPLE_TEAM_ID != '' }}
+          IOS_SECRETS_OK: ${{ secrets.IOS_DIST_CERTIFICATE_BASE64 != '' && secrets.IOS_DIST_CERTIFICATE_PASSWORD != '' && secrets.IOS_PROVISIONING_PROFILE_BASE64 != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_PROVISIONING_PROFILE_NAME != '' }}
         run: |
           echo "android=$ANDROID_SECRETS_OK" >> "$GITHUB_OUTPUT"
           echo "ios=$IOS_SECRETS_OK" >> "$GITHUB_OUTPUT"
@@ -413,6 +413,7 @@ jobs:
           [ -z "${{ secrets.IOS_DIST_CERTIFICATE_PASSWORD }}" ] && missing+=(IOS_DIST_CERTIFICATE_PASSWORD)
           [ -z "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}" ] && missing+=(IOS_PROVISIONING_PROFILE_BASE64)
           [ -z "${{ secrets.APPLE_TEAM_ID }}" ] && missing+=(APPLE_TEAM_ID)
+          [ -z "${{ secrets.APPLE_PROVISIONING_PROFILE_NAME }}" ] && missing+=(APPLE_PROVISIONING_PROFILE_NAME)
           if [ ${#missing[@]} -gt 0 ]; then
             echo "::error::Missing required secrets for a signed iOS release: ${missing[*]} (see docs/ci.md)" >&2
             exit 1
@@ -458,10 +459,11 @@ jobs:
 
           echo "COUNTDOWN_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
 
-      # The specifier here assumes the profile's own display name; on the
-      # first real run confirm this against the actual profile (unverified -
-      # no Apple Developer account/Xcode available on this machine, see
-      # docs/ci.md's "genuine unknowns" list).
+      # The specifier must exactly match the provisioning profile's own
+      # display name in Apple's system, which we don't control the format
+      # of - so it's a secret (APPLE_PROVISIONING_PROFILE_NAME) rather than
+      # a hardcoded guess (was "CountdownSolverAdHoc" - assumed you'd name
+      # your profile exactly that, which is fragile and undocumented).
       # CMAKE_XCODE_GENERATE_SCHEME=ON is required here: `xcodebuild archive`
       # (below) only accepts -scheme, not -target, and CMake's Xcode
       # generator doesn't emit schemes by default.
@@ -474,7 +476,7 @@ jobs:
           -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=YES
           -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY="Apple Distribution"
           -DCMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
-          -DCMAKE_XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER=CountdownSolverAdHoc
+          "-DCMAKE_XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER=${{ secrets.APPLE_PROVISIONING_PROFILE_NAME }}"
 
       # Archiving needs xcodebuild directly (not `cmake --build`, which for
       # the Xcode generator only maps onto `build`/`install`-style actions,

@@ -1,16 +1,14 @@
 <?xml version="1.0"?>
 <!--
-  Base structure follows Qt6's default androiddeployqt template (activity
-  class/package placeholders included below). This has NOT been verified
-  against a real Qt 6.8.3-for-Android kit (none is installed on this
-  machine) - on the first real Android build, diff this against the
-  default AndroidManifest.xml the installed kit ships and reconcile any
-  drift, keeping only the two additions below (screenOrientation and
-  supports-screens), which are specific to this app's tablet/landscape
-  scope and not part of Qt's template.
+  Base structure follows Qt6's default androiddeployqt template. Confirmed
+  against a real Qt 6.8.3-for-Android kit via CI: the activity class name
+  (org.qtproject.qt.android.bindings.QtActivity/QtApplication) is correct
+  as-is for this Qt version - the only additions on top of Qt's own
+  template are screenOrientation and supports-screens below, specific to
+  this app's tablet/landscape scope.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.countdownsolver.app"
+    package="org.iainchesworth.countdownsolver"
     android:versionName="-- %%INSERT_VERSION_NAME%% --"
     android:versionCode="-- %%INSERT_VERSION_CODE%% --"
     android:installLocation="auto">
