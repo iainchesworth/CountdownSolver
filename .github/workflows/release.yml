@@ -22,6 +22,29 @@ permissions:
   contents: read
 
 jobs:
+  # GitHub Actions doesn't allow the secrets context in a job-level if: at
+  # all ("Unrecognized named-value: 'secrets'", confirmed by a real
+  # workflow_dispatch attempt against this file - it's a parse error, not
+  # just a dispatch-specific restriction, so it would have broken every
+  # trigger including a real tag push). secrets IS readable in a step-level
+  # env:/run:, so resolve the two gates here and expose them as job outputs,
+  # which needs.<job>.outputs.<x> IS a valid job-level if: expression.
+  check-secrets:
+    name: Check release-signing secrets
+    runs-on: ubuntu-24.04
+    outputs:
+      android: ${{ steps.check.outputs.android }}
+      ios: ${{ steps.check.outputs.ios }}
+    steps:
+      - name: Check which platforms have all their signing secrets configured
+        id: check
+        env:
+          ANDROID_SECRETS_OK: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' }}
+          IOS_SECRETS_OK: ${{ secrets.IOS_DIST_CERTIFICATE_BASE64 != '' && secrets.IOS_DIST_CERTIFICATE_PASSWORD != '' && secrets.IOS_PROVISIONING_PROFILE_BASE64 != '' && secrets.APPLE_TEAM_ID != '' }}
+        run: |
+          echo "android=$ANDROID_SECRETS_OK" >> "$GITHUB_OUTPUT"
+          echo "ios=$IOS_SECRETS_OK" >> "$GITHUB_OUTPUT"
+
   package:
     name: Package (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
@@ -202,12 +225,13 @@ jobs:
 
   android-release:
     name: Package (Android arm64-v8a, signed)
+    needs: check-secrets
     runs-on: ubuntu-24.04
     # Cleanly skipped (not failed) until the four ANDROID_* secrets exist -
-    # see docs/ci.md. The internal 'Verify signing secrets' step below is a
-    # redundant safety net (catches a partially-configured set), not the
-    # primary gate.
-    if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' }}
+    # see docs/ci.md and the check-secrets job above. The internal 'Verify
+    # signing secrets' step below is a redundant safety net (catches a
+    # partially-configured set), not the primary gate.
+    if: needs.check-secrets.outputs.android == 'true'
     permissions:
       contents: read
       attestations: write
@@ -288,33 +312,41 @@ jobs:
       - name: Build
         run: cmake --build --preset android-arm64-v8a-release
 
+      # androiddeployqt is a host build tool (it drives Gradle on the CI
+      # runner) shipped in the desktop Qt kit's bin/, not the Android target
+      # kit - confirmed against a real Qt 6.8.3 install ("No such file or
+      # directory" against COUNTDOWN_QT_ANDROID_ROOT on a real CI run; it
+      # exists at COUNTDOWN_QT_HOST_ROOT/bin/androiddeployqt(6) instead).
       # androiddeployqt's own --sign flag is its documented signing mechanism
       # (keystore + alias + store/key passwords), so no custom Gradle
-      # signingConfig override is needed. The deployment-settings JSON path
-      # and androiddeployqt's exact CLI surface here are unverified against a
-      # real Qt 6.8.3 Android kit (none is installed on this machine) - see
-      # docs/ci.md's "genuine unknowns" list; treat a first-run failure here
-      # as an expected thing to fix, not a sign the overall approach is wrong.
+      # signingConfig override is needed.
+      # CMake mirrors the source tree under the build dir, and
+      # qt_add_executable(countdownsolver ...) is called from
+      # src/app/CMakeLists.txt, so the deployment-settings JSON (and the
+      # unsigned android-build/ androiddeployqt already produced once,
+      # automatically, as part of the plain "Build" step above) both land
+      # under src/app/, not the build root - confirmed on a real CI run
+      # ("Cannot read from input file" without the src/app/ prefix).
       - name: Sign and package APK + AAB
-        working-directory: build/android-arm64-v8a-release
+        working-directory: build/android-arm64-v8a-release/src/app
         run: |
-          "$COUNTDOWN_QT_ANDROID_ROOT/bin/androiddeployqt" \
+          "$COUNTDOWN_QT_HOST_ROOT/bin/androiddeployqt" \
             --input android-countdownsolver-deployment-settings.json \
             --output android-build \
             --release --gradle \
             --sign "${{ runner.temp }}/release.keystore" "${{ secrets.ANDROID_KEY_ALIAS }}" \
             --storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
             --keypass "${{ secrets.ANDROID_KEY_PASSWORD }}"
-          "$COUNTDOWN_QT_ANDROID_ROOT/bin/androiddeployqt" \
+          "$COUNTDOWN_QT_HOST_ROOT/bin/androiddeployqt" \
             --input android-countdownsolver-deployment-settings.json \
             --output android-build \
             --release --gradle --aab \
             --sign "${{ runner.temp }}/release.keystore" "${{ secrets.ANDROID_KEY_ALIAS }}" \
             --storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
             --keypass "${{ secrets.ANDROID_KEY_PASSWORD }}"
-          mkdir -p ../../dist-android
-          find android-build -name "*.apk" -exec cp {} ../../dist-android/CountdownSolver-android-arm64-v8a.apk \;
-          find android-build -name "*.aab" -exec cp {} ../../dist-android/CountdownSolver-android-arm64-v8a.aab \;
+          mkdir -p ../../../../dist-android
+          find android-build -name "*.apk" -exec cp {} ../../../../dist-android/CountdownSolver-android-arm64-v8a.apk \;
+          find android-build -name "*.aab" -exec cp {} ../../../../dist-android/CountdownSolver-android-arm64-v8a.aab \;
 
       - name: Remove decoded keystore
         if: always()
@@ -357,10 +389,12 @@ jobs:
 
   ios-release:
     name: Package (iOS, ad-hoc signed)
+    needs: check-secrets
     runs-on: macos-15
     # Cleanly skipped (not failed) until the Apple Developer Program signing
-    # secrets exist - see docs/ci.md. Same rationale as android-release above.
-    if: ${{ secrets.IOS_DIST_CERTIFICATE_BASE64 != '' && secrets.IOS_DIST_CERTIFICATE_PASSWORD != '' && secrets.IOS_PROVISIONING_PROFILE_BASE64 != '' && secrets.APPLE_TEAM_ID != '' }}
+    # secrets exist - see docs/ci.md and the check-secrets job above. Same
+    # rationale as android-release above.
+    if: needs.check-secrets.outputs.ios == 'true'
     permissions:
       contents: read
       attestations: write
