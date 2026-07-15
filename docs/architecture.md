@@ -10,6 +10,29 @@ The QML/visual design lives in
 [`src/app/DESIGN_SPEC.md`](https://github.com/iainchesworth/CountdownSolver/blob/develop/src/app/DESIGN_SPEC.md)
 for the colour tokens, type scale, and layout rules the QML follows.
 
+```mermaid
+flowchart LR
+    subgraph GUI["Qt 6 Quick app — src/app/"]
+        QML["QML UI\nqml/pages, qml/components"]
+        Solver["Solver\nQObject facade"]
+        LangMgr["LanguageManager"]
+        Platform["platform/{windows,macos,linux,android,ios}"]
+    end
+    subgraph LIB["countdown::solver — src/lib/ (no GUI, no platform code)"]
+        Numbers["numbers::NumbersGame"]
+        Letters["letters::LettersGame"]
+        Conundrum["conundrum::ConundrumGame"]
+        Dict["letters::Dictionary"]
+    end
+    QML <--> Solver
+    QML <--> LangMgr
+    Solver --> Numbers
+    Solver --> Letters
+    Solver --> Conundrum
+    Letters --> Dict
+    Solver -. selected by CMake .-> Platform
+```
+
 ## Layout
 
 ```
