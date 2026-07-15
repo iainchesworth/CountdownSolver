@@ -331,6 +331,7 @@ endif()
 if(IOS)
     set_target_properties(countdownsolver PROPERTIES
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/platform/ios/Info.plist.in"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "org.iainchesworth.countdownsolver"
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2")
 endif()
 
