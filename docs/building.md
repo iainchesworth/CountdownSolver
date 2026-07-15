@@ -10,6 +10,8 @@ What's actually built and tested by CI — see
 | Windows | x64 | MSVC 19.40+ (VS 2022 17.10+ / VS 18), tested on Windows Server 2025 | `.zip` or NSIS installer; Qt runtime is bundled, nothing extra to install |
 | macOS | arm64 (Apple Silicon) | AppleClang, tested on macOS 15 (Sequoia) | `.zip` or `.dmg`; Qt runtime is bundled. Intel Macs aren't covered by CI |
 | Linux | x64 | GCC 15 or Clang 21, tested on Ubuntu 24.04 | See below — unlike Windows/macOS, Linux packages don't bundle Qt |
+| Android | arm64-v8a | CI-verified via the `android-arm64-v8a-debug` preset (Qt's Android kit) | Not currently distributed — CI builds an unsigned debug APK to catch build breaks, nothing signed or packaged |
+| iOS | device (arm64) | CI-verified via the `ios-debug` preset (Qt's iOS kit), unsigned | Not currently distributed — same as Android, build-only for now |
 
 `countdown::solver` itself (`-DCOUNTDOWN_BUILD_APP=OFF`) has no GUI or
 platform-specific code — see [Architecture](architecture.md) — so it isn't
@@ -23,6 +25,13 @@ explicitly, so `apt install` refuses on a system that can't satisfy it —
 in practice **Debian 13 (trixie) or newer, and Ubuntu 25.04 or newer**.
 The `.rpm` resolves its own Qt version requirement automatically via
 `rpmbuild`'s auto-requires.
+
+**Android/iOS**: CPack packaging is skipped entirely for these targets
+([`Packaging.cmake`](https://github.com/iainchesworth/CountdownSolver/blob/develop/cmake/Packaging.cmake)) —
+mobile distribution goes through `androiddeployqt` and an Xcode
+archive+export instead, and neither is wired up yet. CI builds both on
+every push purely to catch build breaks early, not to produce anything
+installable.
 
 ## Presets
 

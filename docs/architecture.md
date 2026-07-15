@@ -64,11 +64,15 @@ overload sets.
 
 **Platform code selected by CMake, not `#ifdef`.**
 [`src/app/CMakeLists.txt`](https://github.com/iainchesworth/CountdownSolver/blob/develop/src/app/CMakeLists.txt)
-picks exactly one of `platform/{windows,macos,linux}/platform_*.cpp` at
-configure time based on the target OS; each implements the same
+picks exactly one of `platform/{windows,macos,linux,android,ios}/platform_*.cpp`
+at configure time based on the target OS; each implements the same
 `platform.hpp` interface. App code calls that interface and never
 branches on OS at compile time — a new platform means adding one file,
-not sprinkling `#ifdef`s through existing ones.
+not sprinkling `#ifdef`s through existing ones. `ANDROID`/`IOS` are
+checked ahead of `WIN32`/`APPLE`/`UNIX` in that file, since CMake sets
+`ANDROID` alongside `UNIX` and `IOS` alongside `APPLE` when
+cross-compiling for those targets — checking the mobile flags first
+avoids matching the wrong branch.
 
 **GUI/library split.** `countdown::solver` has zero Qt or GUI dependency
 by design, which is what makes it independently unit-testable (see
