@@ -279,10 +279,23 @@ jobs:
           target: ios
           cache: true
 
+      # Pinned (not "latest"/4.3.3, unlike every other job here) as a targeted
+      # experiment: this job hard-errors during find_package(Qt6) itself with
+      # "Parameters to $<AND> must resolve to either '0' or '1'" while
+      # evaluating a plugin-linkage genex Qt's own Qt6QuickDependencies.cmake/
+      # Qt6CorePlugins.cmake construct around QT_DEFAULT_PLUGIN for several
+      # Darwin-only plugins (QDarwin*PermissionPlugin, QQml*Debug*/Profiler
+      # plugins) - unverified whether this is a genuine Qt-for-iOS-6.8.3-kit
+      # packaging gap (a missing QT_DEFAULT_PLUGIN property on the affected
+      # plugin targets) or a CMake-version-specific tightening of $<AND>
+      # argument validation; no exact match found in Qt's bug tracker or
+      # forums for this specific error text. Testing an earlier CMake 4.x
+      # patch release here to narrow down which it is - revert to "latest"
+      # once resolved either way.
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
         with:
-          cmakeVersion: "latest"
+          cmakeVersion: "4.0.3"
 
       - name: Configure
         run: >

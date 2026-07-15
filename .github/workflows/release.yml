@@ -391,10 +391,13 @@ jobs:
           target: ios
           cache: true
 
+      # Pinned as a targeted experiment - see the same comment on ios-build's
+      # equivalent step in ci.yml for why this differs from every other job
+      # here. Revert to "latest" once the underlying issue is resolved.
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
         with:
-          cmakeVersion: "latest"
+          cmakeVersion: "4.0.3"
 
       # Standard GitHub Actions pattern: import the distribution cert into a
       # CI-only temporary keychain (never the runner's default login
