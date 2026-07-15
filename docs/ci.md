@@ -101,21 +101,30 @@ jobs as expected things to fix (exact NDK version, `androiddeployqt`'s CLI
 surface, the generated Xcode project/scheme names), not as a sign the
 overall approach is wrong.
 
-**`ios-build` currently fails at the CMake Generate step, known cause, not
-yet resolved**: Xcode's "new build system" refuses to generate the project
-because two targets — `CountdownSolver_lrelease` (from
-`qt_add_translations()` in `src/app/CMakeLists.txt`) and
-`countdownsolver_qml_countdownsolver_qml_translations` (created internally
-when `qt_add_executable()`'s app-bundle finalizer embeds
-`countdownsolver_qml`'s translations) — both independently produce
-`countdown_<lang>.qm`, with neither a dependency of the other. Ninja
-tolerates this everywhere else; Xcode's new build system does not. Wiring
-an explicit `add_dependencies()` between the two once both exist doesn't
-work either: the QML-module translations target never becomes visible to
-CMake script code, even via a self-rescheduling
-`cmake_language(DEFER CALL)` retried well past `qt_add_executable()` — it's
-most likely synthesized by the Xcode generator itself while emitting the
-`.xcodeproj`, after all configure-time scripting has already run. Needs a
-real Xcode/Apple Developer environment to investigate further (e.g.
-whether restructuring the QML module's translation handling avoids the
-second target being created at all).
+**`ios-build` previously failed at the CMake Generate step** with Xcode's
+"new build system" refusing to generate the project because two targets —
+`CountdownSolver_lrelease` and an internally-created
+`countdownsolver_qml_countdownsolver_qml_translations` — both independently
+referenced the same `countdown_<lang>.qm` output with no dependency between
+them. Root-caused (by reading Qt's actual CMake macro source,
+`Qt6CoreMacros.cmake`'s `_qt_internal_process_resource()`) to
+`qt_add_translations()` self-deferring to run at the end of
+`PROJECT_SOURCE_DIR`'s scope by default: when it actually ran, its
+`CMAKE_CURRENT_SOURCE_DIR` was the repo root, not `src/app`, which didn't
+match `countdownsolver_qml`'s own `SOURCE_DIR` — a mismatch that macro
+treats as "attaching this resource from a different directory than the
+target lives in," causing it to defensively wrap the embedding in that
+extra target instead of attaching directly. Ninja tolerates the resulting
+shared output; Xcode's new build system doesn't.
+
+Fixed in `src/app/CMakeLists.txt` by moving the `qt_add_translations()` call
+to after `qt_add_executable()` and passing `IMMEDIATE_CALL`, so it runs
+synchronously in `src/app`'s own scope instead of deferring to the root —
+matching `countdownsolver_qml`'s `SOURCE_DIR` and avoiding the wrapper
+target entirely. Confirmed empirically on this machine: the wrapper target
+appeared 42 times in a Windows/Ninja `build.ninja` before this fix and 0
+times after, with all 70 tests still passing (this doesn't need Xcode to
+verify, since the underlying CMake target graph is generator-independent).
+Still **unverified against a real Xcode Generate step** — no Mac available
+in this project's day-to-day dev environment — so treat the first real
+`ios-build` CI run against this fix as the actual test.

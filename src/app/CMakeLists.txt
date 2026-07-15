@@ -145,32 +145,6 @@ qt_add_qml_module(countdownsolver_qml
         qml/pages/ConundrumPage.qml
         qml/pages/SettingsPage.qml)
 
-# ---------------------------------------------------------------------------
-# Translations: French, German, Spanish, Arabic, Hebrew and Yiddish UI text.
-# qt_add_translations() drives lupdate (scan for tr()/qsTr() calls, update the
-# .ts files) and lrelease (compile them to .qm) at build time, and registers
-# the .qm files as Qt resources so they're embedded in the binary. SOURCES is
-# listed explicitly - the QML files already belong to countdownsolver_qml's
-# sources so lupdate would find them either way, but solver.cpp's tr() calls
-# live in the separate countdownsolver_core target and wouldn't be scanned
-# without naming it here.
-# ---------------------------------------------------------------------------
-qt_add_translations(countdownsolver_qml
-    TS_FILES
-        translations/countdown_fr.ts
-        translations/countdown_de.ts
-        translations/countdown_es.ts
-        translations/countdown_ar.ts
-        translations/countdown_he.ts
-        translations/countdown_yi.ts
-    SOURCES
-        qml/Main.qml
-        qml/pages/NumbersPage.qml
-        qml/pages/LettersPage.qml
-        qml/pages/ConundrumPage.qml
-        qml/pages/SettingsPage.qml
-        solver.cpp)
-
 # The window icon (taskbar/titlebar chrome at runtime, all platforms) is
 # bundled as a Qt resource so main.cpp can load it as ":/icon/app_256.png"
 # and hand it to QQuickWindow::setIcon() regardless of where the app is
@@ -197,27 +171,70 @@ qt_add_executable(countdownsolver
     language_manager.hpp
     ${COUNTDOWN_SOLVER_ICON_SOURCE})
 
-# KNOWN FAILURE (iOS/Xcode only, not yet resolved - see docs/ci.md): Xcode's
-# "new build system" refuses to generate the project because two targets -
-# CountdownSolver_lrelease (from qt_add_translations() above) and
-# countdownsolver_qml_countdownsolver_qml_translations (created internally
-# by qt_add_executable()'s app-bundle finalizer when it embeds
-# countdownsolver_qml's translations) - both independently produce
-# build/<preset>/src/app/countdown_<lang>.qm, with neither a dependency of
-# the other. Ninja (every other platform here) tolerates a shared output
-# across targets; Xcode's new build system does not.
+# ---------------------------------------------------------------------------
+# Translations: French, German, Spanish, Arabic, Hebrew and Yiddish UI text.
+# qt_add_translations() drives lupdate (scan for tr()/qsTr() calls, update the
+# .ts files) and lrelease (compile them to .qm) at build time, and registers
+# the .qm files as Qt resources so they're embedded in the binary. SOURCES is
+# listed explicitly - the QML files already belong to countdownsolver_qml's
+# sources so lupdate would find them either way, but solver.cpp's tr() calls
+# live in the separate countdownsolver_core target and wouldn't be scanned
+# without naming it here.
 #
-# The obvious fix - add_dependencies() between the two targets once both
-# exist - does not work: countdownsolver_qml_countdownsolver_qml_translations
-# never becomes visible to CMake script code, even via a self-rescheduling
-# cmake_language(DEFER CALL) retried 10 times past qt_add_executable(). It's
-# most likely synthesized by the Xcode generator itself while emitting the
-# .xcodeproj, after all configure-time scripting (including DEFER CALL) has
-# already run - which would make it fundamentally unreachable from script,
-# not just awkward to reach. Needs a real Xcode/Apple Developer environment
-# to investigate further (e.g. whether renaming the QML module's I18N
-# handling avoids the second target being created at all); none is
-# available in this project's day-to-day dev environment - see docs/ci.md.
+# Placed after qt_add_executable() above, WITH IMMEDIATE_CALL - both matter.
+# Without IMMEDIATE_CALL, qt_add_translations() defers itself to run at the
+# end of PROJECT_SOURCE_DIR's scope (the repo root), rather than running here
+# in src/app's scope. That, in turn, made Qt6CoreMacros.cmake's
+# _qt_internal_process_resource() (called internally to embed the .qm files
+# as a resource on countdownsolver_qml) see CMAKE_CURRENT_SOURCE_DIR as the
+# repo root while countdownsolver_qml's own SOURCE_DIR is src/app - a
+# mismatch that macro treats as "the resource is being attached from a
+# different directory than the target lives in", so it defensively wraps the
+# embedding in a brand new target (named countdownsolver_qml_<resourcename>,
+# i.e. countdownsolver_qml_countdownsolver_qml_translations) rather than
+# attaching the generated file to countdownsolver_qml directly. That wrapper
+# target and CountdownSolver_lrelease (the plain custom target
+# qt_add_translations() also creates, to actually run lrelease) then both
+# independently reference the same countdown_<lang>.qm output with no
+# dependency edge between them - which Ninja tolerates (a file may be a
+# dependency of more than one target) but Xcode's "new build system" rejects
+# outright ("is attached to multiple targets ... not allowed by the Xcode
+# 'new build system'"), confirmed against a real Qt 6.8.3/Xcode 16.4 CI run.
+# IMMEDIATE_CALL runs this synchronously right here in src/app's own scope,
+# matching countdownsolver_qml's SOURCE_DIR exactly, so that mismatch (and
+# the wrapper target it produces) never arises in the first place - fixing
+# the root cause rather than reactively wiring a dependency onto a target
+# that isn't reliably visible to CMake script code by the time it exists
+# (the failure mode of every previous attempt here, per git history).
+# SOURCE_TARGETS isn't passed explicitly since IMMEDIATE_CALL's own
+# auto-collection (qt6_collect_translation_source_targets) already walks
+# every BUILDSYSTEM_TARGETS entry under CMAKE_CURRENT_SOURCE_DIR at the
+# point it runs - src/app - which is why this must come after
+# qt_add_executable() above, so countdownsolver itself (and its main.cpp/
+# language_manager.cpp sources) is included in that scan too, not just
+# countdownsolver_core and countdownsolver_qml.
+#
+# Behaviorally a no-op for every other platform here (Windows/Linux/macOS/
+# Android): none of them care whether the .qm embedding goes through the
+# extra wrapper target or attaches directly, so this isn't scoped to
+# if(IOS) - it's just a strictly better outcome everywhere.
+# ---------------------------------------------------------------------------
+qt_add_translations(countdownsolver_qml
+    IMMEDIATE_CALL
+    TS_FILES
+        translations/countdown_fr.ts
+        translations/countdown_de.ts
+        translations/countdown_es.ts
+        translations/countdown_ar.ts
+        translations/countdown_he.ts
+        translations/countdown_yi.ts
+    SOURCES
+        qml/Main.qml
+        qml/pages/NumbersPage.qml
+        qml/pages/LettersPage.qml
+        qml/pages/ConundrumPage.qml
+        qml/pages/SettingsPage.qml
+        solver.cpp)
 
 # QT_ANDROID_PACKAGE_SOURCE_DIR points Qt's CMake integration at the directory
 # holding AndroidManifest.xml (and androiddeployqt's other package inputs);
