@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     // both as context properties, and Qt nulls out a QML reference the
     // moment the underlying QObject is destroyed. Any binding still being
     // evaluated while the engine itself tears down (Theme.qml's singleton,
-    // SettingsPage.qml, LetterRackInput.qml all read languageManager) would
+    // SettingsPage.qml, OnScreenKeyboard.qml all read languageManager) would
     // then see it as null and throw - reproduced on every close of a real
     // build, not just intermittently. Destroying engine first (see below)
     // ensures the whole QML tree is gone before solver/language_manager are.

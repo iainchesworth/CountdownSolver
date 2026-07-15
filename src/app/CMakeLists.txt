@@ -202,7 +202,7 @@ qt_add_library(countdownsolver_qml STATIC)
 # setting it afterwards silently registers both as plain (non-singleton)
 # types and every Theme.*/AppState.* binding in the app resolves to
 # undefined at runtime.
-set_source_files_properties(qml/Theme.qml qml/AppState.qml
+set_source_files_properties(qml/Theme.qml qml/AppState.qml qml/FormFactor.qml qml/Metrics.qml
     PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 qt_add_qml_module(countdownsolver_qml
@@ -212,6 +212,8 @@ qt_add_qml_module(countdownsolver_qml
         qml/Main.qml
         qml/Theme.qml
         qml/AppState.qml
+        qml/FormFactor.qml
+        qml/Metrics.qml
         qml/components/Card.qml
         qml/components/SectionLabel.qml
         qml/components/Tile.qml
@@ -219,8 +221,14 @@ qt_add_qml_module(countdownsolver_qml
         qml/components/FlatButton.qml
         qml/components/NavItem.qml
         qml/components/SegControl.qml
-        qml/components/LetterRackInput.qml
+        qml/components/SegChip.qml
+        qml/components/AccentChip.qml
+        qml/components/OnScreenKeyboard.qml
         qml/components/LicensesDialog.qml
+        qml/components/BottomTabButton.qml
+        qml/components/BottomTabBar.qml
+        qml/components/ViewToggle.qml
+        qml/components/PageHeader.qml
         qml/pages/NumbersPage.qml
         qml/pages/LettersPage.qml
         qml/pages/ConundrumPage.qml
