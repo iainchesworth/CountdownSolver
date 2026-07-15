@@ -20,5 +20,6 @@ reproduce it, and what you think the impact is. A CVE-worthy finding versus
 a hardening suggestion are both welcome — if you're unsure which one it is,
 report it privately anyway and let's figure it out there.
 
-There's no bounty program and no SLA, but reports get triaged as they come
-in — this is a small solo/hobby project, not a funded one.
+There's no bounty program, but you can expect an initial response within 14
+days — this is a small solo/hobby project, not a funded one, so that's a
+response acknowledging the report and starting triage, not necessarily a fix.
