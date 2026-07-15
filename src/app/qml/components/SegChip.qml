@@ -23,7 +23,14 @@ Rectangle {
     readonly property bool active: index === owner.currentIndex
     Layout.fillWidth: owner.stretch
     Layout.fillHeight: owner.stretch
-    implicitWidth: owner.stretch ? undefined : label.implicitWidth + owner.hPadding * 2
+    // A ternary can't "leave a property unset" (assigning `undefined` to a
+    // numeric property logs "Unable to assign [undefined] to double") - an
+    // inactive Binding never assigns at all, same idiom Main.qml already
+    // uses for its desktop-only min/max window size Bindings.
+    Binding on implicitWidth {
+        value: label.implicitWidth + owner.hPadding * 2
+        when: !owner.stretch
+    }
     implicitHeight: owner.segHeight
     radius: owner.segRadius
     color: chip.active ? Theme.accent : "transparent"

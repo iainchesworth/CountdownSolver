@@ -106,21 +106,21 @@ Item {
             Layout.fillWidth: true; spacing: 9
             FlatButton {
                 Layout.fillWidth: true
-                implicitHeight: Metrics.touchSize(Metrics.actionButton.size[Metrics.compactIndex])
+                implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
                 text: "↻ " + qsTr("Random rack"); onClicked: root.randomRack()
             }
             FlatButton {
-                implicitHeight: Metrics.touchSize(Metrics.actionButton.size[Metrics.compactIndex])
+                implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
                 text: "←"; onClicked: root.backspace()
             }
             FlatButton {
-                implicitHeight: Metrics.touchSize(Metrics.actionButton.size[Metrics.compactIndex])
+                implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
                 text: qsTr("Clear"); onClicked: root.clearAll()
             }
         }
         FlatButton {
             Layout.fillWidth: true
-            implicitHeight: Metrics.touchSize(Metrics.solveButton.size[Metrics.compactIndex])
+            implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.solveButton.size, 42))
             primary: true
             text: qsTr("Solve")
             enabled: root.letters.length > 0

@@ -167,8 +167,8 @@ Item {
                     model: 6
                     delegate: Tile {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: Metrics.numberTile.size[Metrics.compactIndex]
-                        fontSize: Metrics.numberTile.font[Metrics.compactIndex]
+                        Layout.preferredHeight: Metrics.pick(Metrics.numberTile.size, 62)
+                        fontSize: Metrics.pick(Metrics.numberTile.font, 24)
                         label: index < root.numbers.length ? String(root.numbers[index])
                                : (index === root.numbers.length ? root.numberBuffer : "")
                         pending: index === root.numbers.length && root.numberBuffer.length > 0
@@ -181,8 +181,8 @@ Item {
                     model: [25, 50, 75, 100]
                     delegate: PadButton {
                         Layout.fillWidth: true
-                        implicitHeight: Metrics.touchSize(Metrics.largePad.size[Metrics.compactIndex])
-                        fontSize: Metrics.largePad.font[Metrics.compactIndex]
+                        implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.largePad.size, 46))
+                        fontSize: Metrics.pick(Metrics.largePad.font, 17)
                         accent: true; text: String(modelData)
                         enabled: root.remainingOf(modelData) > 0 && root.numbers.length < 6
                         onClicked: root.addNumber(modelData)
@@ -196,8 +196,8 @@ Item {
                     model: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                     delegate: PadButton {
                         Layout.fillWidth: true
-                        implicitHeight: Metrics.touchSize(Metrics.smallPad.size[Metrics.compactIndex])
-                        fontSize: Metrics.smallPad.font[Metrics.compactIndex]
+                        implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.smallPad.size, 42))
+                        fontSize: Metrics.pick(Metrics.smallPad.font, 16)
                         text: String(modelData)
                         enabled: root.remainingOf(modelData) > 0 && root.numbers.length < 6
                         onClicked: root.addNumber(modelData)
@@ -221,14 +221,14 @@ Item {
                 SectionLabel { text: qsTr("Target") }
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: Metrics.targetDisplay.size[Metrics.compactIndex]
+                    Layout.preferredHeight: Metrics.pick(Metrics.targetDisplay.size, 52)
                     radius: 10; color: Theme.accent
                     Text {
                         anchors.centerIn: parent; text: root.target
                         color: Theme.accentInk; font.family: Theme.mono
-                        font.pixelSize: Metrics.targetDisplay.font[Metrics.compactIndex]
+                        font.pixelSize: Metrics.pick(Metrics.targetDisplay.font, 28)
                         font.weight: Font.DemiBold
-                        font.letterSpacing: Metrics.targetDisplay.letterSpacing[Metrics.compactIndex]
+                        font.letterSpacing: Metrics.pick(Metrics.targetDisplay.letterSpacing, 3)
                     }
                 }
             }
@@ -239,8 +239,8 @@ Item {
                     model: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
                     delegate: PadButton {
                         Layout.fillWidth: true
-                        implicitHeight: Metrics.touchSize(Metrics.targetKey.size[Metrics.compactIndex])
-                        fontSize: Metrics.targetKey.font[Metrics.compactIndex]
+                        implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.targetKey.size, 38))
+                        fontSize: Metrics.pick(Metrics.targetKey.font, 14)
                         text: String(modelData)
                         onClicked: root.targetDigit(String(modelData))
                     }
@@ -255,21 +255,21 @@ Item {
             Layout.fillWidth: true; spacing: 9
             FlatButton {
                 Layout.fillWidth: true
-                implicitHeight: Metrics.touchSize(Metrics.actionButton.size[Metrics.compactIndex])
+                implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
                 text: "↻ " + qsTr("Random game"); onClicked: root.randomGame()
             }
             FlatButton {
-                implicitHeight: Metrics.touchSize(Metrics.actionButton.size[Metrics.compactIndex])
+                implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
                 text: "←"; onClicked: root.backspaceKey()
             }
             FlatButton {
-                implicitHeight: Metrics.touchSize(Metrics.actionButton.size[Metrics.compactIndex])
+                implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
                 text: qsTr("Clear"); onClicked: root.clearAll()
             }
         }
         FlatButton {
             Layout.fillWidth: true
-            implicitHeight: Metrics.touchSize(Metrics.solveButton.size[Metrics.compactIndex])
+            implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.solveButton.size, 42))
             primary: true
             text: root.busy ? qsTr("Solving…") : qsTr("Solve")
             enabled: root.numbers.length === 6 && root.targetIsValid() && !root.busy

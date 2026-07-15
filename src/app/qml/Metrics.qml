@@ -23,6 +23,26 @@ QtObject {
         : formFactor === FormFactor.phoneLandscape ? 2
         : -1
 
+    // compactIndex clamped to a valid array index (0) - for components that
+    // only ever render on a mobile form factor (BottomTabBar/BottomTabButton/
+    // ViewToggle/PageHeader/SegChip): they're still *instantiated* (just
+    // invisible) on desktop/tablet-landscape since they aren't behind a
+    // Loader the way the pages' per-form-factor layouts are, so their
+    // Metrics-array bindings evaluate immediately and would otherwise index
+    // with -1. The value doesn't matter (never visible there) - it just has
+    // to be valid, or QML logs "Unable to assign [undefined] to double/int"
+    // on every affected property.
+    readonly property int safeIndex: Math.max(compactIndex, 0)
+
+    // Shared components used identically across desktop/tablet-landscape's
+    // layout AND the three new form factors (e.g. NumbersPage's
+    // NumbersTileCard) read a Metrics value even when compactIndex is -1.
+    // `fallback` must be that metric's original, pre-this-feature desktop
+    // literal, so desktop stays pixel-identical instead of reading undefined.
+    function pick(array, fallback) {
+        return compactIndex < 0 ? fallback : array[compactIndex]
+    }
+
     // Tappable hit-boxes must stay >=44px on phones even where the visual
     // size in the sizing table dips below that (target keypad keys, some
     // pad buttons) - apply this to a control's implicitWidth/implicitHeight,
