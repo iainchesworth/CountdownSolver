@@ -14,6 +14,23 @@ same way v0.1.0-beta.1's entry below does.
 
 ## [Unreleased]
 
+### Added
+
+- **Working install links, straight from the GitHub Release.** `ios-release`
+  now also generates `manifest.plist`, the property list Safari's
+  `itms-services://` OTA-install trigger requires (a bare `.ipa` link can't
+  be installed directly, unlike a sideloaded Android APK). `publish` then
+  appends an `## Install` section to each release body with a direct
+  Android APK download link and an `itms-services://` iOS install link —
+  tappable straight from a phone's browser on the Release page, no manual
+  URL construction needed. The iOS link only ever works on a device whose
+  UDID is already registered in the signing provisioning profile.
+- **A new [Installing](https://iainchesworth.github.io/CountdownSolver/installing/)
+  docs page**, covering both mobile install flows end-to-end: the Android
+  "install unknown apps" permission, the iOS ad-hoc/UDID-registration
+  constraint, the OTA-manifest mechanics, and how to verify a download's
+  checksums/attestations.
+
 ## [0.3.0-beta.1] - 2026-07-16
 
 iOS now matches Android's device coverage, and the release pipeline picked

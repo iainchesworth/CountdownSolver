@@ -51,6 +51,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - How to play: how-to-play.md
+  - Installing: installing.md
   - Getting started: getting-started.md
   - Building & packaging: building.md
   - FAQ / troubleshooting: faq.md
