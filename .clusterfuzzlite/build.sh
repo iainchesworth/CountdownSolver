@@ -23,6 +23,15 @@
 # trivial main() ("multiple definition of main"), failing compiler detection
 # outright before any real target is even configured. Building a static
 # library instead for that one internal check sidesteps main() entirely.
+#
+# CMAKE_CXX_SCAN_FOR_MODULES=OFF: this project targets C++23 (>=20), so
+# CMake's Ninja generator auto-enables C++20 modules dependency scanning by
+# default (policy CMP0155) even though nothing here uses modules - and that
+# scanning needs a clang-scan-deps binary CMake can't locate next to the
+# custom-built clang++ in this image ("CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-
+# NOTFOUND"), failing every translation unit before compilation even starts.
+# Nothing in this codebase declares/imports a module, so disabling the scan
+# is a no-op for correctness.
 cmake -S "$SRC/CountdownSolver" -B "$WORK/build" -G Ninja \
   -DCMAKE_TOOLCHAIN_FILE="$SRC/CountdownSolver/deps/vcpkg/scripts/buildsystems/vcpkg.cmake" \
   -DVCPKG_TARGET_TRIPLET=x64-linux \
@@ -32,6 +41,7 @@ cmake -S "$SRC/CountdownSolver" -B "$WORK/build" -G Ninja \
   -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
   -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS $LIB_FUZZING_ENGINE" \
   -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY \
+  -DCMAKE_CXX_SCAN_FOR_MODULES=OFF \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCOUNTDOWN_ENABLE_SANITIZERS=OFF \
   -DCOUNTDOWN_BUILD_APP=OFF \
