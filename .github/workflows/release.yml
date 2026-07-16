@@ -719,6 +719,17 @@ jobs:
       # (mobile signing secrets are optional - see check-secrets above), so
       # a desktop-only release quietly gets no Install section instead of a
       # dead link.
+      #
+      # The iOS line links to docs/install-ios.html (GitHub Pages), NOT
+      # directly to an itms-services:// URL - GitHub's release-notes
+      # markdown renderer sanitizes link hrefs to a fixed scheme allowlist
+      # and silently drops <a> tags using an unrecognized scheme, which
+      # made the very first "Install on iOS" link (v0.3.0-beta.2) render as
+      # plain unclickable text. Confirmed by rendering that release's own
+      # body through GitHub's markdown API. install-ios.html builds the
+      # real itms-services:// link client-side from the ?tag= query
+      # parameter instead, and is itself a plain https:// link that
+      # survives sanitization.
       - name: Build install links
         env:
           RELEASE_TAG: ${{ github.ref_name }}
@@ -738,7 +749,7 @@ jobs:
             echo "- **Android**: [Download APK](https://github.com/$RELEASE_REPO/releases/download/$RELEASE_TAG/CountdownSolver-android-arm64-v8a.apk) — allow \"install unknown apps\" for your browser, then open the download. See [Installing](https://iainchesworth.github.io/CountdownSolver/installing/)." >> /tmp/install-links.md
           fi
           if [ -n "$manifest" ]; then
-            echo "- **iOS (ad-hoc, pre-registered devices only)**: open this link **in Safari** on the device: [Install on iOS](itms-services://?action=download-manifest&url=https://github.com/$RELEASE_REPO/releases/download/$RELEASE_TAG/manifest.plist). Only works on a device whose UDID is already in the signing provisioning profile. See [Installing](https://iainchesworth.github.io/CountdownSolver/installing/#ios-ad-hoc-pre-registered-devices-only)." >> /tmp/install-links.md
+            echo "- **iOS (ad-hoc, pre-registered devices only)**: open this link **in Safari** on the device: [Install on iOS](https://iainchesworth.github.io/CountdownSolver/install-ios.html?tag=$RELEASE_TAG). Only works on a device whose UDID is already in the signing provisioning profile. See [Installing](https://iainchesworth.github.io/CountdownSolver/installing/#ios-ad-hoc-pre-registered-devices-only)." >> /tmp/install-links.md
           fi
 
       - name: Install cosign
