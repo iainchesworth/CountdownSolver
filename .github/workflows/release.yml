@@ -537,6 +537,7 @@ jobs:
       - name: Export ad-hoc IPA
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PROVISIONING_PROFILE_NAME: ${{ secrets.APPLE_PROVISIONING_PROFILE_NAME }}
         run: |
           cat > "${{ runner.temp }}/ExportOptions.plist" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
@@ -549,6 +550,13 @@ jobs:
             <string>$APPLE_TEAM_ID</string>
             <key>signingStyle</key>
             <string>manual</string>
+            <key>signingCertificate</key>
+            <string>Apple Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>org.iainchesworth.countdownsolver</key>
+              <string>$APPLE_PROVISIONING_PROFILE_NAME</string>
+            </dict>
           </dict>
           </plist>
           PLIST
