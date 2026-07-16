@@ -14,6 +14,15 @@
 # appended to the *linker* flags rather than passed to
 # tests/fuzz/CMakeLists.txt's own local-dev fallback, which only activates
 # when $LIB_FUZZING_ENGINE is unset (see that file).
+#
+# CMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY works around a real
+# CMake+libFuzzer conflict: CMAKE_EXE_LINKER_FLAGS applies to every
+# executable CMake links, including its own internal compiler-works probe
+# during project() - and with -fsanitize=fuzzer in those flags, that probe
+# pulls in libclang_rt.fuzzer.a, whose own main() collides with the probe's
+# trivial main() ("multiple definition of main"), failing compiler detection
+# outright before any real target is even configured. Building a static
+# library instead for that one internal check sidesteps main() entirely.
 cmake -S "$SRC/CountdownSolver" -B "$WORK/build" -G Ninja \
   -DCMAKE_TOOLCHAIN_FILE="$SRC/CountdownSolver/deps/vcpkg/scripts/buildsystems/vcpkg.cmake" \
   -DVCPKG_TARGET_TRIPLET=x64-linux \
@@ -22,6 +31,7 @@ cmake -S "$SRC/CountdownSolver" -B "$WORK/build" -G Ninja \
   -DCMAKE_C_FLAGS="$CFLAGS" \
   -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
   -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS $LIB_FUZZING_ENGINE" \
+  -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCOUNTDOWN_ENABLE_SANITIZERS=OFF \
   -DCOUNTDOWN_BUILD_APP=OFF \
