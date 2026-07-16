@@ -98,8 +98,12 @@ or an Apple Developer Enterprise account) is a separate, later decision.
 Alongside the IPA, `ios-release` also generates `manifest.plist` — the
 property list Safari's `itms-services://` OTA-install trigger needs (a
 bare `.ipa` link can't be installed directly, unlike an Android APK).
-`release.yml`'s `publish` job then appends working install links (Android
-APK, iOS `itms-services://`) to the GitHub Release body itself — see
+`release.yml`'s `publish` job then appends working install links to the
+GitHub Release body itself: a direct Android APK link, and for iOS a link
+to [`install-ios.html`](install-ios.html) (GitHub Pages) rather than a raw
+`itms-services://` URL — GitHub's release-notes markdown renderer strips
+`<a>` tags using non-allowlisted schemes like `itms-services://` entirely,
+so that page builds the real install link client-side instead. See
 [Installing](installing.md) for the end-user install flow.
 
 **Current verification status** (no Android SDK/NDK, no Mac/Xcode
