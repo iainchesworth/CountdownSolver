@@ -39,6 +39,11 @@ release-quality.
 - **A committed 14-day initial-response window for vulnerability reports**,
   replacing the previous "no SLA" wording in `SECURITY.md` — required for
   OpenSSF's Best Practices ("CII") Passing tier.
+- **A signed iOS release package.** With signing certificates now
+  configured, `release.yml` produces an ad-hoc signed IPA
+  (`CountdownSolver-ios-adhoc.ipa`) for this release — installable on
+  devices registered in the provisioning profile, not yet an App Store
+  build.
 
 ### Fixed
 
@@ -78,6 +83,7 @@ manifests:
 | macOS | `CountdownSolver-0.3.0-Darwin.dmg` · `CountdownSolver-0.3.0-Darwin.zip` |
 | Linux | `CountdownSolver-0.3.0-Linux.deb` · `.rpm` · `.tar.gz` · `.zip` |
 | Android | `CountdownSolver-android-arm64-v8a.apk` · `.aab` |
+| iOS | `CountdownSolver-ios-adhoc.ipa` (ad-hoc signed; sideload only) |
 | Provenance | `sha256sum -c SHA256SUMS`; `gh attestation verify <file> --repo iainchesworth/CountdownSolver`; `cosign verify-blob --bundle SHA256SUMS.sigstore.json` |
 
 ## [0.2.0-beta.1] - 2026-07-16
