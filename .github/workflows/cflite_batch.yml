@@ -1,0 +1,39 @@
+name: ClusterFuzzLite batch fuzzing
+
+# Builds up a corpus over time so PR fuzzing (cflite_pr.yml) starts from
+# meaningfully mutated inputs instead of an empty corpus every run. No
+# storage-repo is configured, so ClusterFuzzLite persists the corpus as
+# GitHub Actions artifacts between runs instead - which is exactly why
+# cflite_cron.yml's pruning is mandatory once this is enabled (see
+# ClusterFuzzLite's docs on batch fuzzing).
+on:
+  schedule:
+    - cron: "0 3 * * *" # Once a day.
+  workflow_dispatch: {}
+
+permissions: read-all
+
+jobs:
+  BatchFuzzing:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [address, undefined]
+    steps:
+      - name: Build Fuzzers (${{ matrix.sanitizer }})
+        id: build
+        uses: google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          language: c++
+          sanitizer: ${{ matrix.sanitizer }}
+
+      - name: Run Fuzzers (${{ matrix.sanitizer }})
+        id: run
+        uses: google/clusterfuzzlite/actions/run_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fuzz-seconds: 3600
+          mode: "batch"
+          sanitizer: ${{ matrix.sanitizer }}
+          output-sarif: true

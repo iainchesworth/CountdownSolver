@@ -72,6 +72,7 @@ include(Coverage)
 # ---------------------------------------------------------------------------
 option(COUNTDOWN_BUILD_APP "Build the Qt6 GUI application" ON)
 option(COUNTDOWN_BUILD_TESTS "Build the unit and integration test suites" ON)
+option(COUNTDOWN_BUILD_FUZZERS "Build libFuzzer harnesses for countdown::solver" OFF)
 
 # ---------------------------------------------------------------------------
 # Targets
@@ -89,8 +90,16 @@ if(COUNTDOWN_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
+# Deliberately independent of COUNTDOWN_BUILD_TESTS/tests/CMakeLists.txt:
+# fuzz harnesses only need countdown::solver, not Catch2 (the "tests" vcpkg
+# manifest feature) or CTest, so they build fine even with tests disabled.
+if(COUNTDOWN_BUILD_FUZZERS)
+    add_subdirectory(tests/fuzz)
+endif()
+
 include(Packaging)
 
 message(STATUS "CountdownSolver ${PROJECT_VERSION}")
-message(STATUS "  Build Qt app : ${COUNTDOWN_BUILD_APP}")
-message(STATUS "  Build tests  : ${COUNTDOWN_BUILD_TESTS}")
+message(STATUS "  Build Qt app  : ${COUNTDOWN_BUILD_APP}")
+message(STATUS "  Build tests   : ${COUNTDOWN_BUILD_TESTS}")
+message(STATUS "  Build fuzzers : ${COUNTDOWN_BUILD_FUZZERS}")

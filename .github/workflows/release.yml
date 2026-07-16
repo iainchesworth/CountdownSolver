@@ -599,8 +599,11 @@ jobs:
       needs.android-release.result != 'failure' &&
       needs.ios-release.result != 'failure'
     runs-on: ubuntu-24.04
+    # 'id-token' is only needed for cosign's keyless signing below (OIDC ->
+    # Sigstore Fulcio cert, no key material stored anywhere).
     permissions:
       contents: write
+      id-token: write
     steps:
       # Only needed to read CHANGELOG.md below - the package job already
       # checked out the tagged commit for the actual build. Must run BEFORE
@@ -635,6 +638,23 @@ jobs:
           cat dist/*/SHA256SUMS > dist/SHA256SUMS
           cat dist/*/SHA512SUMS > dist/SHA512SUMS
           rm dist/*/SHA256SUMS dist/*/SHA512SUMS
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      # Keyless signature (Sigstore, via the same GitHub OIDC identity used
+      # by attest-build-provenance in the package job above) over the
+      # combined checksum manifests - not each package individually, since
+      # the manifests already bind every artifact's hash. Must run on the
+      # combined manifests, not the per-platform ones: signing before
+      # 'Combine per-platform checksums' would produce signatures that no
+      # longer validate against the concatenated file actually uploaded.
+      # The .sigstore.json bundle extension is what OpenSSF Scorecard's
+      # Signed-Releases check looks for in release assets.
+      - name: Sign checksum manifests (cosign, keyless)
+        run: |
+          cosign sign-blob --yes --bundle dist/SHA256SUMS.sigstore.json dist/SHA256SUMS
+          cosign sign-blob --yes --bundle dist/SHA512SUMS.sigstore.json dist/SHA512SUMS
 
       # Release notes should be curated, not a raw PR/commit dump - pull the
       # section matching this tag out of CHANGELOG.md (Keep a Changelog
