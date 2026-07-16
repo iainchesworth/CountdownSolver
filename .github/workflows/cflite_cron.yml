@@ -1,0 +1,30 @@
+name: ClusterFuzzLite cron tasks
+
+# Corpus pruning - mandatory once batch fuzzing (cflite_batch.yml) is
+# enabled, per ClusterFuzzLite's docs, so the corpus doesn't accumulate
+# redundant inputs (same coverage, more files) over time.
+on:
+  schedule:
+    - cron: "0 4 * * *" # Once a day, after batch fuzzing.
+  workflow_dispatch: {}
+
+permissions: read-all
+
+jobs:
+  Pruning:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Build Fuzzers
+        id: build
+        uses: google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          language: c++
+
+      - name: Run Fuzzers
+        id: run
+        uses: google/clusterfuzzlite/actions/run_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fuzz-seconds: 600
+          mode: "prune"
+          output-sarif: true

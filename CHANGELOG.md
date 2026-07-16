@@ -14,6 +14,72 @@ same way v0.1.0-beta.1's entry below does.
 
 ## [Unreleased]
 
+## [0.3.0-beta.1] - 2026-07-16
+
+iOS now matches Android's device coverage, and the release pipeline picked
+up a round of supply-chain hardening. Tagged as a **beta** for one
+specific reason, called out below — everything else here is
+release-quality.
+
+### Added
+
+- **Fuzzing coverage for the solver.** Three libFuzzer harnesses (UTF-8
+  decoding, the letters game's rack validation/solving, the numbers game's
+  solver) now run under ClusterFuzzLite on every PR, daily as a batch job
+  building a corpus, and with mandatory corpus pruning — closing the gap
+  that had OpenSSF Scorecard's Fuzzing check failing (it only recognises
+  OSS-Fuzz, ClusterFuzzLite, or language-specific property-testing tools,
+  none of which C++ had here before).
+- **Cosign-signed release manifests.** The combined SHA256SUMS/SHA512SUMS
+  checksum manifests are now signed with `cosign sign-blob` (keyless, via
+  the same GitHub OIDC identity already used for build provenance) and the
+  `.sigstore.json` bundles are uploaded alongside the release — Sigstore
+  attestations alone aren't visible to Scorecard's Signed-Releases check,
+  since it only looks at downloadable release assets.
+- **A committed 14-day initial-response window for vulnerability reports**,
+  replacing the previous "no SLA" wording in `SECURITY.md` — required for
+  OpenSSF's Best Practices ("CII") Passing tier.
+
+### Fixed
+
+- **iOS now targets iPhone and all orientations**, matching Android's
+  tablet+phone, portrait+landscape scope. `TARGETED_DEVICE_FAMILY` was
+  locked to iPad-only and `Info.plist` locked orientation to landscape
+  (plus `UIRequiresFullScreen` to stop Split View from bypassing that
+  lock) — leftover config from the original tablet-only scope; the QML
+  shell's layout logic already keyed off window size, not device idiom,
+  so nothing else was blocking it. Unverified on real hardware or a
+  simulator (no Mac available); CI only confirms it still compiles.
+- iOS code signing is now scoped to the app target instead of applying
+  project-wide.
+- The iOS `ExportOptions.plist` now maps `provisioningProfiles` for the
+  app target explicitly, instead of relying on automatic matching.
+- Release-signing secrets are now passed through `env:` in
+  `release.yml` rather than interpolated directly into a `run:` block,
+  closing a code-injection-via-template-expansion risk flagged by
+  `zizmor`.
+
+### Known limitations
+
+- **iOS has not been verified on a real device or simulator.** CI builds
+  it (and signs it for release when certificates are configured), but no
+  Mac has been available during development to actually run it.
+- One UI string (the mobile Input/Results toggle, added last release) has
+  a Yiddish translation that hasn't had a native-speaker review yet.
+
+## Artifacts
+
+Checksummed, with build-provenance attestations and cosign-signed
+manifests:
+
+| Platform | Files |
+|---|---|
+| Windows | `CountdownSolver-0.3.0-win64.zip` |
+| macOS | `CountdownSolver-0.3.0-Darwin.dmg` · `CountdownSolver-0.3.0-Darwin.zip` |
+| Linux | `CountdownSolver-0.3.0-Linux.deb` · `.rpm` · `.tar.gz` · `.zip` |
+| Android | `CountdownSolver-android-arm64-v8a.apk` · `.aab` |
+| Provenance | `sha256sum -c SHA256SUMS`; `gh attestation verify <file> --repo iainchesworth/CountdownSolver`; `cosign verify-blob --bundle SHA256SUMS.sigstore.json` |
+
 ## [0.2.0-beta.1] - 2026-07-16
 
 Countdown Solver now runs natively on mobile, not just desktop. Tagged as a

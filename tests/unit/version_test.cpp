@@ -6,9 +6,9 @@
 
 TEST_CASE("semantic version is populated", "[version]") {
     REQUIRE(countdown::version_major == 0);
-    REQUIRE(countdown::version_minor == 2);
+    REQUIRE(countdown::version_minor == 3);
     REQUIRE(countdown::version_patch == 0);
-    REQUIRE(countdown::version_string == "0.2.0");
+    REQUIRE(countdown::version_string == "0.3.0");
 }
 
 TEST_CASE("git provenance is stamped", "[version]") {

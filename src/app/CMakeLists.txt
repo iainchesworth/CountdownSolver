@@ -329,8 +329,9 @@ qt_add_translations(countdownsolver_qml
 # holding AndroidManifest.xml (and androiddeployqt's other package inputs);
 # MACOSX_BUNDLE_INFO_PLIST is CMake's own bundle-Info.plist mechanism, which
 # also drives iOS bundles under the Xcode generator (MACOSX_BUNDLE ON below
-# already triggers bundle output there). TARGETED_DEVICE_FAMILY "2" restricts
-# the iOS build to iPad only, matching the tablet-only scope of this app.
+# already triggers bundle output there). TARGETED_DEVICE_FAMILY "1,2" targets
+# both iPhone and iPad, matching the responsive QML shell (see FormFactor.qml)
+# that already covers phone/tablet, portrait/landscape on Android.
 if(ANDROID)
     set_target_properties(countdownsolver PROPERTIES
         QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/platform/android")
@@ -340,7 +341,30 @@ if(IOS)
     set_target_properties(countdownsolver PROPERTIES
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/platform/ios/Info.plist.in"
         MACOSX_BUNDLE_GUI_IDENTIFIER "org.iainchesworth.countdownsolver"
-        XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2")
+        XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
+
+    # Code signing is disabled project-wide by default (see the ios-base
+    # CMake preset: CODE_SIGNING_ALLOWED/REQUIRED=NO), so unsigned CI builds
+    # (ios-debug/ios-build) need no Apple Developer credentials at all. A
+    # real signed release enables signing on THIS target only - not
+    # project-wide - because the previous approach (release.yml passing
+    # -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED/REQUIRED=YES globally on
+    # the command line) makes Xcode try to sign every CMake-generated Xcode
+    # target, including static libraries and Qt's internal QML-resource-
+    # bundle targets that were never meant to be signed and have no bundle
+    # identifier - confirmed on a real CI run ("Bundle identifier is
+    # missing" on ~9 auxiliary targets). COUNTDOWN_IOS_SIGNING_TEAM/
+    # COUNTDOWN_IOS_SIGNING_PROFILE are empty by default (unsigned build);
+    # release.yml's signed-release job passes both via -D at configure time.
+    if(COUNTDOWN_IOS_SIGNING_TEAM AND COUNTDOWN_IOS_SIGNING_PROFILE)
+        set_target_properties(countdownsolver PROPERTIES
+            XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "YES"
+            XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "YES"
+            XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Manual"
+            XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Apple Distribution"
+            XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${COUNTDOWN_IOS_SIGNING_TEAM}"
+            XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "${COUNTDOWN_IOS_SIGNING_PROFILE}")
+    endif()
 endif()
 
 # IBM Plex Sans/Mono (Theme.qml's Theme.sans/Theme.mono) plus Noto Sans
