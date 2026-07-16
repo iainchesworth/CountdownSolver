@@ -14,6 +14,17 @@ same way v0.1.0-beta.1's entry below does.
 
 ## [Unreleased]
 
+### Fixed
+
+- **iOS build configuration no longer locks the app to iPad/landscape-only.**
+  `TARGETED_DEVICE_FAMILY` now targets iPhone and iPad, and the
+  `Info.plist` orientation lock (plus the `UIRequiresFullScreen` key that
+  enforced it) is gone — matching Android's tablet+phone,
+  portrait+landscape scope, since the QML shell's layout logic already
+  keyed off window size rather than device idiom. Unverified on real
+  hardware or a simulator (no Mac available); CI only confirms it still
+  compiles.
+
 ## [0.2.0-beta.1] - 2026-07-16
 
 Countdown Solver now runs natively on mobile, not just desktop. Tagged as a
