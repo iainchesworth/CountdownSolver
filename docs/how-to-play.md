@@ -69,11 +69,9 @@ Arabic:
 
 ![Settings page in Arabic, showing the mirrored right-to-left layout](assets/screenshots/settings-arabic-rtl.png)
 
-As of `0.1.0-beta.1`, this switches the app's UI chrome — menus, buttons,
-Settings itself — fully. It does **not** yet change the gameplay: the
-Letters/Numbers/Conundrum rounds and the solver's dictionary are
-English-only for now, so switching languages changes what the app looks
-like, not which words or numbers it works with. Closing that gap is
-tracked for a future release — see the "Known limitations" note in
-[CHANGELOG.md](https://github.com/iainchesworth/CountdownSolver/blob/main/CHANGELOG.md)
-for the current status.
+Switching the display language changes both the UI chrome (menus, buttons,
+Settings itself) and gameplay: the Letters and Conundrum rounds solve
+against that language's own dictionary and alphabet rules (e.g. French
+draws a 10-letter rack instead of 9; German keeps *ä/ö/ü* distinct from
+*a/o/u*), not just the on-screen labels. The Numbers game is
+language-independent — it's arithmetic, not words.

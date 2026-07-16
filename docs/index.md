@@ -38,6 +38,29 @@ results mean.
 
     ![Settings page](assets/screenshots/settings.png)
 
+## Also on Android
+
+The same app runs natively on Android too — tablet and phone, portrait
+and landscape — with a bottom tab bar in place of the desktop sidebar on
+those smaller/narrower screens. (iOS is tablet-only and landscape-only for
+now — see [Building & packaging](building.md#supported-platforms).)
+
+=== "Tablet · landscape"
+
+    ![Numbers page on an Android tablet, landscape orientation](assets/screenshots/mobile-tablet-landscape.png)
+
+=== "Tablet · portrait"
+
+    ![Numbers page on an Android tablet, portrait orientation](assets/screenshots/mobile-tablet-portrait.png)
+
+=== "Phone · landscape"
+
+    ![Numbers page on an Android phone, landscape orientation](assets/screenshots/mobile-phone-landscape.png)
+
+=== "Phone · portrait"
+
+    ![Numbers page on an Android phone, portrait orientation](assets/screenshots/mobile-phone-portrait.png)
+
 ## Under the hood
 
 All the game logic lives in a small, dependency-free C++23 library,

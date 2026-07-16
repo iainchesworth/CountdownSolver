@@ -117,6 +117,13 @@ was confirmed via real CI runs, not locally):
   `apksigner verify` step that now fails the job outright if the final
   artifact isn't actually signed - so this class of bug can't silently
   ship again.
+- **Extended to phone and portrait, verified the same way**: the signed
+  APK from the actual `v0.2.0-beta.1` tagged release was installed on that
+  same emulator and driven through all four form factors (tablet
+  landscape/portrait, phone landscape/portrait) via `adb shell wm size`/
+  `settings put system user_rotation` overrides — each one renders
+  correctly, not just the tablet-landscape shape the app originally
+  shipped with.
 - **`ios-build` (unsigned compile) is verified**: it's passed real Xcode
   CI runs repeatedly since the fixes below landed.
 - **`ios-release` (signed, ad-hoc) has never run for real** — blocked on
