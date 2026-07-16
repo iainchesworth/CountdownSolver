@@ -502,6 +502,13 @@ jobs:
       # CMAKE_XCODE_GENERATE_SCHEME=ON is required here: `xcodebuild archive`
       # (below) only accepts -scheme, not -target, and CMake's Xcode
       # generator doesn't emit schemes by default.
+      # COUNTDOWN_IOS_SIGNING_TEAM/COUNTDOWN_IOS_SIGNING_PROFILE (read by
+      # src/app/CMakeLists.txt's if(IOS) block) scope code signing to just
+      # the countdownsolver app target - not project-wide via
+      # CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED/REQUIRED, which forces
+      # Xcode to also try signing static libraries and Qt's internal
+      # resource-bundle targets that have no bundle identifier and were
+      # never meant to be signed (confirmed on a real CI run).
       - name: Configure (signed, ad-hoc)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -510,11 +517,8 @@ jobs:
           cmake --preset ios-release
           -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR
           -DCMAKE_XCODE_GENERATE_SCHEME=ON
-          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=YES
-          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=YES
-          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY="Apple Distribution"
-          -DCMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM=$APPLE_TEAM_ID
-          "-DCMAKE_XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER=$APPLE_PROVISIONING_PROFILE_NAME"
+          -DCOUNTDOWN_IOS_SIGNING_TEAM=$APPLE_TEAM_ID
+          "-DCOUNTDOWN_IOS_SIGNING_PROFILE=$APPLE_PROVISIONING_PROFILE_NAME"
 
       # Archiving needs xcodebuild directly (not `cmake --build`, which for
       # the Xcode generator only maps onto `build`/`install`-style actions,
