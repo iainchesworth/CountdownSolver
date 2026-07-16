@@ -95,6 +95,13 @@ are pre-registered in the provisioning profile above, not on arbitrary iOS
 devices the way a sideloaded Android APK is. Wider distribution (TestFlight
 or an Apple Developer Enterprise account) is a separate, later decision.
 
+Alongside the IPA, `ios-release` also generates `manifest.plist` — the
+property list Safari's `itms-services://` OTA-install trigger needs (a
+bare `.ipa` link can't be installed directly, unlike an Android APK).
+`release.yml`'s `publish` job then appends working install links (Android
+APK, iOS `itms-services://`) to the GitHub Release body itself — see
+[Installing](installing.md) for the end-user install flow.
+
 **Current verification status** (no Android SDK/NDK, no Mac/Xcode
 available in this project's day-to-day dev environment — everything below
 was confirmed via real CI runs, not locally):

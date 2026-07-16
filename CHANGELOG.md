@@ -14,6 +14,50 @@ same way v0.1.0-beta.1's entry below does.
 
 ## [Unreleased]
 
+## [0.3.0-beta.2] - 2026-07-16
+
+No functional or build changes from v0.3.0-beta.1 — this release exists
+solely to ship working install links for the mobile builds that release
+already signed. Tagged as a **beta** to match v0.3.0-beta.1's own
+still-open item, called out below.
+
+### Added
+
+- **Working install links, straight from the GitHub Release.** `ios-release`
+  now also generates `manifest.plist`, the property list Safari's
+  `itms-services://` OTA-install trigger requires (a bare `.ipa` link can't
+  be installed directly, unlike a sideloaded Android APK). `publish` then
+  appends an `## Install` section to each release body with a direct
+  Android APK download link and an `itms-services://` iOS install link —
+  tappable straight from a phone's browser on the Release page, no manual
+  URL construction needed. The iOS link only ever works on a device whose
+  UDID is already registered in the signing provisioning profile.
+- **A new [Installing](https://iainchesworth.github.io/CountdownSolver/installing/)
+  docs page**, covering both mobile install flows end-to-end: the Android
+  "install unknown apps" permission, the iOS ad-hoc/UDID-registration
+  constraint, the OTA-manifest mechanics, and how to verify a download's
+  checksums/attestations.
+
+### Known limitations
+
+- **iOS has not been verified on a real device or simulator.** Unchanged
+  from v0.3.0-beta.1 — no Mac has been available during development to
+  actually run it.
+
+## Artifacts
+
+Checksummed, with build-provenance attestations and cosign-signed
+manifests:
+
+| Platform | Files |
+|---|---|
+| Windows | `CountdownSolver-0.3.0-win64.zip` |
+| macOS | `CountdownSolver-0.3.0-Darwin.dmg` · `CountdownSolver-0.3.0-Darwin.zip` |
+| Linux | `CountdownSolver-0.3.0-Linux.deb` · `.rpm` · `.tar.gz` · `.zip` |
+| Android | `CountdownSolver-android-arm64-v8a.apk` · `.aab` |
+| iOS | `CountdownSolver-ios-adhoc.ipa` (ad-hoc signed; sideload only) · `manifest.plist` (OTA install manifest) |
+| Provenance | `sha256sum -c SHA256SUMS`; `gh attestation verify <file> --repo iainchesworth/CountdownSolver`; `cosign verify-blob --bundle SHA256SUMS.sigstore.json` |
+
 ## [0.3.0-beta.1] - 2026-07-16
 
 iOS now matches Android's device coverage, and the release pipeline picked

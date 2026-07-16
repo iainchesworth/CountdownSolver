@@ -566,6 +566,52 @@ jobs:
             -exportOptionsPlist "${{ runner.temp }}/ExportOptions.plist"
           mv dist-ios/*.ipa dist-ios/CountdownSolver-ios-adhoc.ipa
 
+      # itms-services (Safari's OTA-install trigger) needs an HTTPS-hosted
+      # manifest declaring the bundle id/version and the IPA's own URL - a
+      # bare .ipa link can't be installed directly. The IPA's URL is
+      # predictable (GitHub release assets are always
+      # <repo>/releases/download/<tag>/<filename>) even though the asset
+      # itself isn't uploaded until the publish job runs later in this same
+      # workflow, so it's safe to reference here before it exists.
+      - name: Generate OTA install manifest (manifest.plist)
+        env:
+          RELEASE_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          cat > dist-ios/manifest.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>items</key>
+            <array>
+              <dict>
+                <key>assets</key>
+                <array>
+                  <dict>
+                    <key>kind</key>
+                    <string>software-package</string>
+                    <key>url</key>
+                    <string>https://github.com/$RELEASE_REPO/releases/download/$RELEASE_TAG/CountdownSolver-ios-adhoc.ipa</string>
+                  </dict>
+                </array>
+                <key>metadata</key>
+                <dict>
+                  <key>bundle-identifier</key>
+                  <string>org.iainchesworth.countdownsolver</string>
+                  <key>bundle-version</key>
+                  <string>${RELEASE_TAG#v}</string>
+                  <key>kind</key>
+                  <string>software</string>
+                  <key>title</key>
+                  <string>CountdownSolver</string>
+                </dict>
+              </dict>
+            </array>
+          </dict>
+          </plist>
+          PLIST
+
       - name: Remove signing keychain and provisioning profile
         if: always()
         run: |
@@ -578,7 +624,7 @@ jobs:
         shell: bash
         run: |
           shopt -s nullglob
-          files=(*.ipa)
+          files=(*.ipa *.plist)
           if [ ${#files[@]} -eq 0 ]; then
             echo "::error::No iOS package file found — did the export step run?" >&2
             exit 1
@@ -602,6 +648,7 @@ jobs:
           name: countdown-iOS
           path: |
             dist-ios/*.ipa
+            dist-ios/*.plist
             dist-ios/SHA256SUMS
             dist-ios/SHA512SUMS
           if-no-files-found: error
@@ -664,6 +711,35 @@ jobs:
           cat dist/*/SHA256SUMS > dist/SHA256SUMS
           cat dist/*/SHA512SUMS > dist/SHA512SUMS
           rm dist/*/SHA256SUMS dist/*/SHA512SUMS
+
+      # itms-services links only work when tapped from Safari, so the real
+      # install path is opening the Release page on the device itself -
+      # append working links to the release body rather than only
+      # documenting the URL shape. Built from whatever's actually in dist/
+      # (mobile signing secrets are optional - see check-secrets above), so
+      # a desktop-only release quietly gets no Install section instead of a
+      # dead link.
+      - name: Build install links
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_REPO: ${{ github.repository }}
+        run: |
+          apk=$(find dist -maxdepth 2 -name 'CountdownSolver-android-arm64-v8a.apk')
+          manifest=$(find dist -maxdepth 2 -name 'manifest.plist')
+
+          : > /tmp/install-links.md
+          if [ -n "$apk" ] || [ -n "$manifest" ]; then
+            {
+              echo "## Install"
+              echo
+            } >> /tmp/install-links.md
+          fi
+          if [ -n "$apk" ]; then
+            echo "- **Android**: [Download APK](https://github.com/$RELEASE_REPO/releases/download/$RELEASE_TAG/CountdownSolver-android-arm64-v8a.apk) — allow \"install unknown apps\" for your browser, then open the download. See [Installing](https://iainchesworth.github.io/CountdownSolver/installing/)." >> /tmp/install-links.md
+          fi
+          if [ -n "$manifest" ]; then
+            echo "- **iOS (ad-hoc, pre-registered devices only)**: open this link **in Safari** on the device: [Install on iOS](itms-services://?action=download-manifest&url=https://github.com/$RELEASE_REPO/releases/download/$RELEASE_TAG/manifest.plist). Only works on a device whose UDID is already in the signing provisioning profile. See [Installing](https://iainchesworth.github.io/CountdownSolver/installing/#ios-ad-hoc-pre-registered-devices-only)." >> /tmp/install-links.md
+          fi
 
       - name: Install cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
@@ -729,17 +805,26 @@ jobs:
           HAS_NOTES: ${{ steps.notes.outputs.has_notes }}
         run: |
           if [ "$HAS_NOTES" = "true" ]; then
+            cat /tmp/release-notes.md /tmp/install-links.md > /tmp/full-notes.md
             gh release create "$RELEASE_TAG" \
               --repo "$RELEASE_REPO" \
               --draft \
               --prerelease \
-              --notes-file /tmp/release-notes.md
+              --notes-file /tmp/full-notes.md
           else
             gh release create "$RELEASE_TAG" \
               --repo "$RELEASE_REPO" \
               --draft \
               --prerelease \
               --generate-notes
+            # --generate-notes and --notes-file are mutually exclusive, so
+            # the install-links section has to be appended after the fact
+            # here rather than folded into the create call above.
+            if [ -s /tmp/install-links.md ]; then
+              body=$(gh release view "$RELEASE_TAG" --repo "$RELEASE_REPO" --json body -q .body)
+              { printf '%s\n\n' "$body"; cat /tmp/install-links.md; } > /tmp/full-notes.md
+              gh release edit "$RELEASE_TAG" --repo "$RELEASE_REPO" --notes-file /tmp/full-notes.md
+            fi
           fi
 
       # A dist/**/* glob (even with globstar) also matches the artifact
