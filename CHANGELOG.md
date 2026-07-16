@@ -14,6 +14,18 @@ same way v0.1.0-beta.1's entry below does.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The iOS install link in release notes was never actually clickable.**
+  GitHub's release-notes markdown renderer sanitizes link `href`s to a
+  fixed scheme allowlist and silently strips any `<a>` using an
+  unrecognized scheme like `itms-services://`, leaving plain unclickable
+  text — confirmed by rendering `v0.3.0-beta.2`'s own release body through
+  GitHub's markdown API. Release notes now link to a small
+  `docs/install-ios.html` page (hosted on GitHub Pages, not subject to
+  that sanitizer) that builds the real `itms-services://` link
+  client-side from a `?tag=` query parameter instead.
+
 ## [0.3.0-beta.2] - 2026-07-16
 
 No functional or build changes from v0.3.0-beta.1 — this release exists
