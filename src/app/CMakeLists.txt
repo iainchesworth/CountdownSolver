@@ -329,8 +329,9 @@ qt_add_translations(countdownsolver_qml
 # holding AndroidManifest.xml (and androiddeployqt's other package inputs);
 # MACOSX_BUNDLE_INFO_PLIST is CMake's own bundle-Info.plist mechanism, which
 # also drives iOS bundles under the Xcode generator (MACOSX_BUNDLE ON below
-# already triggers bundle output there). TARGETED_DEVICE_FAMILY "2" restricts
-# the iOS build to iPad only, matching the tablet-only scope of this app.
+# already triggers bundle output there). TARGETED_DEVICE_FAMILY "1,2" targets
+# both iPhone and iPad, matching the responsive QML shell (see FormFactor.qml)
+# that already covers phone/tablet, portrait/landscape on Android.
 if(ANDROID)
     set_target_properties(countdownsolver PROPERTIES
         QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/platform/android")
@@ -340,7 +341,7 @@ if(IOS)
     set_target_properties(countdownsolver PROPERTIES
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/platform/ios/Info.plist.in"
         MACOSX_BUNDLE_GUI_IDENTIFIER "org.iainchesworth.countdownsolver"
-        XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2")
+        XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
 endif()
 
 # IBM Plex Sans/Mono (Theme.qml's Theme.sans/Theme.mono) plus Noto Sans

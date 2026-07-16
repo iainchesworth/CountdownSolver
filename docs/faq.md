@@ -31,12 +31,13 @@ at startup. See
 **Is there an Android or iOS download?**
 Android, yes — every [release](https://github.com/iainchesworth/CountdownSolver/releases)
 from `v0.2.0-beta.1` on ships a signed APK/AAB, covering tablet and phone
-in both portrait and landscape. iOS builds successfully in CI but isn't
-signed for release yet (needs a maintainer with an Apple Developer account
-to configure signing secrets — see
+in both portrait and landscape. iOS builds successfully in CI, now targets
+iPhone and iPad in all orientations too, but isn't signed for release yet
+(needs a maintainer with an Apple Developer account to configure signing
+secrets — see
 [CI & dependencies → Signed mobile release packaging](ci.md#signed-mobile-release-packaging)),
-and stays tablet-only/landscape-only until someone can verify phone and
-portrait layouts on real hardware. See
+and nothing beyond "it compiles" has been verified on real hardware — no
+Mac available in day-to-day dev. See
 [Building & packaging → Supported platforms](building.md#supported-platforms).
 
 **My PR is failing the "Translations complete" / "Check translations are

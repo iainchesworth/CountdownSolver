@@ -11,7 +11,7 @@ What's actually built and tested by CI — see
 | macOS | arm64 (Apple Silicon) | AppleClang, tested on macOS 15 (Sequoia) | `.zip` or `.dmg`; Qt runtime is bundled. Intel Macs aren't covered by CI |
 | Linux | x64 | GCC 15 or Clang 21, tested on Ubuntu 24.04 | See below — unlike Windows/macOS, Linux packages don't bundle Qt |
 | Android | arm64-v8a | CI-verified via the `android-arm64-v8a-debug` preset (Qt's Android kit). Tablet and phone, portrait and landscape | Signed APK/AAB via `release.yml`'s `android-release` job (needs maintainer-supplied keystore secrets — see [CI & dependencies](ci.md#signed-mobile-release-packaging)); proven end-to-end against a real tagged release (`v0.2.0-beta.1`), installed and driven on a real emulator across all four form factors |
-| iOS | device (arm64) | CI-verified via the `ios-debug` preset (Qt's iOS kit), unsigned. Tablet, landscape-only | Ad-hoc signed IPA via `release.yml`'s `ios-release` job — installable only on devices pre-registered in the provisioning profile, not a public App Store build. Signing has never run for real yet (no Apple Developer secrets configured) and nothing has been verified on real hardware — no Mac available in day-to-day dev |
+| iOS | device (arm64) | CI-verified via the `ios-debug` preset (Qt's iOS kit), unsigned. Targets iPhone and iPad, all orientations — same breadth as Android, but unverified: no Mac available to run it on real hardware or a simulator | Ad-hoc signed IPA via `release.yml`'s `ios-release` job — installable only on devices pre-registered in the provisioning profile, not a public App Store build. Signing has never run for real yet (no Apple Developer secrets configured) and nothing has been verified on real hardware — no Mac available in day-to-day dev |
 
 `countdown::solver` itself (`-DCOUNTDOWN_BUILD_APP=OFF`) has no GUI or
 platform-specific code — see [Architecture](architecture.md) — so it isn't
@@ -53,11 +53,13 @@ ctest --preset windows-msvc-debug
 
 ### Mobile builds (Android/iOS)
 
-Android covers tablet and phone, portrait and landscape — the QML shell
-switches between a desktop-style sidebar and a bottom-tab-bar layout based
-on window size, not the OS. iOS remains tablet-only and landscape-only;
-extending it needs someone who can verify phone/portrait layouts on real
-hardware first. These presets set `COUNTDOWN_BUILD_TESTS=OFF`: there's no
+Android and iOS both cover tablet and phone, portrait and landscape — the
+QML shell switches between a desktop-style sidebar and a bottom-tab-bar
+layout based on window size, not the OS or device idiom. iOS's build
+configuration now matches Android's scope, but — unlike Android — it's
+unverified: no Mac is available to actually run it on a simulator or real
+device and confirm the layouts render correctly. These presets set
+`COUNTDOWN_BUILD_TESTS=OFF`: there's no
 way to run a CTest-launched native test executable on Android/iOS without
 an emulator/simulator/on-device runner, so `ctest` isn't part of the
 mobile flow.

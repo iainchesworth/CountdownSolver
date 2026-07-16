@@ -7,14 +7,13 @@
   configure_file() does a dumb text-substitution pass over the whole
   file, comments included - do not wrap a variable-name wildcard in this
   comment in a dollar-brace pair, or configure fails outright ("Invalid
-  character" in a variable name), confirmed on a real CI run - plus the
-  tablet/landscape-only keys this app needs.
+  character" in a variable name), confirmed on a real CI run.
   This has NOT been verified against a real Qt-for-iOS build (no Mac/Xcode
   available here) - reconcile on the first real CI run, in particular
   whether any additional Qt-Quick-for-iOS-specific keys are required
   beyond what's listed here.
 
-  TARGETED_DEVICE_FAMILY (iPad-only) is set via the
+  TARGETED_DEVICE_FAMILY (iPhone + iPad) is set via the
   XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY target property in
   src/app/CMakeLists.txt, not a plist key.
 
@@ -45,23 +44,30 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 
-	<!-- Tablet + landscape-only scope for this phase. -->
+	<!--
+	  All orientations, iPhone and iPad alike - the QML shell's FormFactor
+	  breakpoints (see qml/FormFactor.qml) key off window width/height, not
+	  device idiom or orientation, so there's nothing left to restrict here.
+	  Dropping the earlier landscape-only lock also removes the reason for
+	  UIRequiresFullScreen: that key existed only to stop iPad Split
+	  View/Slide Over from placing the app in a portrait-shaped pane despite
+	  the orientation keys - now that portrait is fully supported, an
+	  arbitrary multitasking pane size is no different from a rotated full
+	  screen, and the same width/height-driven layout logic handles it.
+	-->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<!--
-	  Without this, iPad multitasking (Split View/Slide Over) can still
-	  present the app in a portrait-shaped pane regardless of the
-	  orientation keys above.
-	-->
-	<key>UIRequiresFullScreen</key>
-	<true/>
 </dict>
 </plist>
