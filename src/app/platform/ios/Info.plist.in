@@ -16,13 +16,23 @@
   TARGETED_DEVICE_FAMILY (iPhone + iPad) is set via the
   XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY target property in
   src/app/CMakeLists.txt, not a plist key.
-
-  Not included yet, and worth flagging as a follow-up before any real App
-  Store/TestFlight submission: a launch screen (UILaunchStoryboardName) -
-  out of scope for this build-only phase.
 -->
 <plist version="1.0">
 <dict>
+	<!--
+	  Without a launch screen, iOS treats the app as pre-iOS-8 and runs it
+	  in a fixed legacy point size (the original iPhone's 320x480), then
+	  scales/letterboxes that up to the real screen - entirely at the
+	  UIKit level, before the app's own window is ever handed control. On
+	  a real device this showed up as black bars and clipped, poorly
+	  scaled content in every orientation, on every page, and no amount of
+	  QML-side width/height/Screen tweaking touched it, since the cause is
+	  upstream of Qt entirely. An empty UILaunchScreen dict is Apple's
+	  modern (iOS 14+) plist-only declaration - no storyboard file needed
+	  - and is enough to opt back into full native-resolution rendering.
+	-->
+	<key>UILaunchScreen</key>
+	<dict/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
