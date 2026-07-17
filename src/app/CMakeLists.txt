@@ -341,7 +341,27 @@ if(IOS)
     set_target_properties(countdownsolver PROPERTIES
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/platform/ios/Info.plist.in"
         MACOSX_BUNDLE_GUI_IDENTIFIER "org.iainchesworth.countdownsolver"
-        XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
+        XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2"
+        # Points Xcode's asset catalog compiler at the AppIcon icon set
+        # below to fill the CFBundleIconName "AppIcon" slot declared in
+        # Info.plist.in - without this, Xcode has nothing to compile that
+        # slot from and falls back to a blank placeholder icon on the home
+        # screen (confirmed on a real device).
+        XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon")
+
+    # CMake (and the Xcode generator it drives) special-cases a source path
+    # ending in .xcassets: naming the whole directory as a source, with
+    # MACOSX_PACKAGE_LOCATION "Resources", is what tells Xcode to treat it
+    # as an asset catalog to compile rather than a plain resource to copy
+    # verbatim. AppIcon.appiconset/AppIcon-1024.png is a single 1024x1024
+    # "universal" source image (Xcode 14+'s simplified single-size app
+    # icon) - Xcode derives every smaller size from it at build time, so no
+    # per-resolution PNG set is needed here.
+    target_sources(countdownsolver PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/platform/ios/Assets.xcassets")
+    set_source_files_properties(
+        "${CMAKE_CURRENT_SOURCE_DIR}/platform/ios/Assets.xcassets"
+        PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
     # Code signing is disabled project-wide by default (see the ios-base
     # CMake preset: CODE_SIGNING_ALLOWED/REQUIRED=NO), so unsigned CI builds
@@ -419,7 +439,13 @@ countdown_deploy_sanitizer_runtime(countdownsolver)
 
 set_target_properties(countdownsolver PROPERTIES
     WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON)
+    MACOSX_BUNDLE ON
+    # Read by both platform/ios/Info.plist.in (CFBundleName/CFBundleDisplayName)
+    # and CMake's own default bundle plist template on a plain macOS build.
+    # Left unset, CMake defaults it to the raw target name "countdownsolver",
+    # which is what showed up as the home-screen label under the app icon on
+    # a real device.
+    MACOSX_BUNDLE_BUNDLE_NAME "Countdown Solver")
 
 # ---------------------------------------------------------------------------
 # Deploy Qt's runtime DLLs and QML plugins (Qt6Core/Gui/Qml/Quick, the
