@@ -33,12 +33,31 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>${MACOSX_BUNDLE_BUNDLE_NAME}</string>
+	<!--
+	  CFBundleName is what CFBundleDisplayName falls back to if unset, but
+	  historically had a ~15-character truncation convention on the home
+	  screen - CFBundleDisplayName has no such limit and is what iOS
+	  actually prefers there, so set it explicitly rather than relying on
+	  the fallback. Both read the same CMake substitution so they can't
+	  drift apart.
+	-->
+	<key>CFBundleDisplayName</key>
+	<string>${MACOSX_BUNDLE_BUNDLE_NAME}</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
 	<key>CFBundleVersion</key>
 	<string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
+	<!--
+	  Pairs with XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon"
+	  (src/app/CMakeLists.txt) and platform/ios/Assets.xcassets/
+	  AppIcon.appiconset - without this key Xcode has no app icon slot to
+	  compile the asset catalog into, and falls back to its own blank
+	  placeholder icon on the home screen.
+	-->
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
