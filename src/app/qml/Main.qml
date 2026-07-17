@@ -27,8 +27,16 @@ ApplicationWindow {
         :                                       FormFactor.phoneLandscape
     Binding { target: Metrics; property: "formFactor"; value: win.formFactor }
 
-    width: isMobile ? Screen.width : 1140
-    height: isMobile ? Screen.height : 740
+    // On mobile, width/height are intentionally left unset rather than bound
+    // to Screen.width/Screen.height: with visibility already FullScreen, the
+    // platform owns the window's actual geometry, and Screen.width/height
+    // don't reliably track live rotation on iOS (observed on a real device:
+    // width/height stuck at a stale pre-rotation size, leaving the surface
+    // letterboxed - black bars on two edges, content clipped on the other
+    // two, the exact bars/edges swapping with orientation). Forcing width/
+    // height here just fights FullScreen instead of matching it.
+    Binding { target: win; property: "width";  value: 1140; when: !win.isMobile }
+    Binding { target: win; property: "height"; value: 740;  when: !win.isMobile }
     visibility: isMobile ? ApplicationWindow.FullScreen : ApplicationWindow.Windowed
 
     // Bindings that only apply when !isMobile - a ternary can't "leave a
