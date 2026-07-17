@@ -14,6 +14,36 @@ same way v0.1.0-beta.1's entry below does.
 
 ## [Unreleased]
 
+## [0.3.0-beta.3] - 2026-07-17
+
+The first release actually installed and driven on a physical iOS device —
+every prior 0.3.0 tag only had CI's unsigned build-only check to go on.
+That surfaced two real bugs, both fixed here. Still tagged **beta**: the
+fixes themselves haven't been re-verified on hardware yet, which is
+exactly what this release is for.
+
+### Fixed
+
+- **Broken layout on a physical device — black bars top/bottom or
+  left/right, with content clipped on the opposite edge, in every
+  orientation.** `Main.qml` bound the window's `width`/`height` to
+  `Screen.width`/`Screen.height` while also setting `visibility:
+  FullScreen` — the two fight, since `Screen.width`/`height` don't
+  reliably track live orientation on iOS. QML ended up painting content
+  into a stale, pre-rotation-sized region while the OS scanned out the
+  real (larger) surface, leaving the uncovered remainder black; which
+  edges were affected swapped with orientation. `width`/`height` are now
+  left unset on mobile, so `FullScreen` alone owns the window's actual
+  geometry.
+- **Blank home-screen icon and a raw `countdownsolver` label instead of
+  "Countdown Solver".** `MACOSX_BUNDLE_BUNDLE_NAME` was never set, so
+  CMake defaulted the display name to the bare target name, and no iOS
+  app-icon asset catalog existed anywhere in the project — Xcode fell
+  back to its own blank placeholder icon. Added
+  `CFBundleDisplayName`/`MACOSX_BUNDLE_BUNDLE_NAME` and a proper
+  `AppIcon.appiconset` (generated from the existing in-app icon artwork)
+  wired in via `CFBundleIconName`.
+
 ## [0.3.0-beta.2] - 2026-07-16
 
 No functional or build changes from v0.3.0-beta.1 — this release exists
