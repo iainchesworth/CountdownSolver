@@ -21,10 +21,12 @@ on:
     - cron: "45 3 * * 1"
   workflow_dispatch:
 
+# Minimal at workflow level; each job below re-declares the actions/contents/
+# security-events access it actually needs (both currently need the same
+# set, but keeping it job-scoped means a future job here doesn't inherit
+# more than it asks for).
 permissions:
-  actions: read
   contents: read
-  security-events: write
 
 jobs:
   scan-pr:

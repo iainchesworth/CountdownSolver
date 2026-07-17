@@ -341,7 +341,7 @@ jobs:
           cache: true
 
       - name: Install gcovr
-        run: pip install --quiet gcovr
+        run: pip install --quiet --require-hashes -r ci/requirements-gcovr.txt
 
       - name: Configure
         run: >

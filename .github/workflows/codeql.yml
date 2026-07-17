@@ -10,6 +10,11 @@ on:
     # Weekly scan catches new CodeQL query packs even without code changes.
     - cron: "17 3 * * 1"
 
+# Minimal at workflow level; the analyze job below grants itself the
+# security-events/contents access it actually needs.
+permissions:
+  contents: read
+
 concurrency:
   group: codeql-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

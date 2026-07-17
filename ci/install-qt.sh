@@ -9,6 +9,7 @@ set -euo pipefail
 
 QT_VERSION="6.8.3"
 OUT_DIR="${1:-$HOME/Qt}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 case "$(uname -s)" in
     Linux*)  HOST="linux";  ARCH="linux_gcc_64"; PREFIX_ARCH="gcc_64" ;;
@@ -16,7 +17,7 @@ case "$(uname -s)" in
     *) echo "Unsupported host: $(uname -s)" >&2; exit 1 ;;
 esac
 
-python3 -m pip install --quiet --upgrade aqtinstall
+python3 -m pip install --quiet --require-hashes -r "$SCRIPT_DIR/requirements-qt.txt"
 python3 -m aqt install-qt "$HOST" desktop "$QT_VERSION" "$ARCH" --outputdir "$OUT_DIR"
 
 echo
