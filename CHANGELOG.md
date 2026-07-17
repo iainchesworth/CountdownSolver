@@ -14,6 +14,27 @@ same way v0.1.0-beta.1's entry below does.
 
 ## [Unreleased]
 
+## [0.3.0-beta.4] - 2026-07-17
+
+v0.3.0-beta.3's device check confirmed the icon/label fix but not the
+layout fix — same black bars, same clipping, now visibly poor scaling
+too. That ruled out the previous theory (`Screen.width`/`height`
+fighting `FullScreen` visibility) and pointed at something upstream of
+Qt/QML entirely.
+
+### Fixed
+
+- **The real cause of the broken layout: no launch screen.** Without one
+  (no `UILaunchStoryboardName`/`UILaunchScreen` key — a known gap flagged
+  in `Info.plist.in`'s own comments since it was first written), iOS
+  treats the app as pre-iOS-8 and runs it in a fixed legacy point size
+  (the original iPhone's 320x480), then scales/letterboxes that up to the
+  real screen entirely at the UIKit level, before the app's own window is
+  ever handed control — which is why v0.3.0-beta.3's QML-side width/
+  height fix had no visible effect. Added an empty `UILaunchScreen` dict,
+  Apple's modern (iOS 14+) plist-only launch screen declaration; no
+  storyboard file needed.
+
 ## [0.3.0-beta.3] - 2026-07-17
 
 The first release actually installed and driven on a physical iOS device —
