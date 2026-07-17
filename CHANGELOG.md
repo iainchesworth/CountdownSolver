@@ -17,13 +17,24 @@ same way v0.1.0-beta.1's entry below does.
 ## [0.3.0-beta.3] - 2026-07-17
 
 The first release actually installed and driven on a physical iOS device —
-every prior 0.3.0 tag only had CI's unsigned build-only check to go on.
-That surfaced two real bugs, both fixed here. Still tagged **beta**: the
-fixes themselves haven't been re-verified on hardware yet, which is
-exactly what this release is for.
+every prior 0.3.0 tag only had CI's unsigned build-only check, or a
+docs-only fix, to go on. That surfaced two real bugs, both fixed here,
+alongside a docs-only fix landed on `main` since v0.3.0-beta.2 but never
+folded into a tagged release. Still tagged **beta**: the two device bugs
+below haven't been re-verified on hardware yet, which is exactly what
+this release is for.
 
 ### Fixed
 
+- **The iOS install link in release notes was never actually clickable.**
+  GitHub's release-notes markdown renderer sanitizes link `href`s to a
+  fixed scheme allowlist and silently strips any `<a>` using an
+  unrecognized scheme like `itms-services://`, leaving plain unclickable
+  text — confirmed by rendering `v0.3.0-beta.2`'s own release body through
+  GitHub's markdown API. Release notes now link to a small
+  `docs/install-ios.html` page (hosted on GitHub Pages, not subject to
+  that sanitizer) that builds the real `itms-services://` link
+  client-side from a `?tag=` query parameter instead.
 - **Broken layout on a physical device — black bars top/bottom or
   left/right, with content clipped on the opposite edge, in every
   orientation.** `Main.qml` bound the window's `width`/`height` to
