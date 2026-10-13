@@ -119,6 +119,8 @@ endif()
 qt_add_library(countdownsolver_core STATIC
     solver.cpp
     solver.hpp
+    preferences.cpp
+    preferences.hpp
     platform/platform.hpp
     logging/logging.hpp
     logging/logging.cpp
@@ -220,6 +222,8 @@ qt_add_qml_module(countdownsolver_qml
         qml/components/PadButton.qml
         qml/components/FlatButton.qml
         qml/components/NavItem.qml
+        qml/components/FocusRing.qml
+        qml/components/LinkButton.qml
         qml/components/SegControl.qml
         qml/components/SegChip.qml
         qml/components/AccentChip.qml

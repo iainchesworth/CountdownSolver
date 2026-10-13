@@ -12,8 +12,9 @@ namespace countdown::app {
 // Owns the app's QTranslators (Qt's own base strings plus the countdownsolver
 // UI strings), the persisted language preference, and everything a language
 // switch touches: installed translators, the application's layout direction
-// (LTR/RTL), and QQmlEngine::retranslate(). No game logic lives here - Solver
-// stays purely about Numbers/Letters/Conundrum.
+// (LTR/RTL), the default QLocale (so numbers are formatted for the app's
+// language, not the operating system's), and QQmlEngine::retranslate(). No
+// game logic lives here - Solver stays purely about Numbers/Letters/Conundrum.
 //
 // Takes QQmlEngine& rather than QQmlApplicationEngine& - retranslate() is
 // declared directly on QQmlEngine (Qt 6.7+) and every real caller either has
@@ -31,9 +32,10 @@ public:
 
     // Installs the translators for the initial language - the persisted
     // preference, falling back to the system locale (and, failing that,
-    // "en") - and sets the initial layout direction. Called once from
-    // main(), before the QML is loaded, so the first frame already renders
-    // translated and RTL-mirrored where appropriate.
+    // "en") - and sets the initial layout direction and default QLocale.
+    // Called once from main(), before the QML is loaded, so the first frame
+    // already renders translated, RTL-mirrored and number-formatted where
+    // appropriate.
     void applyInitialLanguage();
 
     [[nodiscard]] QString currentLanguage() const noexcept { return current_language_; }
@@ -45,8 +47,8 @@ public:
     Q_INVOKABLE QVariantList availableLanguages() const;
 
     // Persists `code`, swaps the installed translators, updates the
-    // application's layout direction, and retranslates the running QML.
-    // Returns false (no change made) if `code` isn't one of
+    // application's layout direction and default QLocale, and retranslates
+    // the running QML. Returns false (no change made) if `code` isn't one of
     // availableLanguages()'s codes.
     Q_INVOKABLE bool setLanguage(const QString& code);
 

@@ -1,4 +1,5 @@
 #include "language_manager.hpp"
+#include "preferences.hpp"
 #include "solver.hpp"
 
 #include "logging/logging.hpp"
@@ -113,7 +114,8 @@ int main(int argc, char* argv[]) {
     // SettingsPage.qml, OnScreenKeyboard.qml all read languageManager) would
     // then see it as null and throw - reproduced on every close of a real
     // build, not just intermittently. Destroying engine first (see below)
-    // ensures the whole QML tree is gone before solver/language_manager are.
+    // ensures the whole QML tree is gone before solver/language_manager/
+    // preferences are.
     std::optional<QQmlApplicationEngine> engine{std::in_place};
 
     // Installs translators and sets the initial layout direction before any
@@ -121,6 +123,11 @@ int main(int argc, char* argv[]) {
     // renders translated and RTL-mirrored where appropriate.
     countdown::app::LanguageManager language_manager(app, *engine);
     language_manager.applyInitialLanguage();
+
+    // Reads the saved theme/solver options now, for the same reason: Theme.qml
+    // and AppState.qml seed themselves from it when they're first created, so
+    // the first frame is already the saved theme rather than the default.
+    countdown::app::Preferences preferences;
 
     // Cheap - dictionaries haven't loaded yet (see the deferred
     // loadDictionaries() call below), so this only records which alphabet/
@@ -134,6 +141,7 @@ int main(int argc, char* argv[]) {
 
     engine->rootContext()->setContextProperty(QStringLiteral("solver"), &solver);
     engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+    engine->rootContext()->setContextProperty(QStringLiteral("preferences"), &preferences);
 
     QObject::connect(&*engine, &QQmlApplicationEngine::warnings, &app,
                       [](const QList<QQmlError>& warnings) {

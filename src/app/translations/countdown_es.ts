@@ -14,6 +14,11 @@
         <translation>Anagrama aleatorio</translation>
     </message>
     <message>
+        <location filename="../qml/pages/ConundrumPage.qml" line="110"/>
+        <source>Backspace</source>
+        <translation>Retroceso</translation>
+    </message>
+    <message>
         <location filename="../qml/pages/ConundrumPage.qml" line="114"/>
         <source>Clear</source>
         <translation>Borrar</translation>
@@ -60,6 +65,11 @@
         <location filename="../qml/pages/LettersPage.qml" line="110"/>
         <source>Random rack</source>
         <translation>Letras aleatorias</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/LettersPage.qml" line="114"/>
+        <source>Backspace</source>
+        <translation>Retroceso</translation>
     </message>
     <message>
         <location filename="../qml/pages/LettersPage.qml" line="118"/>
@@ -137,78 +147,121 @@
     </message>
 </context>
 <context>
+    <name>LicensesDialog</name>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="26"/>
+        <source>Application framework and GUI toolkit (Core, Gui, Quick, QuickControls2, Concurrent).</source>
+        <translation>Framework de aplicaciones y kit de herramientas de interfaz gráfica (Core, Gui, Quick, QuickControls2, Concurrent).</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="33"/>
+        <source>Bundled font used for the app&apos;s default (Latin-script) UI typeface.</source>
+        <translation>Fuente incluida que se usa como tipografía predeterminada (escritura latina) de la interfaz.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="40"/>
+        <source>Bundled font used for numbers, code-style text, and version/meta labels.</source>
+        <translation>Fuente incluida que se usa para números, texto de estilo código y etiquetas de versión y metadatos.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="47"/>
+        <source>Bundled font providing Arabic script coverage for the Arabic display language.</source>
+        <translation>Fuente incluida que aporta compatibilidad con la escritura árabe para el idioma de interfaz árabe.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="54"/>
+        <source>Bundled font providing Hebrew script coverage for the Hebrew and Yiddish display languages.</source>
+        <translation>Fuente incluida que aporta compatibilidad con la escritura hebrea para los idiomas de interfaz hebreo e yidis.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="74"/>
+        <source>Third-party licences</source>
+        <translation>Licencias de terceros</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="75"/>
+        <source>Libraries bundled with Countdown Solver.</source>
+        <translation>Bibliotecas incluidas con Countdown Solver.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="131"/>
+        <source>Close</source>
+        <translation>Cerrar</translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
-        <location filename="../qml/Main.qml" line="42"/>
+        <location filename="../qml/Main.qml" line="50"/>
         <source>Countdown Solver</source>
         <translation>Solucionador Countdown</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="55"/>
         <location filename="../qml/Main.qml" line="63"/>
+        <location filename="../qml/Main.qml" line="71"/>
         <source>Numbers</source>
         <translation>Números</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="55"/>
+        <location filename="../qml/Main.qml" line="63"/>
         <source>Reach the target using each number at most once.</source>
         <translation>Alcance el objetivo usando cada número como máximo una vez.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="56"/>
-        <location filename="../qml/Main.qml" line="63"/>
+        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="71"/>
         <source>Letters</source>
         <translation>Letras</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="56"/>
+        <location filename="../qml/Main.qml" line="64"/>
         <source>Find every word hiding in your nine letters.</source>
         <translation>Encuentre todas las palabras ocultas en sus nueve letras.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="57"/>
-        <location filename="../qml/Main.qml" line="63"/>
+        <location filename="../qml/Main.qml" line="65"/>
+        <location filename="../qml/Main.qml" line="71"/>
         <source>Conundrum</source>
         <translation>Anagrama</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="57"/>
+        <location filename="../qml/Main.qml" line="65"/>
         <source>Unscramble the nine letters into one word.</source>
         <translation>Forme una palabra con las nueve letras.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="58"/>
-        <location filename="../qml/Main.qml" line="63"/>
+        <location filename="../qml/Main.qml" line="66"/>
+        <location filename="../qml/Main.qml" line="71"/>
         <source>Settings</source>
         <translation>Ajustes</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="58"/>
+        <location filename="../qml/Main.qml" line="66"/>
         <source>Tune the solver and how results are shown.</source>
         <translation>Configure el solucionador y cómo se muestran los resultados.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="114"/>
+        <location filename="../qml/Main.qml" line="122"/>
         <source>Countdown</source>
         <translation>Countdown</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="115"/>
+        <location filename="../qml/Main.qml" line="123"/>
         <source>SOLVER</source>
         <translation>SOLUCIONADOR</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="139"/>
+        <location filename="../qml/Main.qml" line="147"/>
         <source>%1 words loaded</source>
         <translation>%1 palabras cargadas</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="140"/>
+        <location filename="../qml/Main.qml" line="148"/>
         <source>Loading…</source>
         <translation>Cargando…</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="159"/>
+        <location filename="../qml/Main.qml" line="167"/>
         <source>dirty</source>
         <translation>modificado</translation>
     </message>
@@ -229,6 +282,11 @@
         <location filename="../qml/pages/NumbersPage.qml" line="259"/>
         <source>Random game</source>
         <translation>Partida aleatoria</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/NumbersPage.qml" line="263"/>
+        <source>Backspace</source>
+        <translation>Retroceso</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="267"/>
@@ -308,145 +366,158 @@
         <translation>Se aplica a toda la ventana.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="61"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="62"/>
         <source>Light</source>
         <translation>Claro</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="61"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="62"/>
         <source>Dark</source>
         <translation>Oscuro</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="61"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="62"/>
         <source>System</source>
         <translation>Sistema</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="78"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="79"/>
         <source>Language</source>
         <translation>Idioma</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="89"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="90"/>
         <source>Display language</source>
         <translation>Idioma de la interfaz</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="90"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="91"/>
         <source>Changes menus, labels and messages across the app.</source>
         <translation>Cambia los menús, etiquetas y mensajes de toda la aplicación.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="224"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="257"/>
         <source>Solver</source>
         <translation>Solucionador</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="236"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="269"/>
         <source>Minimum word length</source>
         <translation>Longitud mínima de palabra</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="237"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="270"/>
         <source>Shortest words shown in the letters game.</source>
         <translation>Palabras más cortas mostradas en el juego de letras.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="241"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="276"/>
         <source>3+</source>
         <translation>3+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="241"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="276"/>
         <source>4+</source>
         <translation>4+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="241"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="276"/>
         <source>5+</source>
         <translation>5+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="258"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="293"/>
         <source>Flag when no exact answer</source>
         <translation>Marcar cuando no haya solución exacta</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="259"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="294"/>
         <source>Highlight the closest result in the numbers game.</source>
         <translation>Resaltar el resultado más cercano en el juego de números.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="308"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="357"/>
         <source>Max words shown</source>
         <translation>Máximo de palabras mostradas</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="309"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="358"/>
         <source>Cap the letters-game result list.</source>
         <translation>Limita la lista de resultados del juego de letras.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="362"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="418"/>
         <source>Dictionary</source>
         <translation>Diccionario</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="369"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="425"/>
         <source>Word list</source>
         <translation>Lista de palabras</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="390"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="446"/>
         <source>Swap the built-in dictionary for your custom words.txt list.</source>
         <translation>Sustituya el diccionario integrado por su propia lista words.txt.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="399"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="456"/>
         <source>Default</source>
         <translation>Predeterminado</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="399"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="456"/>
         <source>Custom</source>
         <translation>Personalizado</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="424"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="481"/>
         <source>About</source>
         <translation>Acerca de</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="457"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="515"/>
         <source>%1 words loaded</source>
         <translation>%1 palabras cargadas</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="458"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="516"/>
         <source>Loading…</source>
         <translation>Cargando…</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="475"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="533"/>
         <source>dirty</source>
         <translation>modificado</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="485"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="543"/>
         <source>View on GitHub ↗</source>
         <translation>Ver en GitHub ↗</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="549"/>
+        <source>Third-party licences</source>
+        <translation>Licencias de terceros</translation>
+    </message>
+</context>
+<context>
+    <name>Tile</name>
+    <message>
+        <location filename="../qml/components/Tile.qml" line="26"/>
+        <source>Empty</source>
+        <translation>Vacío</translation>
     </message>
 </context>
 <context>
     <name>ViewToggle</name>
     <message>
-        <location filename="../qml/components/ViewToggle.qml" line="17"/>
+        <location filename="../qml/components/ViewToggle.qml" line="20"/>
         <source>Input</source>
         <translation>Entrada</translation>
     </message>
     <message>
-        <location filename="../qml/components/ViewToggle.qml" line="17"/>
+        <location filename="../qml/components/ViewToggle.qml" line="20"/>
         <source>Results</source>
         <translation>Resultados</translation>
     </message>
@@ -454,17 +525,17 @@
 <context>
     <name>countdown::app::Solver</name>
     <message>
-        <location filename="../solver.cpp" line="455"/>
+        <location filename="../solver.cpp" line="454"/>
         <source>A custom dictionary is available.</source>
         <translation>Hay un diccionario personalizado disponible.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="458"/>
+        <location filename="../solver.cpp" line="457"/>
         <source>A words.txt file was found in the config folder, but it contained no usable words.</source>
         <translation>Se encontró un archivo words.txt en la carpeta de configuración, pero no contenía palabras utilizables.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="460"/>
+        <location filename="../solver.cpp" line="459"/>
         <source>Add a words.txt file to the config folder to enable a custom dictionary.</source>
         <translation>Añada un archivo words.txt a la carpeta de configuración para habilitar un diccionario personalizado.</translation>
     </message>

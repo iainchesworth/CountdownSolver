@@ -51,6 +51,89 @@ TestCase {
 
     property var shell: null
 
+    // Leaves English selected, and no page shell alive, for whichever test
+    // runs next.
+    function cleanup() {
+        if (shell !== null) {
+            shell.destroy()
+            shell = null
+        }
+        languageManager.setLanguage("en")
+    }
+
+    // ---- numbers follow the app's language, not the operating system's ----
+
+    function formatted(value) {
+        return Number(value).toLocaleString(Qt.locale(), "f", 0)
+    }
+
+    // What 1234567 reads as in each language's own default locale.
+    readonly property var expectedFormat: ({
+        "en": "1,234,567",
+        "fr": "1 234 567",       // narrow no-break space
+        "de": "1.234.567",
+        "es": "1.234.567",
+        "ar": "١٬٢٣٤٬٥٦٧",   // Arabic-Indic digits, Arabic thousands separator
+        "he": "1,234,567",
+        "yi": "1,234,567"
+    })
+
+    function test_defaultLocaleFollowsTheChosenLanguage() {
+        for (const code of ["fr", "de", "es", "ar", "he", "yi", "en", "de"]) {
+            verify(languageManager.setLanguage(code))
+
+            // The default locale (what Qt.locale() with no argument returns,
+            // and so what every toLocaleString(Qt.locale(), ...) in the UI
+            // uses) is in the chosen language - whatever the machine running
+            // this is set to. Before LanguageManager called QLocale::setDefault
+            // this stayed the operating system's locale.
+            compare(Qt.locale().name.split("_")[0], code)
+
+            // And it formats numbers that language's way. Only compared when the
+            // locale is the language's own default: a machine whose system
+            // locale is the same language in another region (de_AT, ...) keeps
+            // that region's separators by design, which is not what's
+            // under test here.
+            if (Qt.locale().name === Qt.locale(code).name) {
+                compare(formatted(1234567), expectedFormat[code], code)
+            }
+        }
+    }
+
+    function test_settingsWordCountIsFormattedInTheChosenLanguage() {
+        shell = shellComponent.createObject(testCase)
+        verify(shell !== null)
+        const label = findChild(shell, "wordCount")
+        verify(label !== null)
+
+        verify(languageManager.setLanguage("en"))
+        tryVerify(function () { return solver.dictionariesReady }, 5000)
+        verify(label.text.indexOf(formatted(solver.dictionaryWordCount())) >= 0)
+
+        // Arabic's own digits can't be mistaken for the English ones this was
+        // showing a moment ago.
+        verify(languageManager.setLanguage("ar"))
+        tryVerify(function () { return solver.dictionariesReady }, 5000)
+        verify(label.text.indexOf(formatted(solver.dictionaryWordCount())) >= 0)
+        if (Qt.locale().name === Qt.locale("ar").name) {
+            verify(/[٠-٩]/.test(label.text), label.text)
+            verify(!/[0-9]/.test(label.text), label.text)
+        }
+    }
+
+    function test_restartedAppFormatsInTheSavedLanguage() {
+        verify(languageManager.setLanguage("de"))
+
+        // The default locale is set while the app starts (not only when the
+        // language is changed), so a relaunch with a saved language formats
+        // numbers that way from the first frame.
+        const restarted = appRestart.afterRestart("Qt.locale().name")
+        compare(String(restarted).split("_")[0], "de")
+
+        // ...and the simulated restart leaves this running app as it was.
+        compare(Qt.locale().name.split("_")[0], "de")
+    }
+
     function selectLanguageViaCombo(code) {
         const combo = findChild(shell, "langCombo")
         verify(combo !== null)

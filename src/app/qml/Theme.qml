@@ -5,7 +5,17 @@ import QtQuick
 // type and geometry. Flip `dark` to switch the whole app between themes.
 QtObject {
     // "light" | "dark" | "system" - system (the default) follows the OS setting.
-    property string mode: "system"
+    // Seeded from the saved preference (appearance/theme), which main() has
+    // already read before any QML loads - so the first frame is the saved
+    // theme, not the default one - and written back below whenever it
+    // changes. Guarded against a null `preferences`, same as `languageManager`
+    // further down.
+    property string mode: preferences ? preferences.theme : "system"
+    onModeChanged: {
+        if (preferences && preferences.theme !== mode) {
+            preferences.theme = mode
+        }
+    }
 
     readonly property bool dark: mode === "system"
         ? (Qt.styleHints.colorScheme === Qt.ColorScheme.Dark)
@@ -54,4 +64,12 @@ QtObject {
     readonly property int radiusControl: 9
     readonly property int gap:  8
     readonly property int pad: 18
+
+    // Keyboard-focus ring (see components/FocusRing.qml): 2px line, drawn 2px
+    // outside the control's edge, in the accent colour. The Flickables that
+    // hold edge-flush controls inset their content by focusRingOutset so the
+    // ring is never clipped.
+    readonly property int focusRingWidth:  2
+    readonly property int focusRingOffset: 2
+    readonly property int focusRingOutset: focusRingWidth + focusRingOffset
 }

@@ -51,12 +51,13 @@ Item {
                             rowSpacing: 8; columnSpacing: 16
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Text { Layout.fillWidth: true; text: qsTr("Theme"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { id: themeLabel; Layout.fillWidth: true; text: qsTr("Theme"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
                                 Text { Layout.fillWidth: true; text: qsTr("Applies across the whole window."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             SegControl {
                                 id: themeSeg
                                 objectName: "themeSeg"
+                                accessibleName: themeLabel.text
                                 Layout.fillWidth: Metrics.formFactor === FormFactor.phonePortrait
                                 options: [qsTr("Light"), qsTr("Dark"), qsTr("System")]
                                 currentIndex: Theme.mode === "dark" ? 1 : (Theme.mode === "system" ? 2 : 0)
@@ -86,7 +87,7 @@ Item {
                             rowSpacing: 8; columnSpacing: 16
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Text { Layout.fillWidth: true; text: qsTr("Display language"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { id: langLabel; Layout.fillWidth: true; text: qsTr("Display language"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
                                 Text { Layout.fillWidth: true; text: qsTr("Changes menus, labels and messages across the app."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             ComboBox {
@@ -108,6 +109,10 @@ Item {
                                 Layout.maximumWidth: 160
                                 textRole: "name"
                                 valueRole: "code"
+                                // Named for the visible label beside it; the
+                                // control itself only shows the current value.
+                                Accessible.role: Accessible.ComboBox
+                                Accessible.name: langLabel.text
                                 // Guarded against a null languageManager -
                                 // see Theme.qml's `sans` for why.
                                 model: languageManager ? languageManager.availableLanguages() : []
@@ -143,6 +148,7 @@ Item {
                                     border.width: 1
                                     border.color: langCombo.activeFocus || langCombo.popup.visible ? Theme.accent : Theme.border
                                 }
+                                FocusRing { controlRadius: Theme.radiusControl }
                                 contentItem: Text {
                                     // Anchors (not manual x/padding) so this
                                     // flips correctly under LayoutMirroring
@@ -260,10 +266,12 @@ Item {
                             rowSpacing: 8; columnSpacing: 16
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Text { Layout.fillWidth: true; text: qsTr("Minimum word length"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { id: minLenLabel; Layout.fillWidth: true; text: qsTr("Minimum word length"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
                                 Text { Layout.fillWidth: true; text: qsTr("Shortest words shown in the letters game."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             SegControl {
+                                objectName: "minLenSeg"
+                                accessibleName: minLenLabel.text
                                 Layout.fillWidth: Metrics.formFactor === FormFactor.phonePortrait
                                 options: [qsTr("3+"), qsTr("4+"), qsTr("5+")]
                                 currentIndex: AppState.minLen - 3
@@ -282,12 +290,25 @@ Item {
                             rowSpacing: 8; columnSpacing: 16
                             ColumnLayout {
                                 Layout.fillWidth: true; spacing: 2
-                                Text { Layout.fillWidth: true; text: qsTr("Flag when no exact answer"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                Text { Layout.fillWidth: true; text: qsTr("Highlight the closest result in the numbers game."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
+                                Text { id: flagLabel; Layout.fillWidth: true; text: qsTr("Flag when no exact answer"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { id: flagHint; Layout.fillWidth: true; text: qsTr("Highlight the closest result in the numbers game."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                             }
                             Switch {
                                 id: flagSwitch
+                                objectName: "flagSwitch"
                                 Layout.fillWidth: false
+                                // The switch draws no text of its own, so it
+                                // takes the label and hint printed beside it.
+                                Accessible.role: Accessible.CheckBox
+                                Accessible.name: flagLabel.text
+                                Accessible.description: flagHint.text
+                                Accessible.checked: flagSwitch.checked
+                                // Space is Switch's own; Enter/Return flip it
+                                // too. Written through AppState (which
+                                // `checked` is bound to) because toggle()
+                                // alone doesn't emit toggled().
+                                Keys.onReturnPressed: AppState.flagInexact = !AppState.flagInexact
+                                Keys.onEnterPressed: AppState.flagInexact = !AppState.flagInexact
                                 // Switch's built-in implicitWidth is computed from
                                 // background/content/padding and knows nothing about
                                 // a custom indicator, so it doesn't shrink to fit ours
@@ -316,6 +337,7 @@ Item {
                                         Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.InOutQuad } }
                                     }
                                 }
+                                FocusRing { controlRadius: 11 }
                             }
                         }
                     }
@@ -332,7 +354,7 @@ Item {
                                 rowSpacing: 8; columnSpacing: 16
                                 ColumnLayout {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { Layout.fillWidth: true; text: qsTr("Max words shown"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                                    Text { id: maxWordsLabel; Layout.fillWidth: true; text: qsTr("Max words shown"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
                                     Text { Layout.fillWidth: true; text: qsTr("Cap the letters-game result list."); color: Theme.muted; font.family: Theme.sans; font.pixelSize: 13 }
                                 }
                                 Rectangle {
@@ -352,7 +374,10 @@ Item {
                         }
                         Slider {
                             id: wordsSlider
+                            objectName: "wordsSlider"
                             Layout.fillWidth: true
+                            Accessible.role: Accessible.Slider
+                            Accessible.name: maxWordsLabel.text
                             from: 20; to: 150; stepSize: 10
                             value: AppState.maxResults
                             onMoved: AppState.maxResults = value
@@ -372,6 +397,10 @@ Item {
                                 y: wordsSlider.topPadding + wordsSlider.availableHeight / 2 - height / 2
                                 width: 14; height: 14; radius: 3
                                 color: Theme.accent
+                                // Around the handle, not the whole (full
+                                // width) control; still driven by the
+                                // slider's own keyboard focus.
+                                FocusRing { control: wordsSlider; controlRadius: 3 }
                             }
                         }
                     }
@@ -393,7 +422,7 @@ Item {
                         rowSpacing: 8; columnSpacing: 16
                         ColumnLayout {
                             Layout.fillWidth: true; spacing: 2
-                            Text { Layout.fillWidth: true; text: qsTr("Word list"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
+                            Text { id: wordListLabel; Layout.fillWidth: true; text: qsTr("Word list"); color: Theme.ink; font.family: Theme.sans; font.pixelSize: 15; font.weight: Font.DemiBold }
                             Text {
                                 Layout.fillWidth: true
                                 wrapMode: Text.WordWrap
@@ -422,6 +451,7 @@ Item {
                         SegControl {
                             id: dictSeg
                             objectName: "dictSeg"
+                            accessibleName: wordListLabel.text
                             Layout.fillWidth: Metrics.formFactor === FormFactor.phonePortrait
                             options: [qsTr("Default"), qsTr("Custom")]
                             enabled: solver.dictionariesReady && solver.fullDictionaryAvailable()
@@ -480,6 +510,7 @@ Item {
                         spacing: 6
                         visible: Metrics.formFactor !== FormFactor.desktop && Metrics.formFactor !== FormFactor.tabletLandscape
                         Text {
+                            objectName: "wordCount"
                             text: solver.dictionariesReady
                                   ? qsTr("%1 words loaded").arg(Number(solver.dictionaryWordCount()).toLocaleString(Qt.locale(), "f", 0))
                                   : qsTr("Loading…")
@@ -506,33 +537,17 @@ Item {
                             }
                         }
                     }
-                    Text {
+                    LinkButton {
                         id: repoLink
                         Layout.topMargin: 4
                         text: qsTr("View on GitHub ↗")
-                        color: repoLinkArea.containsMouse ? Theme.ink : Theme.accent
-                        font.family: Theme.sans; font.pixelSize: 13; font.weight: Font.DemiBold
-                        MouseArea {
-                            id: repoLinkArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: Qt.openUrlExternally("https://github.com/iainchesworth/CountdownSolver")
-                        }
+                        onClicked: Qt.openUrlExternally("https://github.com/iainchesworth/CountdownSolver")
                     }
-                    Text {
+                    LinkButton {
                         id: licensesLink
                         objectName: "licensesLink"
-                        text: "Third-Party Licenses"
-                        color: licensesLinkArea.containsMouse ? Theme.ink : Theme.accent
-                        font.family: Theme.sans; font.pixelSize: 13; font.weight: Font.DemiBold
-                        MouseArea {
-                            id: licensesLinkArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: licensesDialog.open()
-                        }
+                        text: qsTr("Third-party licences")
+                        onClicked: licensesDialog.open()
                     }
                 }
             }

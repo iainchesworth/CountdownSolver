@@ -100,8 +100,9 @@ if(COUNTDOWN_BUILD_APP)
     set(CMAKE_AUTOMOC ON)
 
     # One QtTest class per Solver concern (numbers/letters/conundrum/rack/
-    # version/dictionary/logging) rather than one lumped class with every
-    # slot in it, so a failure narrows straight to the concern that broke
+    # version/dictionary/logging, plus Preferences) rather than one lumped
+    # class with every slot in it, so a failure narrows straight to the
+    # concern that broke
     # instead of forcing a scroll through one large Qt Test report. All
     # still link into a single countdownsolver_tests binary/CTest entry -
     # app_tests_main.cpp's hand-written main() runs each class in turn (see
@@ -124,6 +125,8 @@ if(COUNTDOWN_BUILD_APP)
         app/solver_dictionary_test.hpp
         app/solver_logging_test.cpp
         app/solver_logging_test.hpp
+        app/preferences_test.cpp
+        app/preferences_test.hpp
         app/solver_test_utils.hpp)
 
     target_link_libraries(countdownsolver_tests
@@ -277,7 +280,7 @@ if(COUNTDOWN_BUILD_APP)
     # needed); Qt Quick Test's "-input dir/file" option accepts a single QML
     # file as well as a directory, so each entry just restricts that shared
     # binary to its own tst_*.qml file.
-    set(COUNTDOWN_QML_TEST_PAGES ConundrumPage LettersPage NumbersPage SettingsPage Theme LanguageManager LanguageSwitching)
+    set(COUNTDOWN_QML_TEST_PAGES ConundrumPage LettersPage NumbersPage SettingsPage Theme ThemePersistence Accessibility LanguageManager LanguageSwitching)
 
     foreach(page IN LISTS COUNTDOWN_QML_TEST_PAGES)
         add_test(NAME countdown_qml_tests_${page}

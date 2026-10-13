@@ -1,5 +1,6 @@
 #include "solver.hpp"
 
+#include "preferences_test.hpp"
 #include "solver_conundrum_test.hpp"
 #include "solver_dictionary_test.hpp"
 #include "solver_letters_test.hpp"
@@ -52,6 +53,10 @@ int main(int argc, char* argv[]) {
     }
     {
         DictionaryTest test;
+        status |= QTest::qExec(&test, argc, argv);
+    }
+    {
+        PreferencesTest test;
         status |= QTest::qExec(&test, argc, argv);
     }
 #ifdef Q_OS_LINUX

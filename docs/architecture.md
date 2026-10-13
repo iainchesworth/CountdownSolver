@@ -16,6 +16,7 @@ flowchart LR
         QML["QML UI\nqml/pages, qml/components"]
         Solver["Solver\nQObject facade"]
         LangMgr["LanguageManager"]
+        Prefs["Preferences\ntheme, solver options"]
         Platform["platform/{windows,macos,linux,android,ios}"]
     end
     subgraph LIB["countdown::solver — src/lib/ (no GUI, no platform code)"]
@@ -26,6 +27,7 @@ flowchart LR
     end
     QML <--> Solver
     QML <--> LangMgr
+    QML <--> Prefs
     Solver --> Numbers
     Solver --> Letters
     Solver --> Conundrum

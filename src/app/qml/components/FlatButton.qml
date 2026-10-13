@@ -13,6 +13,21 @@ Button {
     rightPadding: 16
     opacity: control.enabled ? 1.0 : 0.45
 
+    // Reachable with Tab, but a mouse click leaves keyboard focus where it was
+    // (usually the page, which turns typed digits/letters into game input -
+    // see NumbersPage.qml's Keys.onPressed). Only keyboard focus draws a ring.
+    focusPolicy: Qt.TabFocus
+
+    // Name is the visible label; override it where the label is a glyph
+    // ("←" is "Backspace").
+    Accessible.role: Accessible.Button
+    Accessible.name: control.text
+
+    // Space is Button's own; Enter/Return activate it the same way, rather
+    // than falling through to the page's Enter-means-Solve shortcut.
+    Keys.onReturnPressed: control.clicked()
+    Keys.onEnterPressed: control.clicked()
+
     contentItem: Text {
         text: control.text
         horizontalAlignment: Text.AlignHCenter
@@ -31,4 +46,6 @@ Button {
         border.width: 1
         border.color: control.primary ? Theme.accent : Theme.border
     }
+
+    FocusRing { controlRadius: Theme.radiusControl }
 }

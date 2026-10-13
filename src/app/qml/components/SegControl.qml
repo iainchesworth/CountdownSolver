@@ -22,7 +22,13 @@ Rectangle {
     property color barColor: Theme.bg
     property color barBorderColor: Theme.border
     property int barRadius: Theme.radiusControl
+    // What the group is for, as a screen reader should announce it ("Theme").
+    // Left empty where the control has no visible label of its own.
+    property string accessibleName: ""
     signal activated(int index)
+
+    Accessible.role: Accessible.Grouping
+    Accessible.name: seg.accessibleName
 
     implicitHeight: segHeight + 8
     implicitWidth: stretch ? 0 : row.width + 8
