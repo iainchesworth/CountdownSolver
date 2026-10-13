@@ -184,3 +184,28 @@ iOS SDK availability annotations against whatever deployment target is
 set — none was set at all before. Fixed by adding
 `CMAKE_OSX_DEPLOYMENT_TARGET=16.3` to the `ios-base` preset in
 `CMakePresets.json`.
+
+## Cache hygiene
+
+The repository's Actions cache quota is 10 GB, and GitHub evicts the least
+recently used entries once it is exceeded, regardless of what they cost to
+rebuild. The big entries here are the `jurplel/install-qt-action` installs
+(`cache: true`): 295 MB on Linux, 324 MB on Windows, 1.2 GB on macOS and 3.4 GB
+for iOS. A cache entry is readable only from its own ref, a pull request's base
+and the default branch, so an install that `develop` has not stored is stored
+again by every pull request under its own ref: on 2026-10-13 one open PR held
+5.2 GB of Qt.
+
+[`cache-hygiene.yml`](https://github.com/iainchesworth/CountdownSolver/blob/develop/.github/workflows/cache-hygiene.yml)
+runs `ci/prune-actions-cache.sh` when a pull request closes and after a push to
+`develop` or `main`, and removes entries whose ref no longer exists (a closed PR,
+a deleted branch) and superseded generations (per ref, the newest of each Qt
+install family; the newest vcpkg entry per preset). It reports every deletion
+and its reason on the run's summary page. A manual dispatch is a dry run unless
+`dry_run` is unticked, and `purge` takes a key prefix to reset one family.
+
+The vcpkg binary cache itself (`vcpkg-binary-cache-<preset>-<hash of vcpkg.json>`)
+holds only Catch2 (7-24 MB), so it is not worth more than that. The other
+repositories in this family (cubeulator, ICL Forge, aqualink-automate) build
+OpenCV, ONNX Runtime and OpenSSL and use a different, content-addressed scheme
+that is also saved when a job fails; none of it is needed here.
