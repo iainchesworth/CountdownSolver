@@ -13,6 +13,16 @@ Button {
     implicitHeight: 44
     topPadding: 0
     bottomPadding: 0
+
+    // A page tab: announced as such, with the current page as selected. Tab
+    // reaches it; a click leaves focus on the page so typing keeps working
+    // (see FlatButton.qml). Space is Button's own, Enter is handled here.
+    focusPolicy: Qt.TabFocus
+    Accessible.role: Accessible.PageTab
+    Accessible.name: control.text
+    Accessible.selected: control.active
+    Keys.onReturnPressed: control.clicked()
+    Keys.onEnterPressed: control.clicked()
     // Leading-edge inset via padding (not an anchor margin on contentItem) so
     // Control's own padding-driven content geometry is the only thing sizing
     // contentItem - no competing anchors.fill binding to race against it.
@@ -73,4 +83,6 @@ Button {
             elide: Text.ElideRight
         }
     }
+
+    FocusRing { controlRadius: Theme.radiusControl }
 }

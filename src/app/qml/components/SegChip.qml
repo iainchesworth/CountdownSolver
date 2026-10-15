@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 
 // Single segment of SegControl. A standalone file (not an inline `component`
@@ -43,9 +44,31 @@ Rectangle {
         font.weight: Font.DemiBold
         color: chip.active ? Theme.accentInk : Theme.muted
     }
-    MouseArea {
+    // The segment's interactive surface: a flat, chrome-less Button laid over
+    // the whole chip (the chip itself stays a plain Rectangle, for the reasons
+    // in the header comment). It is what makes a segment reachable with Tab,
+    // activatable with Space/Enter, announced as a radio button, and able to
+    // show a focus ring - none of which the MouseArea it replaced could do.
+    Button {
+        id: hit
         anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
+        flat: true
+        padding: 0
+        background: Item {}
+        contentItem: Item {}
+
+        // Tab reaches it; a click doesn't take keyboard focus (so the page
+        // keeps receiving typed keys, as before) and never draws the ring.
+        focusPolicy: Qt.TabFocus
+
+        // The segments are one choice among several: radio buttons, with the
+        // current one checked, named by their visible label.
+        Accessible.role: Accessible.RadioButton
+        Accessible.name: label.text
+        Accessible.checked: chip.active
+
+        HoverHandler { cursorShape: Qt.PointingHandCursor }
+
         // Only emit activated() - never assign owner.currentIndex directly.
         // currentIndex is always caller-bound to external state (Theme.mode,
         // AppState.*, a page's view); an imperative write here would
@@ -54,5 +77,9 @@ Rectangle {
         // would stop tracking external state changed by anything other than
         // this control from then on.
         onClicked: chip.owner.activated(index)
+        Keys.onReturnPressed: hit.clicked()
+        Keys.onEnterPressed: hit.clicked()
+
+        FocusRing { controlRadius: chip.owner.segRadius }
     }
 }

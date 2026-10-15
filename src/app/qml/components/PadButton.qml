@@ -15,6 +15,13 @@ Button {
     implicitWidth: 40
     opacity: control.enabled ? 1.0 : 0.35
 
+    // See FlatButton.qml for why Tab-only focus, and why Enter is handled here.
+    focusPolicy: Qt.TabFocus
+    Accessible.role: Accessible.Button
+    Accessible.name: control.text
+    Keys.onReturnPressed: control.clicked()
+    Keys.onEnterPressed: control.clicked()
+
     contentItem: Text {
         text: control.text
         horizontalAlignment: Text.AlignHCenter
@@ -35,4 +42,6 @@ Button {
         border.width: 1
         border.color: control.accent ? Theme.accent : Theme.tileBorder
     }
+
+    FocusRing { controlRadius: Theme.radiusControl }
 }

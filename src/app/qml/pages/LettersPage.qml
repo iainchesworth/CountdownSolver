@@ -107,11 +107,11 @@ Item {
             FlatButton {
                 Layout.fillWidth: true
                 implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
-                text: "↻ " + qsTr("Random rack"); onClicked: root.randomRack()
+                text: "↻ " + qsTr("Random rack"); Accessible.name: qsTr("Random rack"); onClicked: root.randomRack()
             }
             FlatButton {
                 implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
-                text: "←"; onClicked: root.backspace()
+                text: "←"; Accessible.name: qsTr("Backspace"); onClicked: root.backspace()
             }
             FlatButton {
                 implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
@@ -296,14 +296,20 @@ Item {
         Item {
             Flickable {
                 anchors.fill: parent
-                anchors.margins: Metrics.headerPadding.side[Metrics.compactIndex]
+                // Grown by the focus ring's outset on every side, with the
+                // content inset by the same amount below - so the ring on a
+                // button flush with the content's edge isn't clipped, and
+                // nothing moves.
+                anchors.margins: Metrics.headerPadding.side[Metrics.compactIndex] - Theme.focusRingOutset
                 visible: root.view === "input"
                 clip: true
-                contentHeight: inputCol.implicitHeight
+                contentHeight: inputCol.implicitHeight + 2 * Theme.focusRingOutset
                 boundsBehavior: Flickable.StopAtBounds
                 ColumnLayout {
                     id: inputCol
-                    width: parent.width
+                    x: Theme.focusRingOutset
+                    y: Theme.focusRingOutset
+                    width: parent.width - 2 * Theme.focusRingOutset
                     spacing: 16
                     RackTileCard {}
                     OnScreenKeyboard {
@@ -359,19 +365,30 @@ Item {
                 // ~390px of window height in landscape doesn't always fit the
                 // tile card + action row, so it scrolls instead of clipping
                 // under the bottom tab bar.
-                Flickable {
+                // The Flickable is wrapped in a plain Item, which is what the
+                // RowLayout sizes, and extends past it by the focus ring's
+                // outset with its content inset by the same amount - so the
+                // ring on the full-width buttons isn't clipped, and nothing
+                // moves.
+                Item {
                     Layout.preferredWidth: 320
                     Layout.fillWidth: false
                     Layout.fillHeight: true
-                    clip: true
-                    contentHeight: leftCol.implicitHeight
-                    boundsBehavior: Flickable.StopAtBounds
-                    ColumnLayout {
-                        id: leftCol
-                        width: parent.width
-                        spacing: 12
-                        RackTileCard {}
-                        ActionButtons { Layout.fillWidth: true }
+                    Flickable {
+                        anchors.fill: parent
+                        anchors.margins: -Theme.focusRingOutset
+                        clip: true
+                        contentHeight: leftCol.implicitHeight + 2 * Theme.focusRingOutset
+                        boundsBehavior: Flickable.StopAtBounds
+                        ColumnLayout {
+                            id: leftCol
+                            x: Theme.focusRingOutset
+                            y: Theme.focusRingOutset
+                            width: parent.width - 2 * Theme.focusRingOutset
+                            spacing: 12
+                            RackTileCard {}
+                            ActionButtons { Layout.fillWidth: true }
+                        }
                     }
                 }
                 OnScreenKeyboard {

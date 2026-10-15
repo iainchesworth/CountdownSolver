@@ -18,7 +18,15 @@ Rectangle {
     border.width: filled ? 1 : 2
     border.color: pending ? Theme.accent : Theme.tileBorder
 
+    // Display only - not focusable, so not a Tab stop - but still announced:
+    // a screen reader reads the rack or the six numbers tile by tile, and an
+    // empty slot as "Empty" rather than as nothing at all. The inner Text is
+    // ignored so the value isn't announced twice.
+    Accessible.role: Accessible.StaticText
+    Accessible.name: filled ? label : qsTr("Empty")
+
     Text {
+        Accessible.ignored: true
         anchors.centerIn: parent
         text: parent.label
         color: parent.pending ? Theme.accent : Theme.tileInk

@@ -14,6 +14,11 @@
         <translation>لغز عشوائي</translation>
     </message>
     <message>
+        <location filename="../qml/pages/ConundrumPage.qml" line="110"/>
+        <source>Backspace</source>
+        <translation>حذف للخلف</translation>
+    </message>
+    <message>
         <location filename="../qml/pages/ConundrumPage.qml" line="114"/>
         <source>Clear</source>
         <translation>مسح</translation>
@@ -60,6 +65,11 @@
         <location filename="../qml/pages/LettersPage.qml" line="110"/>
         <source>Random rack</source>
         <translation>أحرف عشوائية</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/LettersPage.qml" line="114"/>
+        <source>Backspace</source>
+        <translation>حذف للخلف</translation>
     </message>
     <message>
         <location filename="../qml/pages/LettersPage.qml" line="118"/>
@@ -149,78 +159,121 @@
     </message>
 </context>
 <context>
+    <name>LicensesDialog</name>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="26"/>
+        <source>Application framework and GUI toolkit (Core, Gui, Quick, QuickControls2, Concurrent).</source>
+        <translation>إطار عمل للتطبيقات وحزمة أدوات للواجهة الرسومية (Core، Gui، Quick، QuickControls2، Concurrent).</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="33"/>
+        <source>Bundled font used for the app&apos;s default (Latin-script) UI typeface.</source>
+        <translation>خط مضمّن يُستخدم كخط الواجهة الافتراضي للتطبيق (بالأبجدية اللاتينية).</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="40"/>
+        <source>Bundled font used for numbers, code-style text, and version/meta labels.</source>
+        <translation>خط مضمّن يُستخدم للأرقام والنصوص بنمط الشيفرة وتسميات الإصدار والبيانات الوصفية.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="47"/>
+        <source>Bundled font providing Arabic script coverage for the Arabic display language.</source>
+        <translation>خط مضمّن يوفّر دعم الكتابة العربية للغة العرض العربية.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="54"/>
+        <source>Bundled font providing Hebrew script coverage for the Hebrew and Yiddish display languages.</source>
+        <translation>خط مضمّن يوفّر دعم الكتابة العبرية للغتي العرض العبرية واليديشية.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="74"/>
+        <source>Third-party licences</source>
+        <translation>تراخيص الجهات الخارجية</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="75"/>
+        <source>Libraries bundled with Countdown Solver.</source>
+        <translation>المكتبات المضمّنة في Countdown Solver.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/LicensesDialog.qml" line="131"/>
+        <source>Close</source>
+        <translation>إغلاق</translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
-        <location filename="../qml/Main.qml" line="42"/>
+        <location filename="../qml/Main.qml" line="50"/>
         <source>Countdown Solver</source>
         <translation>حلّال Countdown</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="55"/>
         <location filename="../qml/Main.qml" line="63"/>
+        <location filename="../qml/Main.qml" line="71"/>
         <source>Numbers</source>
         <translation>الأرقام</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="55"/>
+        <location filename="../qml/Main.qml" line="63"/>
         <source>Reach the target using each number at most once.</source>
         <translation>حقّق الهدف باستخدام كل رقم مرة واحدة على الأكثر.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="56"/>
-        <location filename="../qml/Main.qml" line="63"/>
+        <location filename="../qml/Main.qml" line="64"/>
+        <location filename="../qml/Main.qml" line="71"/>
         <source>Letters</source>
         <translation>الأحرف</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="56"/>
+        <location filename="../qml/Main.qml" line="64"/>
         <source>Find every word hiding in your nine letters.</source>
         <translation>ابحث عن كل كلمة مختبئة في أحرفك التسعة.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="57"/>
-        <location filename="../qml/Main.qml" line="63"/>
+        <location filename="../qml/Main.qml" line="65"/>
+        <location filename="../qml/Main.qml" line="71"/>
         <source>Conundrum</source>
         <translation>اللغز</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="57"/>
+        <location filename="../qml/Main.qml" line="65"/>
         <source>Unscramble the nine letters into one word.</source>
         <translation>أعد ترتيب الأحرف التسعة لتكوين كلمة واحدة.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="58"/>
-        <location filename="../qml/Main.qml" line="63"/>
+        <location filename="../qml/Main.qml" line="66"/>
+        <location filename="../qml/Main.qml" line="71"/>
         <source>Settings</source>
         <translation>الإعدادات</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="58"/>
+        <location filename="../qml/Main.qml" line="66"/>
         <source>Tune the solver and how results are shown.</source>
         <translation>اضبط الحلّال وطريقة عرض النتائج.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="114"/>
+        <location filename="../qml/Main.qml" line="122"/>
         <source>Countdown</source>
         <translation>Countdown</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="115"/>
+        <location filename="../qml/Main.qml" line="123"/>
         <source>SOLVER</source>
         <translation>الحلّال</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="139"/>
+        <location filename="../qml/Main.qml" line="147"/>
         <source>%1 words loaded</source>
         <translation>تم تحميل %1 كلمة</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="140"/>
+        <location filename="../qml/Main.qml" line="148"/>
         <source>Loading…</source>
         <translation>جارٍ التحميل…</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="159"/>
+        <location filename="../qml/Main.qml" line="167"/>
         <source>dirty</source>
         <translation>غير مثبت</translation>
     </message>
@@ -241,6 +294,11 @@
         <location filename="../qml/pages/NumbersPage.qml" line="259"/>
         <source>Random game</source>
         <translation>جولة عشوائية</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/NumbersPage.qml" line="263"/>
+        <source>Backspace</source>
+        <translation>حذف للخلف</translation>
     </message>
     <message>
         <location filename="../qml/pages/NumbersPage.qml" line="267"/>
@@ -324,145 +382,158 @@
         <translation>يُطبَّق على النافذة بأكملها.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="61"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="62"/>
         <source>Light</source>
         <translation>فاتح</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="61"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="62"/>
         <source>Dark</source>
         <translation>داكن</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="61"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="62"/>
         <source>System</source>
         <translation>النظام</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="78"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="79"/>
         <source>Language</source>
         <translation>اللغة</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="89"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="90"/>
         <source>Display language</source>
         <translation>لغة العرض</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="90"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="91"/>
         <source>Changes menus, labels and messages across the app.</source>
         <translation>يغيّر القوائم والتسميات والرسائل في جميع أنحاء التطبيق.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="224"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="257"/>
         <source>Solver</source>
         <translation>الحلّال</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="236"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="269"/>
         <source>Minimum word length</source>
         <translation>الحد الأدنى لطول الكلمة</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="237"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="270"/>
         <source>Shortest words shown in the letters game.</source>
         <translation>أقصر الكلمات المعروضة في لعبة الأحرف.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="241"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="276"/>
         <source>3+</source>
         <translation>3+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="241"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="276"/>
         <source>4+</source>
         <translation>4+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="241"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="276"/>
         <source>5+</source>
         <translation>5+</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="258"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="293"/>
         <source>Flag when no exact answer</source>
         <translation>تنبيه عند عدم وجود حل دقيق</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="259"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="294"/>
         <source>Highlight the closest result in the numbers game.</source>
         <translation>إبراز أقرب نتيجة في لعبة الأرقام.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="308"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="357"/>
         <source>Max words shown</source>
         <translation>الحد الأقصى للكلمات المعروضة</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="309"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="358"/>
         <source>Cap the letters-game result list.</source>
         <translation>تحديد سقف قائمة نتائج لعبة الأحرف.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="362"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="418"/>
         <source>Dictionary</source>
         <translation>القاموس</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="369"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="425"/>
         <source>Word list</source>
         <translation>قائمة الكلمات</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="390"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="446"/>
         <source>Swap the built-in dictionary for your custom words.txt list.</source>
         <translation>استبدل القاموس المدمج بقائمة words.txt الخاصة بك.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="399"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="456"/>
         <source>Default</source>
         <translation>الافتراضي</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="399"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="456"/>
         <source>Custom</source>
         <translation>مخصص</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="424"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="481"/>
         <source>About</source>
         <translation>حول</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="457"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="515"/>
         <source>%1 words loaded</source>
         <translation>تم تحميل %1 كلمة</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="458"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="516"/>
         <source>Loading…</source>
         <translation>جارٍ التحميل…</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="475"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="533"/>
         <source>dirty</source>
         <translation>غير مثبت</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="485"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="543"/>
         <source>View on GitHub ↗</source>
         <translation>عرض على GitHub ↗</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="549"/>
+        <source>Third-party licences</source>
+        <translation>تراخيص الجهات الخارجية</translation>
+    </message>
+</context>
+<context>
+    <name>Tile</name>
+    <message>
+        <location filename="../qml/components/Tile.qml" line="26"/>
+        <source>Empty</source>
+        <translation>فارغ</translation>
     </message>
 </context>
 <context>
     <name>ViewToggle</name>
     <message>
-        <location filename="../qml/components/ViewToggle.qml" line="17"/>
+        <location filename="../qml/components/ViewToggle.qml" line="20"/>
         <source>Input</source>
         <translation>إدخال</translation>
     </message>
     <message>
-        <location filename="../qml/components/ViewToggle.qml" line="17"/>
+        <location filename="../qml/components/ViewToggle.qml" line="20"/>
         <source>Results</source>
         <translation>نتائج</translation>
     </message>
@@ -470,17 +541,17 @@
 <context>
     <name>countdown::app::Solver</name>
     <message>
-        <location filename="../solver.cpp" line="455"/>
+        <location filename="../solver.cpp" line="454"/>
         <source>A custom dictionary is available.</source>
         <translation>يتوفر قاموس مخصص.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="458"/>
+        <location filename="../solver.cpp" line="457"/>
         <source>A words.txt file was found in the config folder, but it contained no usable words.</source>
         <translation>تم العثور على ملف words.txt في مجلد الإعدادات، لكنه لم يحتوِ على كلمات قابلة للاستخدام.</translation>
     </message>
     <message>
-        <location filename="../solver.cpp" line="460"/>
+        <location filename="../solver.cpp" line="459"/>
         <source>Add a words.txt file to the config folder to enable a custom dictionary.</source>
         <translation>أضف ملف words.txt إلى مجلد الإعدادات لتفعيل قاموس مخصص.</translation>
     </message>

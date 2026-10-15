@@ -22,6 +22,14 @@ Button {
     Layout.fillHeight: true
     topPadding: horizontal ? 0 : Metrics.tabBar.paddingTop[idx]
 
+    // Same tab semantics and Tab-only focus as NavItem.qml.
+    focusPolicy: Qt.TabFocus
+    Accessible.role: Accessible.PageTab
+    Accessible.name: control.text
+    Accessible.selected: control.active
+    Keys.onReturnPressed: control.clicked()
+    Keys.onEnterPressed: control.clicked()
+
     background: Rectangle {
         color: "transparent"
         Rectangle {   // top accent border; anchors (not y) so it mirrors under RTL
@@ -82,4 +90,8 @@ Button {
             }
         }
     }
+
+    // Drawn inside the tab: the bar sits flush against the bottom (and the
+    // sides) of the window, where a ring outside the tab would be cut off.
+    FocusRing { inside: true; controlRadius: Theme.radiusControl }
 }

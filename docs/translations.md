@@ -73,8 +73,24 @@ in all of them, not just the first.
 
 `lupdate` groups each `.ts` file's messages into a `<context><name>`
 block named after the QML component it came from (`NumbersPage`,
-`LettersPage`, `ConundrumPage`, `SettingsPage`, `Main`) — use that to
-jump straight to the right area of a large `.ts` file.
+`LettersPage`, `ConundrumPage`, `SettingsPage`, `Main`, plus the shared
+components that carry text: `LicensesDialog`, `ViewToggle`, `Tile`) — use
+that to jump straight to the right area of a large `.ts` file. Strings in
+`solver.cpp` appear under `countdown::app::Solver`.
+
+### What is and isn't translated
+
+Everything a person reads is `qsTr()`/`tr()`. Two kinds of text are
+deliberately left as they are: **proper names** — library and font names
+(`Qt 6`, `IBM Plex Sans`) and the titles of licences (`SIL Open Font License,
+Version 1.1` is cited in English whatever the UI language) — and the module
+names inside a translated sentence (`Core`, `Quick`, ...).
+
+Strings that exist only as *accessible names* — the text a screen reader
+announces instead of a glyph, such as `Backspace` for the `←` button or
+`Empty` for a blank tile — are translated like any other: they go through
+`qsTr()` in the QML and appear in the `.ts` files under the component's
+context.
 
 ## Adding a new language
 

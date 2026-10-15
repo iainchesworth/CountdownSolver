@@ -51,6 +51,18 @@ constexpr auto kSettingsKey = "language/code";
     return is_supported(name) ? name : QStringLiteral("en");
 }
 
+// The locale the app formats numbers (and anything else locale-aware, e.g.
+// QML's Qt.locale() / Number.toLocaleString()) in for UI language `code`.
+//
+// When `code` is also the operating system's language the system locale is
+// used as-is, so a de_CH user keeps Swiss number formatting rather than being
+// moved to de_DE's; otherwise it's the language's own default locale. Either
+// way it follows the *app's* language, not the OS's.
+[[nodiscard]] QLocale locale_for_language(const QString& code) {
+    const QLocale system = QLocale::system();
+    return QLocale::languageToCode(system.language()) == code ? system : QLocale(code);
+}
+
 }  // namespace
 
 LanguageManager::LanguageManager(QGuiApplication& app, QQmlEngine& engine, QObject* parent)
@@ -63,6 +75,7 @@ void LanguageManager::applyInitialLanguage() {
 
     installTranslators(initial);
     app_.setLayoutDirection(QLocale(initial).textDirection());
+    QLocale::setDefault(locale_for_language(initial));
     current_language_ = initial;
 }
 
@@ -89,6 +102,10 @@ bool LanguageManager::setLanguage(const QString& code) {
 
     installTranslators(code);
     app_.setLayoutDirection(QLocale(code).textDirection());
+    // Before retranslate(), for the same reason as current_language_ below:
+    // the bindings it re-evaluates format numbers via Qt.locale(), which
+    // reads this default.
+    QLocale::setDefault(locale_for_language(code));
     // current_language_ must be updated before retranslate(): retranslate()
     // synchronously re-evaluates every live qsTr()-using binding, and any of
     // those that also read currentLanguage() (e.g. SettingsPage.qml's

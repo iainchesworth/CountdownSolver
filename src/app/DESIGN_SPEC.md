@@ -90,6 +90,11 @@ Conundrum `?`, Settings `≡`. Buttons use `↻` (random), `⌫` (backspace).
 ### States
 - **Nav active**: `accentSoft` fill, 3px `accent` left bar, `accent` badge/label.
 - **Pad hover/down**: slight `Qt.darker` shift on the fill.
+- **Keyboard focus**: a 2px `accent` ring drawn 2px outside the control's edge
+  (`focusRingWidth` / `focusRingOffset` in `Theme.qml`, drawn by
+  `components/FocusRing.qml`). Shown for keyboard focus only (Tab / Shift+Tab),
+  never after a mouse click or touch. The bottom tab bar, which is flush with
+  the window edge, draws it inside the tab instead.
 - **Tile filled vs empty**: filled = `tile` + 1px border; empty = `bg` + 2px
   border (dashed in the web ref — solid in QML unless drawn with Qt Quick Shapes).
 - **Numbers badge**: exact = `accent`/`accentInk`; otherwise "N away" in

@@ -256,11 +256,11 @@ Item {
             FlatButton {
                 Layout.fillWidth: true
                 implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
-                text: "↻ " + qsTr("Random game"); onClicked: root.randomGame()
+                text: "↻ " + qsTr("Random game"); Accessible.name: qsTr("Random game"); onClicked: root.randomGame()
             }
             FlatButton {
                 implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
-                text: "←"; onClicked: root.backspaceKey()
+                text: "←"; Accessible.name: qsTr("Backspace"); onClicked: root.backspaceKey()
             }
             FlatButton {
                 implicitHeight: Metrics.touchSize(Metrics.pick(Metrics.actionButton.size, 42))
@@ -426,14 +426,20 @@ Item {
         Item {
             Flickable {
                 anchors.fill: parent
-                anchors.margins: Metrics.headerPadding.side[Metrics.compactIndex]
+                // Grown by the focus ring's outset on every side, with the
+                // content inset by the same amount below - so the ring on a
+                // button flush with the content's edge isn't clipped, and
+                // nothing moves.
+                anchors.margins: Metrics.headerPadding.side[Metrics.compactIndex] - Theme.focusRingOutset
                 visible: root.view === "input"
                 clip: true
-                contentHeight: inputCol.implicitHeight
+                contentHeight: inputCol.implicitHeight + 2 * Theme.focusRingOutset
                 boundsBehavior: Flickable.StopAtBounds
                 ColumnLayout {
                     id: inputCol
-                    width: parent.width
+                    x: Theme.focusRingOutset
+                    y: Theme.focusRingOutset
+                    width: parent.width - 2 * Theme.focusRingOutset
                     spacing: 16
                     NumbersTileCard {}
                     TargetCard {}
@@ -500,17 +506,28 @@ Item {
                         NumbersTileCard {}
                     }
                 }
-                Flickable {
+                // The Flickable is wrapped in a plain Item, which is what the
+                // RowLayout sizes, and extends past it by the focus ring's
+                // outset with its content inset by the same amount - so the
+                // ring on the full-width buttons isn't clipped, and nothing
+                // moves.
+                Item {
                     Layout.preferredWidth: 1; Layout.fillWidth: true; Layout.fillHeight: true
-                    clip: true
-                    contentHeight: rightCol.implicitHeight
-                    boundsBehavior: Flickable.StopAtBounds
-                    ColumnLayout {
-                        id: rightCol
-                        width: parent.width
-                        spacing: 12
-                        TargetCard {}
-                        ActionButtons { Layout.fillWidth: true }
+                    Flickable {
+                        anchors.fill: parent
+                        anchors.margins: -Theme.focusRingOutset
+                        clip: true
+                        contentHeight: rightCol.implicitHeight + 2 * Theme.focusRingOutset
+                        boundsBehavior: Flickable.StopAtBounds
+                        ColumnLayout {
+                            id: rightCol
+                            x: Theme.focusRingOutset
+                            y: Theme.focusRingOutset
+                            width: parent.width - 2 * Theme.focusRingOutset
+                            spacing: 12
+                            TargetCard {}
+                            ActionButtons { Layout.fillWidth: true }
+                        }
                     }
                 }
             }

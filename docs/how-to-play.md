@@ -59,6 +59,31 @@ missing instead of showing a result.
 - **Dictionary** — switch between the bundled sample word list and the
   full ~122k-word dictionary. To use your own word list entirely, see
   [Using your own word list](getting-started.md#using-your-own-word-list).
+- **About** — the version, a link to the source on GitHub, and **Third-party
+  licences** for the libraries and fonts bundled with the app.
+
+The theme, minimum word length, *flag when no exact answer* switch, max-results
+slider and display language are remembered between launches. The word list
+choice isn't — it starts on the bundled sample list each time.
+
+## Using the keyboard
+
+Everything in the app can be used without a mouse.
+
+- **Tab** and **Shift+Tab** move between buttons, pads, keys, switches, sliders
+  and links in reading order. The control that has the focus gets a teal
+  outline, set a little way off its edge. The outline only appears for
+  keyboard focus — clicking with the mouse doesn't draw it.
+- **Space** or **Enter** presses the outlined control: a button or key, a link,
+  a segment such as Light / Dark / System, or a switch.
+- When no control is outlined, typing works as it always has. On Numbers,
+  digits fill the six tiles and then the target, **Space** or **Enter**
+  commits a typed number (and **Enter** solves once all six are set); on
+  Letters and Conundrum, letters fill the rack and **Enter** solves.
+  **Backspace** removes the last entry and **Esc** clears the board.
+- Screen readers announce each control by its on-screen label and kind —
+  button, tab, radio button, switch, slider or link — and read each tile as its
+  value, or "empty".
 
 ## Languages
 
@@ -75,3 +100,7 @@ against that language's own dictionary and alphabet rules (e.g. French
 draws a 10-letter rack instead of 9; German keeps *ä/ö/ü* distinct from
 *a/o/u*), not just the on-screen labels. The Numbers game is
 language-independent — it's arithmetic, not words.
+
+Numbers shown in the interface — the word count in the sidebar, for example —
+are formatted for the display language, not for your operating system's
+region: `122,160` in English, `122.160` in German.
