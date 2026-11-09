@@ -126,7 +126,7 @@ jobs:
       # require CMake 4. get-cmake installs a matching CMake 4 and Ninja on
       # every OS.
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
         with:
           cmakeVersion: "4.3.4"
           ninjaVersion: "1.13.2"
@@ -301,7 +301,7 @@ jobs:
         run: echo "COUNTDOWN_QT_ANDROID_ROOT=$QT_ROOT_DIR" >> "$GITHUB_ENV"
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
         with:
           cmakeVersion: "4.3.4"
           ninjaVersion: "1.13.2"
@@ -334,7 +334,7 @@ jobs:
           target: ios
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
         with:
           cmakeVersion: "4.3.4"
           ninjaVersion: "1.13.2"
@@ -364,7 +364,7 @@ jobs:
         uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@c412e6a542644c2316d21db351ef4218fa3e185d # v0.1.19
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
         with:
           cmakeVersion: "4.3.4"
           ninjaVersion: "1.13.2"
