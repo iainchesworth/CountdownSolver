@@ -145,7 +145,7 @@ jobs:
         uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@c412e6a542644c2316d21db351ef4218fa3e185d # v0.1.19
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
         with:
           cmakeVersion: "4.3.4"
           ninjaVersion: "1.13.2"
@@ -405,7 +405,7 @@ jobs:
         run: echo "COUNTDOWN_QT_ANDROID_ROOT=$QT_ROOT_DIR" >> "$GITHUB_ENV"
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
         with:
           cmakeVersion: "4.3.4"
           ninjaVersion: "1.13.2"
@@ -547,7 +547,7 @@ jobs:
           method: app-store
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
         with:
           cmakeVersion: "4.3.4"
           ninjaVersion: "1.13.2"
@@ -664,7 +664,7 @@ jobs:
       contents: write
       id-token: write
       attestations: write
-    uses: iainchesworthlabs/icl-common-infra/.github/workflows/release-publish.yml@0b66ebe4f1ac93b75323b3065777b4dd3f287cdf # v0.1.17
+    uses: iainchesworthlabs/icl-common-infra/.github/workflows/release-publish.yml@c412e6a542644c2316d21db351ef4218fa3e185d # v0.1.19
     secrets:
       REPO_GPG_PRIVATE_KEY: ${{ secrets.REPO_GPG_PRIVATE_KEY }}
       REPO_GPG_PASSPHRASE: ${{ secrets.REPO_GPG_PASSPHRASE }}
